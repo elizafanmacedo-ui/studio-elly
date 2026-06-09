@@ -380,6 +380,19 @@
       <label>Observações</label>
       <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
     </div>
+    <div class="form-group">
+      <label>📲 Lembretes via WhatsApp</label>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
+          <input type="checkbox" id="na-lembrete24" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
+          Lembrete 24h antes (automático)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
+          <input type="checkbox" id="na-lembrete2" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
+          Lembrete 2h antes (automático)
+        </label>
+      </div>
+    </div>
     <div style="display:flex;gap:10px;margin-top:8px;">
       <button class="btn btn-ghost btn-sm" onclick="closeModal(&#39;modal-novo-agendamento&#39;)">Cancelar</button>
       <button class="btn btn-primary" style="flex:1" onclick="salvarAgendamento()">Confirmar Agendamento</button>
@@ -489,26 +502,17 @@ function startSync() {
 
 // ═══════════ LEMBRETES ═══════════
 const LOCALIZACAO = 'https://maps.app.goo.gl/Y1EQgA4R2oifBoEc6';
-const IDS_MICROPIG = [1, 2, 3];
 
-function isMicropig(servicoId) { return IDS_MICROPIG.includes(servicoId); }
-
-function msgLembrete24h(a) {
+function msgLembrete(a, tipo) {
   const svc = SERVICOS.find(s => s.id === a.servicoId);
   const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  return `Olá, ${a.nomeCliente}! 😊\nPassando para lembrar que amanhã você tem um horário agendado no *Studio Elly Designer*.\n\n📅 Data: *${formatDate(a.data)}*\n🕐 Horário: *${a.hora}*\n✨ Serviço: *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nEm caso de imprevisto, entre em contato com antecedência para reagendarmos.\nTe esperamos! 💕`;
-}
-
-function msgLembrete2h(a) {
-  const svc = SERVICOS.find(s => s.id === a.servicoId);
-  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  return `${a.nomeCliente}, seu horário está chegando! ⏰\n\nEm *2 horas* você tem:\n✨ *${svc ? svc.nome : '—'}*\n🕐 Às *${a.hora}* com *${prof ? prof.nome : '—'}*\n📍 Studio Elly Designer — ${LOCALIZACAO}\n\nNos vemos em breve! 💕`;
-}
-
-function msgManual(a) {
-  const svc = SERVICOS.find(s => s.id === a.servicoId);
-  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  return `Olá, ${a.nomeCliente}! 😊\nLembrando do seu horário no *Studio Elly Designer*:\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nQualquer dúvida, é só chamar! 💕`;
+  if (tipo === '24h') {
+    return `Olá, ${a.nomeCliente}! 😊\nPassando para lembrar que amanhã você tem um horário agendado no *Studio Elly Designer*.\n\n📅 Data: *${formatDate(a.data)}*\n🕐 Horário: *${a.hora}*\n✨ Serviço: *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nEm caso de imprevisto, entre em contato com antecedência para reagendarmos.\nTe esperamos! 💕`;
+  } else if (tipo === '2h') {
+    return `${a.nomeCliente}, seu horário está chegando! ⏰\n\nEm *2 horas* você tem:\n✨ *${svc ? svc.nome : '—'}*\n🕐 Às *${a.hora}* com *${prof ? prof.nome : '—'}*\n📍 Studio Elly Designer — ${LOCALIZACAO}\n\nNos vemos em breve! 💕`;
+  } else {
+    return `Olá, ${a.nomeCliente}! 😊\nLembrando do seu horário no *Studio Elly Designer*:\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nQualquer dúvida, é só chamar! 💕`;
+  }
 }
 
 function waLink(fone, msg) {
@@ -518,23 +522,58 @@ function waLink(fone, msg) {
 function checkLembretes() {
   const now = new Date();
   agendamentos.forEach(a => {
-    if (a.status === 'cancelado' || !a.fone || !isMicropig(a.servicoId)) return;
+    if (a.status === 'cancelado' || !a.fone) return;
     const apptDateTime = new Date(a.data + 'T' + a.hora + ':00');
     const diffHrs = (apptDateTime - now) / (1000 * 60 * 60);
     const lembretes = a.lembretes || {};
-    if (diffHrs <= 24 && diffHrs > 23 && !lembretes.h24) {
-      window.open(waLink(a.fone, msgLembrete24h(a)), '_blank');
+    if (a.lembrete24 && diffHrs <= 24 && diffHrs > 23 && !lembretes.h24) {
+      window.open(waLink(a.fone, msgLembrete(a, '24h')), '_blank');
       a.lembretes = { ...lembretes, h24: true };
       save('elly_agendamentos', agendamentos);
       showToast('📲 Lembrete 24h enviado para ' + a.nomeCliente);
     }
-    if (diffHrs <= 2 && diffHrs > 1.83 && !lembretes.h2) {
-      window.open(waLink(a.fone, msgLembrete2h(a)), '_blank');
+    if (a.lembrete2 && diffHrs <= 2 && diffHrs > 1.83 && !lembretes.h2) {
+      window.open(waLink(a.fone, msgLembrete(a, '2h')), '_blank');
       a.lembretes = { ...lembretes, h2: true };
       save('elly_agendamentos', agendamentos);
       showToast('📲 Lembrete 2h enviado para ' + a.nomeCliente);
     }
   });
+}
+
+function verAgendamento(id) {
+  viewingApptId = id;
+  const a = agendamentos.find(x => x.id === id);
+  const svc = SERVICOS.find(s => s.id === a.servicoId);
+  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
+  const lembretes = a.lembretes || {};
+
+  let botoesWA = '';
+  if (a.fone) {
+    const st24 = a.lembrete24 ? (lembretes.h24 ? '✅ Enviado' : '⏳ Pendente') : '—';
+    const st2  = a.lembrete2  ? (lembretes.h2  ? '✅ Enviado' : '⏳ Pendente') : '—';
+    botoesWA = `
+      <div style="background:var(--light);border-radius:10px;padding:10px;font-size:0.78rem;color:var(--mid);margin-top:4px">
+        <div style="font-weight:600;color:var(--rose-dark);margin-bottom:6px">📲 Lembretes</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>24h antes</span><span>${st24}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>2h antes</span><span>${st2}</span></div>
+      </div>
+      <a href="${waLink(a.fone, msgLembrete(a, 'agora'))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;margin-top:8px;display:block;text-align:center">
+        📲 Enviar lembrete agora
+      </a>`;
+  }
+
+  document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
+  document.getElementById('va-body').innerHTML = `
+    <div style="display:grid;gap:10px">
+      <div><span class="badge badge-rose">${svc ? svc.nome : '—'}</span></div>
+      <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
+      <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof ? prof.nome : '—'}</strong></div>
+      <div style="font-size:0.85rem;color:var(--mid)">⏱ Duração: ${svc ? svc.duracao : '—'} min</div>
+      ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
+      ${botoesWA}
+    </div>`;
+  openModal('modal-ver-agendamento');
 }
 
 let currentUser = null;
@@ -703,47 +742,7 @@ function abrirSlot(hora) {
   }, 150);
 }
 
-function verAgendamento(id) {
-  viewingApptId = id;
-  const a = agendamentos.find(x => x.id === id);
 
-  const svc = SERVICOS.find(s => s.id === a.servicoId);
-  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  const ehMicropig = isMicropig(a.servicoId);
-  const lembretes = a.lembretes || {};
-
-  let botoesWA = '';
-  if (a.fone) {
-    if (ehMicropig) {
-      const st24 = lembretes.h24 ? '✅ Enviado' : '⏳ Pendente';
-      const st2  = lembretes.h2  ? '✅ Enviado' : '⏳ Pendente';
-      botoesWA = `
-        <div style="background:var(--light);border-radius:10px;padding:10px;font-size:0.78rem;color:var(--mid)">
-          <div style="font-weight:600;color:var(--rose-dark);margin-bottom:6px">📲 Lembretes automáticos</div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Lembrete 24h antes</span><span>${st24}</span></div>
-          <div style="display:flex;justify-content:space-between"><span>Lembrete 2h antes</span><span>${st2}</span></div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-          <a href="${waLink(a.fone, msgLembrete24h(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">📤 Enviar lembrete 24h</a>
-          <a href="${waLink(a.fone, msgLembrete2h(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">📤 Enviar lembrete 2h</a>
-        </div>`;
-    } else {
-      botoesWA = `<a href="${waLink(a.fone, msgManual(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;margin-top:4px">📲 Enviar lembrete no WhatsApp</a>`;
-    }
-  }
-
-  document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
-  document.getElementById('va-body').innerHTML = `
-    <div style="display:grid;gap:10px">
-      <div><span class="badge badge-rose">${svc ? svc.nome : '—'}</span></div>
-      <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
-      <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof ? prof.nome : '—'}</strong></div>
-      <div style="font-size:0.85rem;color:var(--mid)">⏱ Duração: ${svc ? svc.duracao : '—'} min</div>
-      ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
-      ${botoesWA}
-    </div>`;
-  openModal('modal-ver-agendamento');
-}
 
 function cancelarAgendamento() {
   if (!viewingApptId) return;
@@ -764,12 +763,14 @@ function salvarAgendamento() {
   const data = document.getElementById('na-data').value;
   const hora = document.getElementById('na-hora').value;
   const obs = document.getElementById('na-obs').value;
+  const lembrete24 = document.getElementById('na-lembrete24').checked;
+  const lembrete2 = document.getElementById('na-lembrete2').checked;
 
   if (!nomeCliente || !servicoId || !profId || !data || !hora) {
     showToast('Preencha todos os campos'); return;
   }
 
-  const novo = { id: Date.now(), nomeCliente, fone, servicoId, profId, data, hora, obs, status: 'confirmado' };
+  const novo = { id: Date.now(), nomeCliente, fone, servicoId, profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
   agendamentos.push(novo);
   save('elly_agendamentos', agendamentos);
   closeModal('modal-novo-agendamento');
@@ -925,6 +926,8 @@ function openModal(id) {
     document.getElementById('na-fone') && (document.getElementById('na-fone').value = '');
     document.getElementById('na-data').value = selectedDate;
     document.getElementById('na-obs').value = '';
+    document.getElementById('na-lembrete24').checked = false;
+    document.getElementById('na-lembrete2').checked = false;
     populateSelects();
   }
 
