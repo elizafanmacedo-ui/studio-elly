@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<!-- saved from url=(0039)https://musical-cat-6f89f0.netlify.app/ -->
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Studio Elly Designer – Agenda</title>
+<link href="./studio-elly-agendamento_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --rose: #c97d7d;
+    --rose-light: #e8c4c4;
+    --rose-dark: #8b4a4a;
+    --cream: #faf6f2;
+    --gold: #c9a96e;
+    --gold-light: #f0e4cc;
+    --dark: #2a1f1f;
+    --mid: #6b5555;
+    --light: #f5ede8;
+    --white: #ffffff;
+    --shadow: 0 4px 24px rgba(42,31,31,0.10);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, var(--dark) 0%, var(--rose-dark) 100%);
+    color: white;
+    padding: 18px 20px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 16px rgba(42,31,31,0.25);
+  }
+  .header-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.03em; line-height: 1.2; }
+  .header-logo span { display: block; font-size: 0.72rem; font-family: 'DM Sans', sans-serif; font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; }
+  .header-user { font-size: 0.8rem; background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: background 0.2s; }
+  .header-user:hover { background: rgba(255,255,255,0.2); }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex; background: var(--white); border-bottom: 1px solid var(--rose-light);
+    position: sticky; top: 64px; z-index: 90; overflow-x: auto;
+  }
+  .nav-btn {
+    flex: 1; min-width: 80px; padding: 14px 8px 12px; font-size: 0.72rem; font-weight: 500;
+    text-align: center; border: none; background: none; cursor: pointer; color: var(--mid);
+    border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .nav-btn.active { color: var(--rose-dark); border-bottom-color: var(--rose); }
+  .nav-btn .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 3px; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 20px 16px 100px; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white); border-radius: var(--radius); padding: 18px;
+    box-shadow: var(--shadow); margin-bottom: 14px;
+  }
+  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--rose-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 12px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 500;
+    border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--rose-dark), var(--rose)); color: white; box-shadow: 0 3px 12px rgba(201,125,125,0.35); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(201,125,125,0.45); }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), #e8c77a); color: var(--dark); }
+  .btn-ghost { background: var(--light); color: var(--rose-dark); }
+  .btn-danger { background: #ffe0e0; color: #c0392b; }
+  .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--mid); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  input, select, textarea {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--rose-light);
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    background: var(--cream); color: var(--dark); outline: none; transition: border 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--rose); background: white; }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ── AGENDA CALENDAR ── */
+  .date-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .date-nav-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--light); color: var(--rose-dark); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .date-label { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--dark); }
+
+  .week-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+  .week-scroll::-webkit-scrollbar { display: none; }
+  .day-chip {
+    flex-shrink: 0; width: 52px; text-align: center; padding: 10px 0;
+    border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+  }
+  .day-chip .dc-name { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); font-weight: 500; }
+  .day-chip .dc-num { font-size: 1.2rem; font-weight: 600; color: var(--dark); margin-top: 2px; }
+  .day-chip .dc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rose); margin: 4px auto 0; opacity: 0; }
+  .day-chip.has-event .dc-dot { opacity: 1; }
+  .day-chip.selected { background: var(--rose-dark); border-color: var(--rose-dark); }
+  .day-chip.selected .dc-name, .day-chip.selected .dc-num { color: white; }
+  .day-chip.selected .dc-dot { background: white; }
+  .day-chip:not(.selected):hover { border-color: var(--rose-light); background: var(--light); }
+
+  /* colunas */
+  .time-slot { display: flex; gap: 10px; margin-bottom: 6px; min-height: 48px; }
+  .time-label { width: 44px; font-size: 0.7rem; color: var(--mid); text-align: right; flex-shrink: 0; padding-top: 4px; font-weight: 500; }
+  .time-line { flex: 1; border-top: 1px dashed var(--rose-light); padding-top: 4px; position: relative; }
+  .appt-block {
+    background: linear-gradient(135deg, var(--rose-light), #f7dada);
+    border-left: 3px solid var(--rose);
+    border-radius: 8px; padding: 8px 10px; margin-bottom: 4px; cursor: pointer;
+    transition: box-shadow 0.2s;
+  }
+  .appt-block:hover { box-shadow: 0 3px 12px rgba(201,125,125,0.3); }
+  .appt-block.gold { background: linear-gradient(135deg, var(--gold-light), #f5e4c0); border-left-color: var(--gold); }
+  .appt-block.green { background: #e8f5e9; border-left-color: #66bb6a; }
+  .appt-name { font-weight: 600; font-size: 0.85rem; color: var(--dark); }
+  .appt-detail { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
+  .appt-prof { display: inline-block; font-size: 0.68rem; background: var(--rose-dark); color: white; border-radius: 10px; padding: 1px 7px; margin-top: 4px; }
+
+  /* ── BADGES ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
+  .badge-rose { background: var(--rose-light); color: var(--rose-dark); }
+  .badge-gold { background: var(--gold-light); color: #7a5c1e; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+
+  /* ── LISTS ── */
+  .list-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid var(--light);
+  }
+  .list-item:last-child { border-bottom: none; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 700; color: white;
+  }
+  .av-rose { background: linear-gradient(135deg, var(--rose), var(--rose-dark)); }
+  .av-gold { background: linear-gradient(135deg, var(--gold), #a0742e); }
+  .av-green { background: linear-gradient(135deg, #66bb6a, #388e3c); }
+  .av-blue { background: linear-gradient(135deg, #7d9bc9, #4a6fa5); }
+  .list-info { flex: 1; min-width: 0; }
+  .list-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-sub { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
+  .list-actions { display: flex; gap: 6px; }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed; bottom: 80px; right: 20px; z-index: 200;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--rose-dark), var(--rose));
+    color: white; font-size: 1.5rem; border: none; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139,74,74,0.5); display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  .fab:hover { transform: scale(1.08); }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    display: none; position: fixed; inset: 0; background: rgba(42,31,31,0.55);
+    z-index: 300; align-items: flex-end; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 24px 24px 0 0; padding: 24px 20px 40px;
+    width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--rose-light); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 18px; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .stat-card { background: var(--white); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); text-align: center; }
+  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--rose-dark); line-height: 1; }
+  .stat-label { font-size: 0.72rem; color: var(--mid); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── SERVIÇOS ── */
+  .service-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--light); }
+  .service-row:last-child { border-bottom: none; }
+  .service-name { font-size: 0.88rem; font-weight: 500; }
+  .service-meta { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
+  .service-price { font-size: 0.85rem; font-weight: 600; color: var(--gold); text-align: right; }
+  .service-price small { display: block; font-size: 0.68rem; color: var(--mid); font-weight: 400; }
+
+  /* ── LOGIN ── */
+  #login-page {
+    position: fixed; inset: 0; z-index: 500; background: linear-gradient(160deg, var(--dark) 0%, var(--rose-dark) 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px;
+  }
+  .login-logo { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 700; color: white; text-align: center; margin-bottom: 6px; }
+  .login-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 40px; }
+  .login-card { background: white; border-radius: 24px; padding: 28px 22px; width: 100%; max-width: 360px; }
+  .login-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--rose-dark); margin-bottom: 20px; font-weight: 600; }
+  .prof-select-grid { display: grid; gap: 10px; margin-bottom: 20px; }
+  .prof-option {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+    border: 2px solid var(--rose-light); border-radius: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  .prof-option:hover, .prof-option.selected { border-color: var(--rose-dark); background: var(--light); }
+  .prof-option .po-name { font-weight: 600; font-size: 0.9rem; }
+  .prof-option .po-role { font-size: 0.72rem; color: var(--mid); margin-top: 1px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--mid); }
+  .empty-state .es-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: var(--dark); color: white; padding: 10px 20px; border-radius: 20px;
+    font-size: 0.82rem; z-index: 999; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* colunas por profissional */
+  .cols-wrap { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .col-prof { border-radius: 12px; overflow: hidden; background: var(--cream); }
+  .col-header { padding: 10px; display: flex; align-items: center; gap: 6px; }
+  .col-header.rose { background: linear-gradient(135deg, var(--rose-dark), var(--rose)); color: white; }
+  .col-header.gold { background: linear-gradient(135deg, #8a6020, var(--gold)); color: white; }
+  .col-header.green { background: linear-gradient(135deg, #2e7d32, #66bb6a); color: white; }
+  .col-hname { font-weight: 600; font-size: 0.82rem; }
+  .col-hcount { font-size: 0.7rem; opacity: 0.85; margin-left: auto; }
+  .col-body { padding: 8px; min-height: 60px; }
+  .col-empty { text-align: center; padding: 16px 8px; color: var(--mid); font-size: 0.73rem; }
+  .appt-hora { font-size: 0.68rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 2px; }
+
+  .prof-tab-wrap { display: grid; grid-template-columns: repeat(3,1fr); position: sticky; top: 130px; z-index: 80; box-shadow: 0 2px 8px rgba(42,31,31,0.2); overflow: hidden; }
+  .prof-tab { padding: 16px 8px; text-align: center; font-weight: 700; font-size: 0.9rem; cursor: pointer; color: white; opacity: 0.6; transition: opacity 0.2s; letter-spacing: 0.02em; }
+  .prof-tab.active { opacity: 1; box-shadow: inset 0 -4px 0 rgba(255,255,255,0.6); }
+  .pt-rose { background: var(--rose-dark); }
+  .pt-gold { background: #8a6020; }
+  .pt-green { background: #2e7d32; }
+  .grade-table { width: 100%; border-collapse: collapse; }
+  .grade-table tr { border-bottom: 1px solid var(--rose-light); }
+  .hora-td { width: 48px; font-size: 0.68rem; color: var(--mid); font-weight: 600; text-align: right; padding: 0 8px; height: 34px; background: var(--cream); border-right: 2px solid var(--rose-light); white-space: nowrap; }
+  .slot-td { height: 34px; padding: 3px 8px; cursor: pointer; vertical-align: middle; }
+  .slot-td:hover { background: var(--light); }
+  .slot-td.tem-appt { background: var(--rose-light); }
+  .slot-nome { font-size: 0.78rem; font-weight: 600; color: var(--dark); }
+  .slot-svc { font-size: 0.68rem; color: var(--mid); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-logo">Studio Elly</div>
+  <div class="login-sub">Designer</div>
+  <div class="login-card">
+    <div class="login-title">Quem está acessando?</div>
+    <div class="prof-select-grid" id="prof-grid">
+    <div class="prof-option" id="po-1" onclick="selectProf(1)">
+      <div class="avatar av-rose" style="width:40px;height:40px;font-size:1rem">👑</div>
+      <div><div class="po-name">Elly</div><div class="po-role">Proprietária &amp; Especialista</div></div>
+    </div>
+  
+    <div class="prof-option" id="po-2" onclick="selectProf(2)">
+      <div class="avatar av-gold" style="width:40px;height:40px;font-size:1rem">✂️</div>
+      <div><div class="po-name">Denny</div><div class="po-role">Especialista em Cabelos</div></div>
+    </div>
+  
+    <div class="prof-option" id="po-3" onclick="selectProf(3)">
+      <div class="avatar av-green" style="width:40px;height:40px;font-size:1rem">💅</div>
+      <div><div class="po-name">Lanna</div><div class="po-role">Especialista em Beleza</div></div>
+    </div>
+  </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">Studio Elly <span>Designer</span></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
+    <div class="header-user" onclick="logout()" id="user-label">👤 —</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage(&#39;agenda&#39;)">
+    <span class="nav-icon">📅</span>Agenda
+  </button>
+  <button class="nav-btn" onclick="showPage(&#39;funcionarios&#39;)">
+    <span class="nav-icon">💅</span>Equipe
+  </button>
+  <button class="nav-btn" onclick="showPage(&#39;servicos&#39;)">
+    <span class="nav-icon">✨</span>Serviços
+  </button>
+</nav>
+
+<!-- ═══════════ AGENDA ═══════════ -->
+<div class="page active" id="page-agenda">
+  <div class="card">
+    <div class="date-nav">
+      <button class="date-nav-btn" onclick="moveWeek(-1)">‹</button>
+      <div class="date-label" id="month-label"></div>
+      <button class="date-nav-btn" onclick="moveWeek(1)">›</button>
+    </div>
+    <div class="week-scroll" id="week-scroll"></div>
+  </div>
+
+  <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
+  <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px;">
+    <div id="timeline"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FUNCIONÁRIOS ═══════════ -->
+<div class="page" id="page-funcionarios">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-hoje">0</div>
+      <div class="stat-label">Hoje</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-semana">0</div>
+      <div class="stat-label">Esta Semana</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">💅 Equipe</div>
+    <div id="lista-funcionarios"></div>
+  </div>
+</div>
+
+<!-- ═══════════ SERVIÇOS ═══════════ -->
+<div class="page" id="page-servicos">
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>✨ Tabela de Serviços</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')" style="font-size:0.8rem;padding:6px 14px">+ Novo</button>
+    </div>
+    <div id="lista-servicos"></div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PROFISSIONAL -->
+<div class="modal-bg" id="modal-editar-prof">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="ep-titulo">✏️ Editar Profissional</div>
+    <div id="ep-body"></div>
+  </div>
+</div>
+
+<!-- MODAL NOVO SERVIÇO -->
+<div class="modal-bg" id="modal-novo-servico">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✨ Novo Serviço</div>
+    <div class="form-group">
+      <label>Nome do Serviço</label>
+      <input type="text" id="ns-nome" placeholder="Ex: Penteado, Luzes...">
+    </div>
+    <div class="form-group">
+      <label>Duração (minutos)</label>
+      <input type="number" id="ns-duracao" placeholder="Ex: 60" min="5" step="5">
+    </div>
+    <div class="form-group">
+      <label>Preço (R$)</label>
+      <input type="number" id="ns-preco" placeholder="Ex: 80" min="0" step="1">
+    </div>
+    <div class="form-group">
+      <label>Profissionais que atendem</label>
+      <div id="ns-profs" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
+    </div>
+    <div class="form-group">
+      <label>Categoria</label>
+      <input type="text" id="ns-cat" placeholder="Ex: Coloração, Tratamento...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-servico')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarNovoServico()">Salvar Serviço</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal(&#39;modal-novo-agendamento&#39;)" title="Novo agendamento">+</button>
+
+<!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
+<div class="modal-bg" id="modal-novo-agendamento">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📅 Novo Agendamento</div>
+    <div class="form-group">
+      <label>Nome da Cliente</label>
+      <input type="text" id="na-cliente" placeholder="Digite o nome da cliente...">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp (opcional)</label>
+      <input type="tel" id="na-fone" placeholder="(98) 9XXXX-XXXX">
+    </div>
+    <div class="form-group">
+      <label>Serviço</label>
+      <div id="na-servicos-lista" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px;"></div>
+    </div>
+    <div class="form-group">
+      <label>Profissional</label>
+      <select id="na-profissional">
+        <option value="">Selecione a profissional...</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Data</label>
+      <input type="date" id="na-data">
+    </div>
+    <div class="form-group">
+      <label>Horário</label>
+      <input type="time" id="na-hora" value="09:00">
+    </div>
+    <div class="form-group">
+      <label>Observações</label>
+      <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>📲 Lembretes via WhatsApp</label>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
+          <input type="checkbox" id="na-lembrete24" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
+          Lembrete 24h antes (automático)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
+          <input type="checkbox" id="na-lembrete2" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
+          Lembrete 2h antes (automático)
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal(&#39;modal-novo-agendamento&#39;)">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarAgendamento()">Confirmar Agendamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: VER AGENDAMENTO ═══════════ -->
+<div class="modal-bg" id="modal-ver-agendamento">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="va-titulo"></div>
+    <div id="va-body"></div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-danger btn-sm" onclick="cancelarAgendamento()">🗑 Cancelar</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal(&#39;modal-ver-agendamento&#39;)">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════ DADOS ═══════════
+const FUNCIONARIOS = [
+  { id: 1, nome: 'Elly', cor: 'av-rose', emoji: '👑', role: 'Proprietária & Especialista' },
+  { id: 2, nome: 'Denny', cor: 'av-gold', emoji: '✂️', role: 'Especialista em Cabelos' },
+  { id: 3, nome: 'Lanna', cor: 'av-green', emoji: '💅', role: 'Especialista em Beleza' },
+];
+
+const SERVICOS = [
+  { id: 1, nome: 'Micropigmentação sobrancelhas', duracao: 90, profissionais: [1], cat: 'Micropigmentação' },
+  { id: 2, nome: 'Micropigmentação Barba', duracao: 150, profissionais: [1], cat: 'Micropigmentação' },
+  { id: 3, nome: 'Micropigmentação Capilar', duracao: 150, profissionais: [1], cat: 'Micropigmentação' },
+  { id: 4, nome: 'Progressiva', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
+  { id: 5, nome: 'Selagem', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
+  { id: 6, nome: 'Escova', duracao: 60, profissionais: [2,3], cat: 'Acabamento' },
+  { id: 7, nome: 'Chapinha', duracao: 45, profissionais: [2,3], cat: 'Acabamento' },
+  { id: 8, nome: 'Botox Capilar', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
+  { id: 9, nome: 'Corte Feminino', duracao: 45, profissionais: [1], cat: 'Corte' },
+  { id: 10, nome: 'Designer de Sobrancelha', duracao: 15, profissionais: [1,3], cat: 'Estética' },
+  { id: 11, nome: 'Henna', duracao: 30, profissionais: [1,3], cat: 'Estética' },
+  { id: 12, nome: 'Buço', duracao: 15, profissionais: [1,3], cat: 'Depilação' },
+  { id: 13, nome: 'Cauterização', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
+  { id: 14, nome: 'Banho de Brilho', duracao: 90, profissionais: [2], cat: 'Acabamento' },
+  { id: 15, nome: 'Hidratação', duracao: 30, profissionais: [2,3], cat: 'Tratamento' },
+  { id: 16, nome: 'Depilação Facial', duracao: 30, profissionais: [1,3], cat: 'Depilação' },
+  { id: 17, nome: 'Luzes e Mechas', duracao: 180, profissionais: [2], cat: 'Coloração' },
+  { id: 18, nome: 'Morena Iluminada', duracao: 180, profissionais: [2], cat: 'Coloração' },
+];
+
+// LocalStorage
+const DB_URL = "https://studio-elly-default-rtdb.firebaseio.com";
+let agendamentos = [];
+let syncInterval = null;
+
+async function loadFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + "/agendamentos.json");
+    const data = await res.json();
+    let novos = [];
+    if (data) {
+      if (Array.isArray(data)) {
+        // é array de arrays ou array de objetos
+        data.forEach(item => {
+          if (Array.isArray(item)) {
+            item.forEach(a => { if (a && a.id) novos.push(a); });
+          } else if (item && item.id) {
+            novos.push(item);
+          }
+        });
+      } else if (typeof data === 'object') {
+        Object.values(data).forEach(item => {
+          if (Array.isArray(item)) {
+            item.forEach(a => { if (a && a.id) novos.push(a); });
+          } else if (item && item.id) {
+            novos.push(item);
+          }
+        });
+      }
+    }
+    agendamentos = novos;
+    if (currentUser) {
+      renderWeek();
+      setTimeout(function(){ renderTimeline(); }, 100);
+      updateStats();
+    }
+  } catch(e) { console.log('Sync error', e); }
+}
+
+async function save(id, val) {
+  await fetch(DB_URL + "/agendamentos/" + id + ".json", {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(val)
+  });
+  await loadFromFirebase();
+}
+
+function startSync() {
+  loadFromFirebase();
+  syncInterval = setInterval(loadFromFirebase, 5000);
+  setInterval(checkLembretes, 60000);
+  setTimeout(checkLembretes, 3000);
+}
+
+// ═══════════ LEMBRETES ═══════════
+const LOCALIZACAO = 'https://maps.app.goo.gl/Y1EQgA4R2oifBoEc6';
+
+function msgLembrete(a, tipo) {
+  const svc = SERVICOS.find(s => s.id === a.servicoId);
+  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
+  if (tipo === '24h') {
+    return `Olá, ${a.nomeCliente}! 😊\nPassando para lembrar que amanhã você tem um horário agendado no *Studio Elly Designer*.\n\n📅 Data: *${formatDate(a.data)}*\n🕐 Horário: *${a.hora}*\n✨ Serviço: *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nEm caso de imprevisto, entre em contato com antecedência para reagendarmos.\nTe esperamos! 💕`;
+  } else if (tipo === '2h') {
+    return `${a.nomeCliente}, seu horário está chegando! ⏰\n\nEm *2 horas* você tem:\n✨ *${svc ? svc.nome : '—'}*\n🕐 Às *${a.hora}* com *${prof ? prof.nome : '—'}*\n📍 Studio Elly Designer — ${LOCALIZACAO}\n\nNos vemos em breve! 💕`;
+  } else {
+    return `Olá, ${a.nomeCliente}! 😊\nLembrando do seu horário no *Studio Elly Designer*:\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nQualquer dúvida, é só chamar! 💕`;
+  }
+}
+
+function waLink(fone, msg) {
+  return `https://wa.me/55${fone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+}
+
+function checkLembretes() {
+  const now = new Date();
+  agendamentos.forEach(a => {
+    if (a.status === 'cancelado' || !a.fone) return;
+    const apptDateTime = new Date(a.data + 'T' + a.hora + ':00');
+    const diffHrs = (apptDateTime - now) / (1000 * 60 * 60);
+    const lembretes = a.lembretes || {};
+    if (a.lembrete24 && diffHrs <= 24 && diffHrs > 23 && !lembretes.h24) {
+      window.open(waLink(a.fone, msgLembrete(a, '24h')), '_blank');
+      a.lembretes = { ...lembretes, h24: true };
+      save('elly_agendamentos', agendamentos);
+      showToast('📲 Lembrete 24h enviado para ' + a.nomeCliente);
+    }
+    if (a.lembrete2 && diffHrs <= 2 && diffHrs > 1.83 && !lembretes.h2) {
+      window.open(waLink(a.fone, msgLembrete(a, '2h')), '_blank');
+      a.lembretes = { ...lembretes, h2: true };
+      save('elly_agendamentos', agendamentos);
+      showToast('📲 Lembrete 2h enviado para ' + a.nomeCliente);
+    }
+  });
+}
+
+function verAgendamento(id) {
+  viewingApptId = id;
+  const a = agendamentos.find(x => x.id === id);
+  const ids = a.servicoIds || [a.servicoId];
+  const svcs = ids.map(id => SERVICOS.find(s => s.id === id)).filter(Boolean);
+  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
+  const lembretes = a.lembretes || {};
+
+  let botoesWA = '';
+  if (a.fone) {
+    const st24 = a.lembrete24 ? (lembretes.h24 ? '✅ Enviado' : '⏳ Pendente') : '—';
+    const st2  = a.lembrete2  ? (lembretes.h2  ? '✅ Enviado' : '⏳ Pendente') : '—';
+    botoesWA = `
+      <div style="background:var(--light);border-radius:10px;padding:10px;font-size:0.78rem;color:var(--mid);margin-top:4px">
+        <div style="font-weight:600;color:var(--rose-dark);margin-bottom:6px">📲 Lembretes</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>24h antes</span><span>${st24}</span></div>
+        <div style="display:flex;justify-content:space-between"><span>2h antes</span><span>${st2}</span></div>
+      </div>
+      <a href="${waLink(a.fone, msgLembrete(a, 'agora'))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;margin-top:8px;display:block;text-align:center">
+        📲 Enviar lembrete agora
+      </a>`;
+  }
+
+  const svcsHtml = svcs.map(s => `<span class="badge badge-rose" style="margin-right:4px;margin-bottom:4px">${s.nome}</span>`).join('');
+  document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
+  document.getElementById('va-body').innerHTML = `
+    <div style="display:grid;gap:10px">
+      <div style="display:flex;flex-wrap:wrap">${svcsHtml || '—'}</div>
+      <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
+      <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof ? prof.nome : '—'}</strong></div>
+      ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
+      ${botoesWA}
+    </div>`;
+  openModal('modal-ver-agendamento');
+}
+
+let currentUser = null;
+let selectedDate = today();
+let weekOffset = 0;
+let viewingApptId = null;
+let activeProfId = 1;
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ═══════════ LOGIN ═══════════
+function initLogin() {
+  const grid = document.getElementById('prof-grid');
+  grid.innerHTML = FUNCIONARIOS.map(f => `
+    <div class="prof-option" id="po-${f.id}" onclick="selectProf(${f.id})">
+      <div class="avatar ${f.cor}" style="width:40px;height:40px;font-size:1rem">${f.emoji}</div>
+      <div><div class="po-name">${f.nome}</div><div class="po-role">${f.role}</div></div>
+    </div>
+  `).join('');
+}
+
+function selectProf(id) {
+  document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('po-'+id).classList.add('selected');
+  currentUser = id;
+}
+
+function doLogin() {
+  if (!currentUser) { showToast('Selecione quem está acessando'); return; }
+  document.getElementById('login-page').style.display = 'none';
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  document.getElementById('user-label').textContent = f.emoji + ' ' + f.nome;
+  initApp();
+  startSync();
+  document.getElementById('sync-dot').style.display = 'block';
+}
+
+function logout() {
+  document.getElementById('login-page').style.display = 'flex';
+  currentUser = null;
+  document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
+}
+
+// ═══════════ INIT APP ═══════════
+function initApp() {
+  renderWeek();
+  renderTimeline();
+  renderFuncionarios();
+  renderServicos();
+  populateSelects();
+  updateStats();
+  // Set today's date as default
+  document.getElementById('na-data').value = today();
+}
+
+// ═══════════ AGENDA ═══════════
+function renderWeek() {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // find Monday of current week
+  const dow = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dow + 1);
+
+  document.getElementById('month-label').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const ds = d.toISOString().split('T')[0];
+    const hasEvent = agendamentos.some(a => a.data === ds && a.status !== 'cancelado');
+    const sel = ds === selectedDate ? 'selected' : '';
+    const hasClass = hasEvent ? 'has-event' : '';
+    html += `<div class="day-chip ${sel} ${hasClass}" onclick="selectDay('${ds}')">
+      <div class="dc-name">${days[d.getDay()]}</div>
+      <div class="dc-num">${d.getDate()}</div>
+      <div class="dc-dot"></div>
+    </div>`;
+  }
+  document.getElementById('week-scroll').innerHTML = html;
+}
+
+function selectDay(ds) {
+  selectedDate = ds;
+  renderWeek();
+  renderTimeline();
+}
+
+function moveWeek(dir) {
+  weekOffset += dir;
+  renderWeek();
+  renderTimeline();
+}
+
+function renderProfTabs() {
+  var el = document.getElementById('prof-tab-wrap');
+  if (!el) return;
+  var colors = ['pt-rose','pt-gold','pt-green'];
+  var tabs = '';
+  for (var i = 0; i < FUNCIONARIOS.length; i++) {
+    var f = FUNCIONARIOS[i];
+    var active = f.id === activeProfId ? 'active' : '';
+    tabs += '<div class="prof-tab ' + colors[i] + ' ' + active + '" onclick="trocarProf(' + f.id + ')">' + f.nome + '</div>';
+  }
+  el.innerHTML = tabs;
+}
+
+function trocarProf(id) {
+  activeProfId = id;
+  renderTimeline();
+}
+
+function renderTimeline() {
+  renderProfTabs();
+  var dayAppts = [];
+  for (var i = 0; i < agendamentos.length; i++) {
+    var a = agendamentos[i];
+    if (a.data === selectedDate && a.status !== 'cancelado' && a.profId === activeProfId) {
+      dayAppts.push(a);
+    }
+  }
+  var apptMap = {};
+  for (var i = 0; i < dayAppts.length; i++) {
+    apptMap[dayAppts[i].hora] = dayAppts[i];
+  }
+  var slots = [];
+  for (var h = 9; h < 20; h++) {
+    var mins = ['00','15','30','45'];
+    for (var m = 0; m < mins.length; m++) {
+      slots.push((h < 10 ? '0' : '') + h + ':' + mins[m]);
+    }
+  }
+  slots.push('20:00');
+  var rows = '';
+  for (var s = 0; s < slots.length; s++) {
+    var slot = slots[s];
+    var appt = apptMap[slot];
+    rows += '<tr><td class="hora-td">' + slot + '</td>';
+    if (appt) {
+      var svc = null;
+      for (var x = 0; x < SERVICOS.length; x++) {
+        if (SERVICOS[x].id === appt.servicoId) { svc = SERVICOS[x]; break; }
+      }
+      rows += '<td class="slot-td tem-appt" onclick="verAgendamento(' + appt.id + ')"><div class="slot-nome">' + appt.nomeCliente + '</div><div class="slot-svc">' + (svc ? svc.nome : '') + '</div></td>';
+    } else {
+      rows += '<td class="slot-td" onclick="abrirSlot(' + JSON.stringify(slot) + ')"></td>';
+    }
+    rows += '</tr>';
+  }
+  var tel = document.getElementById('timeline');
+  if (tel) tel.innerHTML = '<table class="grade-table"><tbody>' + rows + '</tbody></table>';
+}
+
+function abrirSlot(hora) {
+  openModal('modal-novo-agendamento');
+  setTimeout(function(){
+    document.getElementById('na-hora').value = hora;
+    document.getElementById('na-data').value = selectedDate;
+    document.getElementById('na-profissional').value = activeProfId;
+  }, 150);
+}
+
+
+
+function cancelarAgendamento() {
+  if (!viewingApptId) return;
+  const idx = agendamentos.findIndex(a => a.id === viewingApptId);
+  if (idx >= 0) { agendamentos[idx].status = 'cancelado'; save('elly_agendamentos', agendamentos); }
+  closeModal('modal-ver-agendamento');
+  renderTimeline();
+  renderWeek();
+  updateStats();
+  showToast('Agendamento cancelado');
+}
+
+function salvarAgendamento() {
+  const nomeCliente = document.getElementById('na-cliente').value.trim();
+  const fone = document.getElementById('na-fone').value.trim();
+  const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
+  const profId = parseInt(document.getElementById('na-profissional').value);
+  const data = document.getElementById('na-data').value;
+  const hora = document.getElementById('na-hora').value;
+  const obs = document.getElementById('na-obs').value;
+  const lembrete24 = document.getElementById('na-lembrete24').checked;
+  const lembrete2 = document.getElementById('na-lembrete2').checked;
+
+  if (!nomeCliente || servicoIds.length === 0 || !profId || !data || !hora) {
+    showToast('Preencha todos os campos'); return;
+  }
+
+  const novo = { id: Date.now(), nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
+  agendamentos.push(novo);
+  save('elly_agendamentos', agendamentos);
+  closeModal('modal-novo-agendamento');
+  selectedDate = data;
+  renderWeek();
+  renderTimeline();
+  updateStats();
+  showToast('✅ Agendamento confirmado!');
+}
+
+// ═══════════ CLIENTES ═══════════
+function renderClientes() {
+  const q = (document.getElementById('search-cliente')?.value || '').toLowerCase();
+  const lista = clientes.filter(c => c.nome.toLowerCase().includes(q));
+  
+  let btns = `<div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openModal('modal-nova-cliente')">+ Nova Cliente</button></div>`;
+
+  if (lista.length === 0) {
+    document.getElementById('lista-clientes').innerHTML = btns + `<div class="empty-state"><div class="es-icon">👤</div><p>Nenhuma cliente encontrada</p></div>`;
+    return;
+  }
+
+  const initials = n => n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+  const colors = ['av-rose','av-gold','av-green'];
+
+  document.getElementById('lista-clientes').innerHTML = btns + lista.map((c,i) => {
+    const hist = agendamentos.filter(a => a.clienteId === c.id && a.status !== 'cancelado').length;
+    return `<div class="list-item">
+      <div class="avatar ${colors[i%3]}">${initials(c.nome)}</div>
+      <div class="list-info">
+        <div class="list-name">${c.nome}</div>
+        <div class="list-sub">${c.fone} · ${hist} agendamento${hist!==1?'s':''}</div>
+        ${c.obs ? `<div class="list-sub" style="font-style:italic">${c.obs}</div>` : ''}
+      </div>
+      <div class="list-actions">
+        <a href="https://wa.me/55${c.fone.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function salvarCliente() {
+  const nome = document.getElementById('nc-nome').value.trim();
+  const fone = document.getElementById('nc-fone').value.trim();
+  const obs = document.getElementById('nc-obs').value.trim();
+  if (!nome || !fone) { showToast('Nome e WhatsApp são obrigatórios'); return; }
+  const novo = { id: Date.now(), nome, fone, obs };
+  clientes.push(novo);
+  save('elly_clientes', clientes);
+  closeModal('modal-nova-cliente');
+  renderClientes();
+  populateSelects();
+  showToast('✅ Cliente cadastrada!');
+}
+
+// ═══════════ FUNCIONÁRIOS ═══════════
+function renderFuncionarios() {
+  document.getElementById('lista-funcionarios').innerHTML = FUNCIONARIOS.map(f => {
+    const hoje = agendamentos.filter(a => a.profId === f.id && a.data === today() && a.status !== 'cancelado').length;
+    return `<div class="list-item" style="cursor:pointer" onclick="editarProfissional(${f.id})">
+      <div class="avatar ${f.cor}">${f.emoji}</div>
+      <div class="list-info">
+        <div class="list-name">${f.nome}</div>
+        <div class="list-sub">${f.role}</div>
+        <div class="list-sub" style="margin-top:4px"><span class="badge badge-rose">${hoje} hoje</span></div>
+      </div>
+      <div style="color:var(--mid);font-size:0.8rem;padding-right:4px">✏️</div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const hoje = agendamentos.filter(a => a.data === today() && a.status !== 'cancelado').length;
+  const now = new Date();
+  const dow = now.getDay();
+  const mon = new Date(now); mon.setDate(now.getDate() - dow + 1);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const semana = agendamentos.filter(a => {
+    const d = new Date(a.data);
+    return d >= mon && d <= sun && a.status !== 'cancelado';
+  }).length;
+  document.getElementById('stat-hoje').textContent = hoje;
+  document.getElementById('stat-semana').textContent = semana;
+}
+
+// ═══════════ SERVIÇOS ═══════════
+function salvarNovoServico() {
+  const nome = document.getElementById('ns-nome').value.trim();
+  const duracao = parseInt(document.getElementById('ns-duracao').value);
+  const preco = document.getElementById('ns-preco').value.trim();
+  const cat = document.getElementById('ns-cat').value.trim() || 'Outros';
+  const profIds = [...document.querySelectorAll('.ns-prof-check:checked')].map(c => parseInt(c.value));
+
+  if (!nome || !duracao || profIds.length === 0) {
+    showToast('Preencha nome, duração e profissional'); return;
+  }
+
+  const novoId = Math.max(...SERVICOS.map(s => s.id), 0) + 1;
+  SERVICOS.push({ id: novoId, nome, duracao, preco: preco || 'A definir', profissionais: profIds, cat });
+  closeModal('modal-novo-servico');
+  renderServicos();
+  showToast('✅ Serviço adicionado!');
+}
+
+function editarProfissional(id) {
+  const prof = FUNCIONARIOS.find(f => f.id === id);
+  if (!prof) return;
+
+  // Serviços que essa profissional realiza
+  const svcsProf = SERVICOS.filter(s => s.profissionais.includes(id));
+  const todosSvcs = SERVICOS.map(s =>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;padding:2px 0">
+      <input type="checkbox" class="ep-svc-check" value="${s.id}" ${s.profissionais.includes(id) ? 'checked' : ''} style="width:15px;height:15px;accent-color:var(--rose)">
+      ${s.nome}
+    </label>`
+  ).join('');
+
+  const coresOpts = [
+    {cls:'av-rose', bg:'#c97d7d', label:'Rosa'},
+    {cls:'av-gold', bg:'#c9a96e', label:'Dourado'},
+    {cls:'av-green', bg:'#66bb6a', label:'Verde'},
+    {cls:'av-blue', bg:'#7d9bc9', label:'Azul'},
+  ];
+  const coresHtml = coresOpts.map(c =>
+    `<div onclick="document.getElementById('ep-cor-val').value='${c.cls}';document.querySelectorAll('.ep-cor-opt').forEach(x=>x.style.outline='none');this.style.outline='3px solid #333'"
+      class="ep-cor-opt" title="${c.label}" style="width:28px;height:28px;border-radius:50%;background:${c.bg};cursor:pointer;display:inline-block;margin:3px;${prof.cor===c.cls?'outline:3px solid #333':''}"></div>`
+  ).join('');
+
+  document.getElementById('ep-titulo').textContent = '✏️ Editar ' + prof.nome;
+  document.getElementById('ep-body').innerHTML = `
+    <div style="display:grid;gap:12px">
+      <div class="form-group" style="margin:0">
+        <label>Nome</label>
+        <input type="text" id="ep-nome" value="${prof.nome}" style="width:100%;padding:10px;border:1px solid var(--rose-light);border-radius:10px;font-size:0.9rem">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Emoji / Foto</label>
+        <input type="text" id="ep-emoji" value="${prof.emoji || '💅'}" maxlength="4" style="width:80px;padding:10px;border:1px solid var(--rose-light);border-radius:10px;font-size:1.2rem;text-align:center">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Cor da coluna</label>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${coresHtml}</div>
+        <input type="hidden" id="ep-cor-val" value="${prof.cor || cores[0]}">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Serviços realizados</label>
+        <div style="max-height:160px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px;margin-top:4px">${todosSvcs}</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-prof')">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="salvarProfissional(${id})">Salvar</button>
+      </div>
+    </div>`;
+  openModal('modal-editar-prof');
+}
+
+function salvarProfissional(id) {
+  const prof = FUNCIONARIOS.find(f => f.id === id);
+  if (!prof) return;
+
+  const novoNome = document.getElementById('ep-nome').value.trim();
+  const novoEmoji = document.getElementById('ep-emoji').value.trim();
+  const novaCor = document.getElementById('ep-cor-val').value;
+  const svcsCheck = [...document.querySelectorAll('.ep-svc-check')];
+
+  if (!novoNome) { showToast('Digite um nome'); return; }
+
+  prof.nome = novoNome;
+  prof.emoji = novoEmoji || '💅';
+  prof.cor = novaCor;
+
+  // Atualizar profissionais nos serviços
+  svcsCheck.forEach(c => {
+    const svc = SERVICOS.find(s => s.id === parseInt(c.value));
+    if (!svc) return;
+    if (c.checked && !svc.profissionais.includes(id)) {
+      svc.profissionais.push(id);
+    } else if (!c.checked) {
+      svc.profissionais = svc.profissionais.filter(x => x !== id);
+    }
+  });
+
+  closeModal('modal-editar-prof');
+  renderFuncionarios();
+  renderServicos();
+  renderTimeline();
+  showToast('✅ Profissional atualizada!');
+}
+
+function renderServicos() {
+  const cats = [...new Set(SERVICOS.map(s => s.cat))];
+  let html = '';
+  cats.forEach(cat => {
+    const svcs = SERVICOS.filter(s => s.cat === cat);
+    html += `<div style="margin-bottom:4px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rose-dark);font-weight:600;padding:8px 0 4px">${cat}</div>`;
+    svcs.forEach(s => {
+      const profs = s.profissionais.map(id => FUNCIONARIOS.find(f=>f.id===id)?.nome).join(', ');
+      html += `<div class="service-row">
+        <div>
+          <div class="service-name">${s.nome}</div>
+          <div class="service-meta">⏱ ${s.duracao}min · ${profs}</div>
+        </div>
+        <div class="service-price">
+          <span style="color:var(--mid);font-size:0.75rem">A definir</span>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('lista-servicos').innerHTML = html;
+}
+
+// ═══════════ SELECTS ═══════════
+function populateSelects() {
+  // Checkboxes de serviços
+  const lista = document.getElementById('na-servicos-lista');
+  lista.innerHTML = SERVICOS.map(s =>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;padding:3px 0">
+      <input type="checkbox" class="svc-check" value="${s.id}" onchange="filtrarProfissional()" style="width:16px;height:16px;accent-color:var(--rose);cursor:pointer">
+      <span>${s.nome} <span style="color:var(--mid);font-size:0.78rem">(${s.duracao}min)</span></span>
+    </label>`
+  ).join('');
+
+  const selProf = document.getElementById('na-profissional');
+  selProf.innerHTML = '<option value="">Selecione a profissional...</option>' +
+    FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+}
+
+function filtrarProfissional() {
+  const checks = [...document.querySelectorAll('.svc-check:checked')];
+  const sel = document.getElementById('na-profissional');
+  if (checks.length === 0) {
+    sel.innerHTML = '<option value="">Selecione a profissional...</option>' +
+      FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+    return;
+  }
+  // Encontrar profissionais que atendem TODOS os serviços selecionados
+  const svcsSelecionados = checks.map(c => SERVICOS.find(s => s.id === parseInt(c.value))).filter(Boolean);
+  const profIds = FUNCIONARIOS.map(f => f.id).filter(fid =>
+    svcsSelecionados.every(s => s.profissionais.includes(fid))
+  );
+  if (profIds.length > 0) {
+    sel.innerHTML = '<option value="">Selecione a profissional...</option>' +
+      profIds.map(id => {
+        const f = FUNCIONARIOS.find(x => x.id === id);
+        return f ? `<option value="${f.id}">${f.nome}</option>` : '';
+      }).join('');
+    if (profIds.length === 1) sel.value = profIds[0];
+  } else {
+    sel.innerHTML = '<option value="">Qualquer profissional</option>' +
+      FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+  }
+}
+
+// ═══════════ UTILS ═══════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'agenda') { renderWeek(); renderTimeline(); }
+
+  if (id === 'funcionarios') { renderFuncionarios(); updateStats(); }
+  if (id === 'servicos') renderServicos();
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-novo-agendamento') {
+    document.getElementById('na-cliente').value = '';
+    document.getElementById('na-fone') && (document.getElementById('na-fone').value = '');
+    document.getElementById('na-data').value = selectedDate;
+    document.getElementById('na-obs').value = '';
+    document.getElementById('na-lembrete24').checked = false;
+    document.getElementById('na-lembrete2').checked = false;
+    populateSelects();
+  }
+  if (id === 'modal-novo-servico') {
+    document.getElementById('ns-nome').value = '';
+    document.getElementById('ns-duracao').value = '';
+    document.getElementById('ns-preco').value = '';
+    document.getElementById('ns-cat').value = '';
+    document.getElementById('ns-profs').innerHTML = FUNCIONARIOS.map(f =>
+      `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer">
+        <input type="checkbox" class="ns-prof-check" value="${f.id}" style="width:16px;height:16px;accent-color:var(--rose)">
+        ${f.nome}
+      </label>`
+    ).join('');
+  }
+
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  viewingApptId = null;
+}
+
+// close modal on bg click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+
+function formatDate(ds) {
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════ START ═══════════
+initLogin();
+</script>
+
+
+</body></html>
