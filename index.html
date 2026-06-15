@@ -7,17 +7,19 @@
 <link href="./studio-elly-agendamento_files/css2" rel="stylesheet">
 <style>
   :root {
-    --rose: #c97d7d;
-    --rose-light: #e8c4c4;
-    --rose-dark: #8b4a4a;
-    --cream: #faf6f2;
-    --gold: #c9a96e;
-    --gold-light: #f0e4cc;
-    --dark: #2a1f1f;
-    --mid: #6b5555;
-    --light: #f5ede8;
+    --rose: #c7868d;
+    --rose-light: #efd7db;
+    --rose-dark: #7e4e57;
+    --cream: #fcf8f5;
+    --gold: #c8ab74;
+    --gold-light: #f2e6cf;
+    --dark: #2f2325;
+    --mid: #6f5b60;
+    --light: #f7efea;
     --white: #ffffff;
-    --shadow: 0 4px 24px rgba(42,31,31,0.10);
+    --sage: #8eb79a;
+    --sage-dark: #6e9580;
+    --shadow: 0 6px 24px rgba(58,34,39,0.12);
     --radius: 16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,25 +27,25 @@
 
   /* ── HEADER ── */
   .header {
-    background: linear-gradient(135deg, var(--dark) 0%, var(--rose-dark) 100%);
+    background: linear-gradient(135deg, #4a3137 0%, #8e5963 55%, #bf7f89 100%);
     color: white;
-    padding: 18px 20px 14px;
+    padding: 12px 16px 10px;
     display: flex; align-items: center; justify-content: space-between;
     position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 16px rgba(42,31,31,0.25);
+    box-shadow: 0 2px 14px rgba(42,31,31,0.22);
   }
-  .header-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.03em; line-height: 1.2; }
-  .header-logo span { display: block; font-size: 0.72rem; font-family: 'DM Sans', sans-serif; font-weight: 300; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.75; }
-  .header-user { font-size: 0.8rem; background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; cursor: pointer; transition: background 0.2s; }
+  .header-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.18rem; font-weight: 700; letter-spacing: 0.03em; line-height: 1.05; }
+  .header-logo span { display: block; font-size: 0.62rem; font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.78; margin-top: 2px; }
+  .header-user { font-size: 0.76rem; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 5px 11px; cursor: pointer; transition: background 0.2s; }
   .header-user:hover { background: rgba(255,255,255,0.2); }
 
   /* ── NAV ── */
   .nav {
     display: flex; background: var(--white); border-bottom: 1px solid var(--rose-light);
-    position: sticky; top: 64px; z-index: 90; overflow-x: auto;
+    position: sticky; top: 52px; z-index: 90; overflow-x: auto;
   }
   .nav-btn {
-    flex: 1; min-width: 80px; padding: 14px 8px 12px; font-size: 0.72rem; font-weight: 500;
+    flex: 1; min-width: 72px; padding: 11px 6px 10px; font-size: 0.68rem; font-weight: 600;
     text-align: center; border: none; background: none; cursor: pointer; color: var(--mid);
     border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.04em; text-transform: uppercase;
   }
@@ -51,7 +53,7 @@
   .nav-btn .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 3px; }
 
   /* ── PAGES ── */
-  .page { display: none; padding: 20px 16px 100px; }
+  .page { display: none; padding: 18px 16px 84px; }
   .page.active { display: block; }
 
   /* ── CARDS ── */
@@ -59,7 +61,7 @@
     background: var(--white); border-radius: var(--radius); padding: 18px;
     box-shadow: var(--shadow); margin-bottom: 14px;
   }
-  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--rose-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--rose-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.01em; }
 
   /* ── BUTTONS ── */
   .btn {
@@ -67,8 +69,8 @@
     padding: 12px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 500;
     border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
   }
-  .btn-primary { background: linear-gradient(135deg, var(--rose-dark), var(--rose)); color: white; box-shadow: 0 3px 12px rgba(201,125,125,0.35); }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(201,125,125,0.45); }
+  .btn-primary { background: linear-gradient(135deg, #9a626b, var(--rose)); color: white; box-shadow: 0 4px 14px rgba(155, 98, 107, 0.35); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(155, 98, 107, 0.45); }
   .btn-gold { background: linear-gradient(135deg, var(--gold), #e8c77a); color: var(--dark); }
   .btn-ghost { background: var(--light); color: var(--rose-dark); }
   .btn-danger { background: #ffe0e0; color: #c0392b; }
@@ -151,11 +153,11 @@
 
   /* ── FAB ── */
   .fab {
-    position: fixed; bottom: 80px; right: 20px; z-index: 200;
-    width: 56px; height: 56px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--rose-dark), var(--rose));
+    position: fixed; bottom: 18px; right: 14px; z-index: 200;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: linear-gradient(135deg, #a7646d, #c9868e);
     color: white; font-size: 1.5rem; border: none; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(139,74,74,0.5); display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 18px rgba(126,78,87,0.22); display: flex; align-items: center; justify-content: center;
     transition: transform 0.2s;
   }
   .fab:hover { transform: scale(1.08); }
@@ -232,20 +234,26 @@
   .col-empty { text-align: center; padding: 16px 8px; color: var(--mid); font-size: 0.73rem; }
   .appt-hora { font-size: 0.68rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 2px; }
 
-  .prof-tab-wrap { display: grid; grid-template-columns: repeat(3,1fr); position: sticky; top: 130px; z-index: 80; box-shadow: 0 2px 8px rgba(42,31,31,0.2); overflow: hidden; }
-  .prof-tab { padding: 16px 8px; text-align: center; font-weight: 700; font-size: 0.9rem; cursor: pointer; color: white; opacity: 0.6; transition: opacity 0.2s; letter-spacing: 0.02em; }
-  .prof-tab.active { opacity: 1; box-shadow: inset 0 -4px 0 rgba(255,255,255,0.6); }
-  .pt-rose { background: var(--rose-dark); }
-  .pt-gold { background: #8a6020; }
-  .pt-green { background: #2e7d32; }
+  .prof-tab-wrap { display: grid; grid-template-columns: repeat(3,1fr); position: sticky; top: 108px; z-index: 80; box-shadow: 0 2px 8px rgba(42,31,31,0.2); overflow: hidden; }
+  .prof-tab { padding: 16px 8px; text-align: center; font-weight: 700; font-size: 0.9rem; cursor: pointer; color: white; opacity: 0.72; transition: all 0.2s; letter-spacing: 0.02em; }
+  .prof-tab.active { opacity: 1; box-shadow: inset 0 -4px 0 rgba(255,255,255,0.75); }
+  .pt-rose { background: linear-gradient(135deg, #8a565f, #b67079); }
+  .pt-gold { background: linear-gradient(135deg, #a9874d, #ccb178); }
+  .pt-green { background: linear-gradient(135deg, var(--sage-dark), var(--sage)); }
   .grade-table { width: 100%; border-collapse: collapse; }
   .grade-table tr { border-bottom: 1px solid var(--rose-light); }
-  .hora-td { width: 48px; font-size: 0.68rem; color: var(--mid); font-weight: 600; text-align: right; padding: 0 8px; height: 34px; background: var(--cream); border-right: 2px solid var(--rose-light); white-space: nowrap; }
-  .slot-td { height: 34px; padding: 3px 8px; cursor: pointer; vertical-align: middle; }
+  .hora-td { width: 58px; font-size: 0.74rem; color: var(--mid); font-weight: 700; text-align: right; padding: 0 10px; height: 44px; background: var(--cream); border-right: 2px solid #ead4d7; white-space: nowrap; }
+  .slot-td { height: 44px; padding: 4px 10px; cursor: pointer; vertical-align: middle; transition: background 0.2s; }
   .slot-td:hover { background: var(--light); }
-  .slot-td.tem-appt { background: var(--rose-light); }
-  .slot-nome { font-size: 0.78rem; font-weight: 600; color: var(--dark); }
-  .slot-svc { font-size: 0.68rem; color: var(--mid); }
+  .slot-td.tem-appt {
+    background: linear-gradient(135deg, #efd8dc, #e8c8ce);
+    box-shadow: inset 5px 0 0 #bb7b84, 0 4px 10px rgba(187, 123, 132, 0.08);
+    border-radius: 0 12px 12px 0;
+    padding: 7px 12px;
+  }
+  .slot-appt-content { display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
+  .slot-nome { font-size: 0.92rem; font-weight: 800; color: var(--dark); line-height: 1.08; }
+  .slot-svc { font-size: 0.86rem; font-weight: 800; color: var(--rose-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.08; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -290,6 +298,9 @@
   <button class="nav-btn active" onclick="showPage(&#39;agenda&#39;)">
     <span class="nav-icon">📅</span>Agenda
   </button>
+  <button class="nav-btn" onclick="showPage(&#39;clientes&#39;)">
+    <span class="nav-icon">👤</span>Clientes
+  </button>
   <button class="nav-btn" onclick="showPage(&#39;funcionarios&#39;)">
     <span class="nav-icon">💅</span>Equipe
   </button>
@@ -312,6 +323,21 @@
   <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
   <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px;">
     <div id="timeline"></div>
+  </div>
+</div>
+
+<!-- ═══════════ CLIENTES ═══════════ -->
+<div class="page" id="page-clientes">
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>👤 Cadastro de Clientes</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-nova-cliente')" style="font-size:0.8rem;padding:6px 14px">+ Nova</button>
+    </div>
+    <div class="form-group">
+      <label>Buscar Cliente</label>
+      <input type="text" id="search-cliente" placeholder="Digite o nome da cliente..." oninput="renderClientes()">
+    </div>
+    <div id="lista-clientes"></div>
   </div>
 </div>
 
@@ -341,6 +367,30 @@
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')" style="font-size:0.8rem;padding:6px 14px">+ Novo</button>
     </div>
     <div id="lista-servicos"></div>
+  </div>
+</div>
+
+<!-- MODAL NOVA CLIENTE -->
+<div class="modal-bg" id="modal-nova-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👤 Nova Cliente</div>
+    <div class="form-group">
+      <label>Nome da Cliente</label>
+      <input type="text" id="nc-nome" placeholder="Nome completo...">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp</label>
+      <input type="tel" id="nc-fone" placeholder="(98) 9XXXX-XXXX">
+    </div>
+    <div class="form-group">
+      <label>Observações</label>
+      <textarea id="nc-obs" placeholder="Preferências, alergias, histórico..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-nova-cliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarCliente()">Salvar Cliente</button>
+    </div>
   </div>
 </div>
 
@@ -393,6 +443,12 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">📅 Novo Agendamento</div>
+    <div class="form-group">
+      <label>Cliente cadastrada (opcional)</label>
+      <select id="na-cliente-cadastrada" onchange="selecionarClienteCadastro()">
+        <option value="">Agendar sem cadastro...</option>
+      </select>
+    </div>
     <div class="form-group">
       <label>Nome da Cliente</label>
       <input type="text" id="na-cliente" placeholder="Digite o nome da cliente...">
@@ -491,6 +547,7 @@ const SERVICOS = [
 // LocalStorage
 const DB_URL = "https://studio-elly-default-rtdb.firebaseio.com";
 let agendamentos = [];
+let clientes = [];
 let syncInterval = null;
 
 async function loadFromFirebase() {
@@ -527,6 +584,35 @@ async function loadFromFirebase() {
   } catch(e) { console.log('Sync error', e); }
 }
 
+async function loadClientesFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + "/clientes.json");
+    const data = await res.json();
+    let novos = [];
+    if (data) {
+      if (Array.isArray(data)) {
+        data.forEach(c => { if (c && c.id) novos.push(c); });
+      } else if (typeof data === 'object') {
+        Object.values(data).forEach(c => { if (c && c.id) novos.push(c); });
+      }
+    }
+    clientes = novos.sort((a,b) => (a.nome || '').localeCompare(b.nome || ''));
+    if (currentUser) {
+      renderClientes();
+      populateClientesSelect();
+    }
+  } catch(e) { console.log('Clientes sync error', e); }
+}
+
+async function saveClienteFirebase(cliente) {
+  await fetch(DB_URL + "/clientes/" + cliente.id + ".json", {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(cliente)
+  });
+  await loadClientesFromFirebase();
+}
+
 async function save(id, val) {
   await fetch(DB_URL + "/agendamentos/" + id + ".json", {
     method: "PUT",
@@ -538,7 +624,8 @@ async function save(id, val) {
 
 function startSync() {
   loadFromFirebase();
-  syncInterval = setInterval(loadFromFirebase, 5000);
+  loadClientesFromFirebase();
+  syncInterval = setInterval(function(){ loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
   setInterval(checkLembretes, 60000);
   setTimeout(checkLembretes, 3000);
 }
@@ -667,6 +754,7 @@ function logout() {
 function initApp() {
   renderWeek();
   renderTimeline();
+  renderClientes();
   renderFuncionarios();
   renderServicos();
   populateSelects();
@@ -736,6 +824,37 @@ function trocarProf(id) {
   renderTimeline();
 }
 
+function horaParaMinutos(hora) {
+  var partes = hora.split(':');
+  return (parseInt(partes[0], 10) * 60) + parseInt(partes[1], 10);
+}
+
+function minutosParaHora(total) {
+  var horas = Math.floor(total / 60);
+  var mins = total % 60;
+  return (horas < 10 ? '0' : '') + horas + ':' + (mins < 10 ? '0' : '') + mins;
+}
+
+function getDuracaoAgendamento(appt) {
+  var total = 0;
+  var ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
+  for (var i = 0; i < ids.length; i++) {
+    var svc = SERVICOS.find(function(s){ return s.id === ids[i]; });
+    if (svc && svc.duracao) total += parseInt(svc.duracao, 10) || 0;
+  }
+  return total || 15;
+}
+
+function getNomesServicos(appt) {
+  var nomesServicos = [];
+  var ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
+  for (var i = 0; i < ids.length; i++) {
+    var svc = SERVICOS.find(function(s){ return s.id === ids[i]; });
+    if (svc) nomesServicos.push(svc.nome);
+  }
+  return nomesServicos.join(' • ');
+}
+
 function renderTimeline() {
   renderProfTabs();
   var dayAppts = [];
@@ -745,10 +864,15 @@ function renderTimeline() {
       dayAppts.push(a);
     }
   }
+  dayAppts.sort(function(a, b) {
+    return horaParaMinutos(a.hora) - horaParaMinutos(b.hora);
+  });
+
   var apptMap = {};
-  for (var i = 0; i < dayAppts.length; i++) {
-    apptMap[dayAppts[i].hora] = dayAppts[i];
+  for (var j = 0; j < dayAppts.length; j++) {
+    apptMap[dayAppts[j].hora] = dayAppts[j];
   }
+
   var slots = [];
   for (var h = 9; h < 20; h++) {
     var mins = ['00','15','30','45'];
@@ -757,17 +881,21 @@ function renderTimeline() {
     }
   }
   slots.push('20:00');
+
   var rows = '';
   for (var s = 0; s < slots.length; s++) {
     var slot = slots[s];
     var appt = apptMap[slot];
     rows += '<tr><td class="hora-td">' + slot + '</td>';
+
     if (appt) {
-      var svc = null;
-      for (var x = 0; x < SERVICOS.length; x++) {
-        if (SERVICOS[x].id === appt.servicoId) { svc = SERVICOS[x]; break; }
-      }
-      rows += '<td class="slot-td tem-appt" onclick="verAgendamento(' + appt.id + ')"><div class="slot-nome">' + appt.nomeCliente + '</div><div class="slot-svc">' + (svc ? svc.nome : '') + '</div></td>';
+      var nomesServicos = getNomesServicos(appt);
+      rows += '<td class="slot-td tem-appt" onclick="verAgendamento(' + appt.id + ')">' +
+        '<div class="slot-appt-content">' +
+          '<div class="slot-nome">' + appt.nomeCliente + '</div>' +
+          '<div class="slot-svc">' + nomesServicos + '</div>' +
+        '</div>' +
+      '</td>';
     } else {
       rows += '<td class="slot-td" onclick="abrirSlot(' + JSON.stringify(slot) + ')"></td>';
     }
@@ -800,6 +928,7 @@ function cancelarAgendamento() {
 }
 
 function salvarAgendamento() {
+  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value || '') || null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
   const fone = document.getElementById('na-fone').value.trim();
   const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
@@ -814,7 +943,7 @@ function salvarAgendamento() {
     showToast('Preencha todos os campos'); return;
   }
 
-  const novo = { id: Date.now(), nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
+  const novo = { id: Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
   agendamentos.push(novo);
   save('elly_agendamentos', agendamentos);
   closeModal('modal-novo-agendamento');
@@ -827,30 +956,31 @@ function salvarAgendamento() {
 
 // ═══════════ CLIENTES ═══════════
 function renderClientes() {
+  const el = document.getElementById('lista-clientes');
+  if (!el) return;
   const q = (document.getElementById('search-cliente')?.value || '').toLowerCase();
-  const lista = clientes.filter(c => c.nome.toLowerCase().includes(q));
-  
-  let btns = `<div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="openModal('modal-nova-cliente')">+ Nova Cliente</button></div>`;
+  const lista = clientes.filter(c => (c.nome || '').toLowerCase().includes(q));
 
   if (lista.length === 0) {
-    document.getElementById('lista-clientes').innerHTML = btns + `<div class="empty-state"><div class="es-icon">👤</div><p>Nenhuma cliente encontrada</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">👤</div><p>Nenhuma cliente cadastrada</p></div>`;
     return;
   }
 
-  const initials = n => n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+  const initials = n => (n || '?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
   const colors = ['av-rose','av-gold','av-green'];
 
-  document.getElementById('lista-clientes').innerHTML = btns + lista.map((c,i) => {
+  el.innerHTML = lista.map((c,i) => {
     const hist = agendamentos.filter(a => a.clienteId === c.id && a.status !== 'cancelado').length;
+    const foneLimpo = (c.fone || '').replace(/\D/g,'');
     return `<div class="list-item">
       <div class="avatar ${colors[i%3]}">${initials(c.nome)}</div>
       <div class="list-info">
         <div class="list-name">${c.nome}</div>
-        <div class="list-sub">${c.fone} · ${hist} agendamento${hist!==1?'s':''}</div>
+        <div class="list-sub">${c.fone || 'Sem WhatsApp'} · ${hist} agendamento${hist!==1?'s':''}</div>
         ${c.obs ? `<div class="list-sub" style="font-style:italic">${c.obs}</div>` : ''}
       </div>
       <div class="list-actions">
-        <a href="https://wa.me/55${c.fone.replace(/\D/g,'')}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>
+        ${foneLimpo ? `<a href="https://wa.me/55${foneLimpo}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -860,13 +990,13 @@ function salvarCliente() {
   const nome = document.getElementById('nc-nome').value.trim();
   const fone = document.getElementById('nc-fone').value.trim();
   const obs = document.getElementById('nc-obs').value.trim();
-  if (!nome || !fone) { showToast('Nome e WhatsApp são obrigatórios'); return; }
+  if (!nome) { showToast('Digite o nome da cliente'); return; }
   const novo = { id: Date.now(), nome, fone, obs };
   clientes.push(novo);
-  save('elly_clientes', clientes);
+  saveClienteFirebase(novo);
   closeModal('modal-nova-cliente');
   renderClientes();
-  populateSelects();
+  populateClientesSelect();
   showToast('✅ Cliente cadastrada!');
 }
 
@@ -1028,7 +1158,29 @@ function renderServicos() {
 }
 
 // ═══════════ SELECTS ═══════════
+function populateClientesSelect() {
+  const sel = document.getElementById('na-cliente-cadastrada');
+  if (!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Agendar sem cadastro...</option>' +
+    clientes.map(c => `<option value="${c.id}">${c.nome}${c.fone ? ' — ' + c.fone : ''}</option>`).join('');
+  if (atual) sel.value = atual;
+}
+
+function selecionarClienteCadastro() {
+  const id = parseInt(document.getElementById('na-cliente-cadastrada').value);
+  if (!id) return;
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('na-cliente').value = c.nome || '';
+  document.getElementById('na-fone').value = c.fone || '';
+  if (c.obs && !document.getElementById('na-obs').value) {
+    document.getElementById('na-obs').value = c.obs;
+  }
+}
+
 function populateSelects() {
+  populateClientesSelect();
   // Checkboxes de serviços
   const lista = document.getElementById('na-servicos-lista');
   lista.innerHTML = SERVICOS.map(s =>
@@ -1076,6 +1228,7 @@ function showPage(id) {
   document.getElementById('page-'+id).classList.add('active');
   event.currentTarget.classList.add('active');
   if (id === 'agenda') { renderWeek(); renderTimeline(); }
+  if (id === 'clientes') { renderClientes(); }
 
   if (id === 'funcionarios') { renderFuncionarios(); updateStats(); }
   if (id === 'servicos') renderServicos();
@@ -1084,6 +1237,7 @@ function showPage(id) {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'modal-novo-agendamento') {
+    document.getElementById('na-cliente-cadastrada') && (document.getElementById('na-cliente-cadastrada').value = '');
     document.getElementById('na-cliente').value = '';
     document.getElementById('na-fone') && (document.getElementById('na-fone').value = '');
     document.getElementById('na-data').value = selectedDate;
@@ -1091,6 +1245,11 @@ function openModal(id) {
     document.getElementById('na-lembrete24').checked = false;
     document.getElementById('na-lembrete2').checked = false;
     populateSelects();
+  }
+  if (id === 'modal-nova-cliente') {
+    document.getElementById('nc-nome').value = '';
+    document.getElementById('nc-fone').value = '';
+    document.getElementById('nc-obs').value = '';
   }
   if (id === 'modal-novo-servico') {
     document.getElementById('ns-nome').value = '';
