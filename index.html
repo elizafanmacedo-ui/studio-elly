@@ -34,10 +34,43 @@
     position: sticky; top: 0; z-index: 100;
     box-shadow: 0 2px 14px rgba(42,31,31,0.22);
   }
-  .header-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.18rem; font-weight: 700; letter-spacing: 0.03em; line-height: 1.05; }
-  .header-logo span { display: block; font-size: 0.62rem; font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.78; margin-top: 2px; }
+  .header-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.24rem;
+    font-weight: 800;
+    letter-spacing: 0.035em;
+    line-height: 1.05;
+    color: #fff7ef;
+    text-shadow:
+      0 1px 0 #e9caca,
+      0 2px 0 #c99099,
+      0 3px 0 #8e5963,
+      0 8px 14px rgba(42,31,31,0.34);
+    transform: perspective(380px) rotateX(3deg);
+  }
+  .header-logo span {
+    display: block;
+    font-size: 0.62rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #f4dfd4;
+    opacity: 0.95;
+    margin-top: 2px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.22), 0 3px 8px rgba(42,31,31,0.24);
+  }
   .header-user { font-size: 0.76rem; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 5px 11px; cursor: pointer; transition: background 0.2s; }
   .header-user:hover { background: rgba(255,255,255,0.2); }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0));
+    pointer-events: none;
+  }
 
   /* ── NAV ── */
   .nav {
@@ -155,12 +188,17 @@
   .fab {
     position: fixed; bottom: 18px; right: 14px; z-index: 200;
     width: 50px; height: 50px; border-radius: 50%;
-    background: linear-gradient(135deg, #a7646d, #c9868e);
-    color: white; font-size: 1.5rem; border: none; cursor: pointer;
-    box-shadow: 0 8px 18px rgba(126,78,87,0.22); display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s;
+    background: linear-gradient(145deg, #e2a1a8 0%, #b8757f 55%, #8c505b 100%);
+    color: #fff8f5; font-size: 1.55rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.28); cursor: pointer;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,0.35),
+      inset 0 -4px 8px rgba(84,40,50,0.28),
+      0 9px 18px rgba(126,78,87,0.28);
+    display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 1px 0 #8c505b, 0 3px 6px rgba(42,31,31,0.32);
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .fab:hover { transform: scale(1.08); }
+  .fab:hover { transform: translateY(-2px) scale(1.06); box-shadow: inset 0 2px 0 rgba(255,255,255,0.38), inset 0 -4px 8px rgba(84,40,50,0.30), 0 12px 22px rgba(126,78,87,0.34); }
 
   /* ── MODAL ── */
   .modal-bg {
@@ -196,7 +234,21 @@
     position: fixed; inset: 0; z-index: 500; background: linear-gradient(160deg, var(--dark) 0%, var(--rose-dark) 100%);
     display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px;
   }
-  .login-logo { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 700; color: white; text-align: center; margin-bottom: 6px; }
+  .login-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.35rem;
+    font-weight: 800;
+    color: #fff7ef;
+    text-align: center;
+    margin-bottom: 6px;
+    letter-spacing: 0.035em;
+    text-shadow:
+      0 1px 0 #e9caca,
+      0 2px 0 #c99099,
+      0 4px 0 #7e4e57,
+      0 12px 20px rgba(42,31,31,0.42);
+    transform: perspective(480px) rotateX(4deg);
+  }
   .login-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 40px; }
   .login-card { background: white; border-radius: 24px; padding: 28px 22px; width: 100%; max-width: 360px; }
   .login-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--rose-dark); margin-bottom: 20px; font-weight: 600; }
