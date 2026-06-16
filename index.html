@@ -41,12 +41,7 @@
     letter-spacing: 0.035em;
     line-height: 1.05;
     color: #fff7ef;
-    text-shadow:
-      0 1px 0 #e9caca,
-      0 2px 0 #c99099,
-      0 3px 0 #8e5963,
-      0 8px 14px rgba(42,31,31,0.34);
-    transform: perspective(380px) rotateX(3deg);
+    text-shadow: 0 1px 3px rgba(42,31,31,0.25);
   }
   .header-logo span {
     display: block;
@@ -95,6 +90,14 @@
     box-shadow: var(--shadow); margin-bottom: 14px;
   }
   .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--rose-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.01em; }
+
+  /* ── STATUS BADGES ── */
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; }
+  .status-confirmado { background: #e8f5e9; color: #2e7d32; }
+  .status-atendido { background: #e3f2fd; color: #1565c0; }
+  .status-faltou { background: #fff3e0; color: #e65100; }
+  .status-reagendado { background: #f3e5f5; color: #6a1b9a; }
+  .status-cancelado { background: #fce4ec; color: #b71c1c; }
 
   /* ── BUTTONS ── */
   .btn {
@@ -494,7 +497,7 @@
 <div class="modal-bg" id="modal-novo-agendamento">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">📅 Novo Agendamento</div>
+    <div class="modal-title" id="na-modal-titulo">📅 Novo Agendamento</div>
     <div class="form-group">
       <label>Cliente cadastrada (opcional)</label>
       <select id="na-cliente-cadastrada" onchange="selecionarClienteCadastro()">
@@ -545,8 +548,8 @@
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal(&#39;modal-novo-agendamento&#39;)">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1" onclick="salvarAgendamento()">Confirmar Agendamento</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-agendamento')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" id="na-btn-salvar" onclick="salvarAgendamento()">Confirmar Agendamento</button>
     </div>
   </div>
 </div>
@@ -557,9 +560,10 @@
     <div class="modal-handle"></div>
     <div class="modal-title" id="va-titulo"></div>
     <div id="va-body"></div>
-    <div style="display:flex;gap:10px;margin-top:16px;">
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="editarAgendamento()">✏️ Editar</button>
       <button class="btn btn-danger btn-sm" onclick="cancelarAgendamento()">🗑 Cancelar</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="closeModal(&#39;modal-ver-agendamento&#39;)">Fechar</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-ver-agendamento')">Fechar</button>
     </div>
   </div>
 </div>
@@ -723,37 +727,128 @@ function checkLembretes() {
   });
 }
 
+// ═══════════ STATUS ═══════════
+const STATUS_LABELS = {
+  confirmado: { label: 'Confirmado', cls: 'status-confirmado', emoji: '✅' },
+  atendido:   { label: 'Atendido',   cls: 'status-atendido',   emoji: '💅' },
+  faltou:     { label: 'Faltou',     cls: 'status-faltou',     emoji: '⚠️' },
+  reagendado: { label: 'Reagendado', cls: 'status-reagendado', emoji: '🔄' },
+  cancelado:  { label: 'Cancelado',  cls: 'status-cancelado',  emoji: '❌' },
+};
+
+function alterarStatus(novoStatus) {
+  const a = agendamentos.find(x => x.id === viewingApptId);
+  if (!a) return;
+  a.status = novoStatus;
+  save('elly_agendamentos', agendamentos);
+  renderTimeline();
+  updateStats();
+  verAgendamento(viewingApptId);
+  showToast('Status atualizado: ' + STATUS_LABELS[novoStatus].label);
+}
+
+// ═══════════ EDITAR AGENDAMENTO ═══════════
+let editingApptId = null;
+
+function editarAgendamento() {
+  const a = agendamentos.find(x => x.id === viewingApptId);
+  if (!a) return;
+  editingApptId = viewingApptId;
+  closeModal('modal-ver-agendamento');
+
+  // Preencher o formulário com os dados do agendamento
+  document.getElementById('na-modal-titulo').textContent = '✏️ Editar Agendamento';
+  document.getElementById('na-btn-salvar').textContent = 'Salvar Alterações';
+  document.getElementById('na-cliente').value = a.nomeCliente;
+  document.getElementById('na-fone').value = a.fone || '';
+  document.getElementById('na-data').value = a.data;
+  document.getElementById('na-hora').value = a.hora;
+  document.getElementById('na-obs').value = a.obs || '';
+  document.getElementById('na-lembrete24').checked = a.lembrete24 || false;
+  document.getElementById('na-lembrete2').checked = a.lembrete2 || false;
+
+  populateSelects();
+
+  // Marcar serviços
+  setTimeout(() => {
+    const ids = a.servicoIds || [a.servicoId];
+    document.querySelectorAll('.svc-check').forEach(c => {
+      c.checked = ids.includes(parseInt(c.value));
+    });
+    // Selecionar profissional
+    document.getElementById('na-profissional').value = a.profId;
+  }, 100);
+
+  openModal('modal-novo-agendamento');
+}
+
+// ═══════════ BOTÕES WA ═══════════
+function msgConfirmacao(a) {
+  const svc = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
+  const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
+  return `Olá, ${a.nomeCliente}! 😊\nSeu agendamento está *confirmado* no *Studio Elly Designer*!\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc}*\n💅 Profissional: *${prof?prof.nome:'—'}*\n📍 ${LOCALIZACAO}\n\nTe esperamos! 💕`;
+}
+
+function msgLocalizacao(a) {
+  return `Olá, ${a.nomeCliente}! 😊\nSegue a localização do *Studio Elly Designer*:\n\n📍 ${LOCALIZACAO}\n\nTe esperamos no dia *${formatDate(a.data)}* às *${a.hora}*! 💕`;
+}
+
+function msgReagendamento(a) {
+  const svc = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
+  return `Olá, ${a.nomeCliente}! 😊\nPrecisamos reagendar seu horário de *${svc}* que estava marcado para *${formatDate(a.data)}* às *${a.hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\nStudio Elly Designer 💕`;
+}
+
 function verAgendamento(id) {
   viewingApptId = id;
   const a = agendamentos.find(x => x.id === id);
   const ids = a.servicoIds || [a.servicoId];
-  const svcs = ids.map(id => SERVICOS.find(s => s.id === id)).filter(Boolean);
+  const svcs = ids.map(sid => SERVICOS.find(s => s.id === sid)).filter(Boolean);
   const prof = FUNCIONARIOS.find(f => f.id === a.profId);
   const lembretes = a.lembretes || {};
+  const statusAtual = a.status || 'confirmado';
+  const st = STATUS_LABELS[statusAtual] || STATUS_LABELS.confirmado;
 
+  // Seletor de status
+  const statusOpts = Object.entries(STATUS_LABELS).map(([k,v]) =>
+    `<button onclick="alterarStatus('${k}')" style="padding:5px 10px;border-radius:20px;border:1.5px solid ${k===statusAtual?'var(--rose-dark)':'var(--rose-light)'};background:${k===statusAtual?'var(--rose-light)':'transparent'};font-size:0.75rem;font-weight:600;cursor:pointer;color:var(--dark)">${v.emoji} ${v.label}</button>`
+  ).join('');
+
+  // Botões WhatsApp
   let botoesWA = '';
   if (a.fone) {
     const st24 = a.lembrete24 ? (lembretes.h24 ? '✅ Enviado' : '⏳ Pendente') : '—';
     const st2  = a.lembrete2  ? (lembretes.h2  ? '✅ Enviado' : '⏳ Pendente') : '—';
     botoesWA = `
-      <div style="background:var(--light);border-radius:10px;padding:10px;font-size:0.78rem;color:var(--mid);margin-top:4px">
-        <div style="font-weight:600;color:var(--rose-dark);margin-bottom:6px">📲 Lembretes</div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>24h antes</span><span>${st24}</span></div>
-        <div style="display:flex;justify-content:space-between"><span>2h antes</span><span>${st2}</span></div>
-      </div>
-      <a href="${waLink(a.fone, msgLembrete(a, 'agora'))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;margin-top:8px;display:block;text-align:center">
-        📲 Enviar lembrete agora
-      </a>`;
+      <div style="background:var(--light);border-radius:10px;padding:10px;margin-top:4px">
+        <div style="font-weight:600;color:var(--rose-dark);margin-bottom:8px;font-size:0.82rem">📲 WhatsApp</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <a href="${waLink(a.fone, msgConfirmacao(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">✅ Confirmar</a>
+          <a href="${waLink(a.fone, msgLocalizacao(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">📍 Localização</a>
+          <a href="${waLink(a.fone, msgLembrete(a, 'agora'))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">🔔 Lembrete</a>
+          <a href="${waLink(a.fone, msgReagendamento(a))}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:0.75rem">🔄 Reagendar</a>
+        </div>
+        <div style="margin-top:8px;font-size:0.76rem;color:var(--mid);display:flex;justify-content:space-between">
+          <span>Lembrete 24h: ${st24}</span>
+          <span>Lembrete 2h: ${st2}</span>
+        </div>
+      </div>`;
   }
 
   const svcsHtml = svcs.map(s => `<span class="badge badge-rose" style="margin-right:4px;margin-bottom:4px">${s.nome}</span>`).join('');
   document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
   document.getElementById('va-body').innerHTML = `
     <div style="display:grid;gap:10px">
-      <div style="display:flex;flex-wrap:wrap">${svcsHtml || '—'}</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+        ${svcsHtml || '—'}
+        <span class="status-badge ${st.cls}">${st.emoji} ${st.label}</span>
+      </div>
       <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
       <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof ? prof.nome : '—'}</strong></div>
       ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
+      <div>
+        <div style="font-size:0.76rem;color:var(--mid);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Alterar status</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${statusOpts}</div>
+      </div>
       ${botoesWA}
     </div>`;
   openModal('modal-ver-agendamento');
@@ -995,15 +1090,34 @@ function salvarAgendamento() {
     showToast('Preencha todos os campos'); return;
   }
 
-  const novo = { id: Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
-  agendamentos.push(novo);
-  save('elly_agendamentos', agendamentos);
-  closeModal('modal-novo-agendamento');
-  selectedDate = data;
-  renderWeek();
-  renderTimeline();
-  updateStats();
-  showToast('✅ Agendamento confirmado!');
+  if (editingApptId) {
+    // Editar agendamento existente
+    const idx = agendamentos.findIndex(a => a.id === editingApptId);
+    if (idx >= 0) {
+      const statusAtual = agendamentos[idx].status;
+      const lembretesAtual = agendamentos[idx].lembretes || {};
+      agendamentos[idx] = { ...agendamentos[idx], clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, lembrete24, lembrete2, lembretes: lembretesAtual, status: statusAtual };
+      save('elly_agendamentos', agendamentos);
+      closeModal('modal-novo-agendamento');
+      selectedDate = data;
+      renderWeek();
+      renderTimeline();
+      updateStats();
+      showToast('✅ Agendamento atualizado!');
+      editingApptId = null;
+    }
+  } else {
+    // Novo agendamento
+    const novo = { id: Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
+    agendamentos.push(novo);
+    save('elly_agendamentos', agendamentos);
+    closeModal('modal-novo-agendamento');
+    selectedDate = data;
+    renderWeek();
+    renderTimeline();
+    updateStats();
+    showToast('✅ Agendamento confirmado!');
+  }
 }
 
 // ═══════════ CLIENTES ═══════════
