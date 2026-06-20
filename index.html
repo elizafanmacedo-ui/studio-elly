@@ -305,10 +305,19 @@
     box-shadow: inset 5px 0 0 #bb7b84, 0 4px 10px rgba(187, 123, 132, 0.08);
     border-radius: 0 12px 12px 0;
     padding: 7px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: default;
   }
-  .slot-appt-content { display: flex; flex-direction: column; justify-content: center; min-height: 100%; }
+  .slot-appt-content { display: flex; flex-direction: column; justify-content: center; min-height: 100%; cursor: pointer; flex: 1; min-width: 0; }
   .slot-nome { font-size: 0.92rem; font-weight: 800; color: var(--dark); line-height: 1.08; }
   .slot-svc { font-size: 0.86rem; font-weight: 800; color: var(--rose-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.08; margin-top: 4px; }
+  .slot-valor-wrap { display: flex; align-items: center; gap: 2px; flex-shrink: 0; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 2px 6px; }
+  .slot-valor-prefix { font-size: 0.72rem; font-weight: 700; color: var(--mid); }
+  .slot-valor-input { width: 52px; border: none; background: transparent; font-size: 0.86rem; font-weight: 800; color: var(--dark); text-align: right; }
+  .slot-valor-input:focus { outline: none; }
 </style>
 </head>
 <body>
@@ -339,6 +348,22 @@
   </div>
 </div>
 
+<!-- MODAL SENHA (acesso protegido da Elly) -->
+<div class="modal-bg" id="modal-senha">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Senha de Acesso</div>
+    <div class="form-group">
+      <label>Digite sua senha</label>
+      <input type="password" id="senha-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')confirmarSenha()">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="cancelarSenha()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmarSenha()">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- HEADER -->
 <div class="header">
   <div class="header-logo">Studio Elly <span>Designer</span></div>
@@ -361,6 +386,9 @@
   </button>
   <button class="nav-btn" onclick="showPage(&#39;servicos&#39;)">
     <span class="nav-icon">✨</span>Serviços
+  </button>
+  <button class="nav-btn" onclick="showPage(&#39;faturamento&#39;)">
+    <span class="nav-icon">💰</span>Faturamento
   </button>
 </nav>
 
@@ -412,6 +440,18 @@
     <div class="card-title">💅 Equipe</div>
     <div id="lista-funcionarios"></div>
   </div>
+  <div class="card" id="card-trocar-senha" style="display:none">
+    <div class="card-title">🔒 Minha Senha de Acesso</div>
+    <div class="form-group">
+      <label>Nova senha</label>
+      <input type="password" id="nova-senha-input" placeholder="Digite a nova senha">
+    </div>
+    <div class="form-group">
+      <label>Confirmar nova senha</label>
+      <input type="password" id="confirma-senha-input" placeholder="Repita a nova senha">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="trocarSenhaElly()">Salvar Nova Senha</button>
+  </div>
 </div>
 
 <!-- ═══════════ SERVIÇOS ═══════════ -->
@@ -422,6 +462,19 @@
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')" style="font-size:0.8rem;padding:6px 14px">+ Novo</button>
     </div>
     <div id="lista-servicos"></div>
+  </div>
+</div>
+
+<!-- ═══════════ FATURAMENTO ═══════════ -->
+<div class="page" id="page-faturamento">
+  <div class="date-nav">
+    <button class="date-nav-btn" onclick="moveMesFaturamento(-1)">‹</button>
+    <div id="fat-mes-label" style="font-weight:600"></div>
+    <button class="date-nav-btn" onclick="moveMesFaturamento(1)">›</button>
+  </div>
+  <div class="card">
+    <div class="card-title">💰 Faturamento do Mês</div>
+    <div id="fat-conteudo"></div>
   </div>
 </div>
 
@@ -770,6 +823,76 @@ function alterarStatus(novoStatus) {
   showToast('Status atualizado: ' + STATUS_LABELS[novoStatus].label);
 }
 
+function salvarValorAgendamento(id, valor) {
+  const a = agendamentos.find(x => x.id === id);
+  if (!a) return;
+  const num = parseFloat(valor);
+  a.valor = (valor === '' || isNaN(num)) ? null : num;
+  save(a.id, a);
+  if (document.getElementById('page-faturamento').classList.contains('active')) {
+    renderFaturamento();
+  }
+}
+
+// ═══════════ FATURAMENTO ═══════════
+let fatMesOffset = 0;
+
+function moveMesFaturamento(delta) {
+  fatMesOffset += delta;
+  renderFaturamento();
+}
+
+function renderFaturamento() {
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + fatMesOffset);
+  const ano = base.getFullYear();
+  const mes = base.getMonth(); // 0-indexed
+  const mesLabel = base.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  const label = document.getElementById('fat-mes-label');
+  if (label) label.textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
+
+  const doMes = agendamentos.filter(a => {
+    if (a.status === 'cancelado') return false;
+    const [y, m] = a.data.split('-').map(Number);
+    return y === ano && (m - 1) === mes;
+  });
+
+  const porProf = {};
+  FUNCIONARIOS.forEach(f => { porProf[f.id] = 0; });
+  let totalGeral = 0;
+  doMes.forEach(a => {
+    const v = (typeof a.valor === 'number') ? a.valor : 0;
+    totalGeral += v;
+    if (porProf[a.profId] !== undefined) porProf[a.profId] += v;
+  });
+
+  const ehDono = currentUser === 1; // Elly (Proprietária)
+  const cont = document.getElementById('fat-conteudo');
+  if (!cont) return;
+
+  let html = '';
+  if (ehDono) {
+    html += '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="stat-num">R$ ' + totalGeral.toFixed(2) + '</div><div class="stat-label">Total do Mês</div></div>' +
+    '</div>';
+    html += '<div style="margin-top:14px">';
+    FUNCIONARIOS.forEach(f => {
+      html += '<div class="slot-td" style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;margin-bottom:8px;background:var(--light)">' +
+        '<span>' + f.emoji + ' ' + f.nome + '</span>' +
+        '<strong>R$ ' + porProf[f.id].toFixed(2) + '</strong>' +
+      '</div>';
+    });
+    html += '</div>';
+  } else {
+    const meuTotal = porProf[currentUser] || 0;
+    html += '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="stat-num">R$ ' + meuTotal.toFixed(2) + '</div><div class="stat-label">Seu Total do Mês</div></div>' +
+    '</div>';
+  }
+  cont.innerHTML = html;
+}
+
 // ═══════════ EDITAR AGENDAMENTO ═══════════
 let editingApptId = null;
 
@@ -888,6 +1011,19 @@ function today() {
 }
 
 // ═══════════ LOGIN ═══════════
+const SENHA_PADRAO = 'Nego197353@';
+let senhaElly = null; // carregada do Firebase; usa SENHA_PADRAO se ainda não houver nenhuma salva
+
+async function carregarSenhaElly() {
+  try {
+    const res = await fetch(DB_URL + "/config/senhaElly.json");
+    const val = await res.json();
+    senhaElly = (typeof val === 'string' && val) ? val : SENHA_PADRAO;
+  } catch(e) {
+    senhaElly = SENHA_PADRAO;
+  }
+}
+
 function initLogin() {
   const grid = document.getElementById('prof-grid');
   grid.innerHTML = FUNCIONARIOS.map(f => `
@@ -896,6 +1032,7 @@ function initLogin() {
       <div><div class="po-name">${f.nome}</div><div class="po-role">${f.role}</div></div>
     </div>
   `).join('');
+  carregarSenhaElly();
 }
 
 function selectProf(id) {
@@ -904,8 +1041,40 @@ function selectProf(id) {
   currentUser = id;
 }
 
+function acessoEllyValidoHoje() {
+  const ultimo = localStorage.getItem('elly_auth_dia');
+  return ultimo === today();
+}
+
 function doLogin() {
   if (!currentUser) { showToast('Selecione quem está acessando'); return; }
+  if (currentUser === 1 && !acessoEllyValidoHoje()) {
+    document.getElementById('senha-input').value = '';
+    openModal('modal-senha');
+    return;
+  }
+  finalizarLogin();
+}
+
+function confirmarSenha() {
+  const digitada = document.getElementById('senha-input').value;
+  const senhaValida = senhaElly || SENHA_PADRAO;
+  if (digitada !== senhaValida) {
+    showToast('Senha incorreta');
+    return;
+  }
+  localStorage.setItem('elly_auth_dia', today());
+  closeModal('modal-senha');
+  finalizarLogin();
+}
+
+function cancelarSenha() {
+  closeModal('modal-senha');
+  currentUser = null;
+  document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
+}
+
+function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   document.getElementById('user-label').textContent = f.emoji + ' ' + f.nome;
@@ -918,6 +1087,26 @@ function logout() {
   document.getElementById('login-page').style.display = 'flex';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
+}
+
+async function trocarSenhaElly() {
+  const nova = document.getElementById('nova-senha-input').value;
+  const confirma = document.getElementById('confirma-senha-input').value;
+  if (!nova || nova.length < 4) { showToast('Senha precisa ter ao menos 4 caracteres'); return; }
+  if (nova !== confirma) { showToast('As senhas não conferem'); return; }
+  try {
+    await fetch(DB_URL + "/config/senhaElly.json", {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(nova)
+    });
+    senhaElly = nova;
+    document.getElementById('nova-senha-input').value = '';
+    document.getElementById('confirma-senha-input').value = '';
+    showToast('✅ Senha atualizada com sucesso');
+  } catch(e) {
+    showToast('Erro ao salvar. Verifique sua internet e tente de novo.');
+  }
 }
 
 // ═══════════ INIT APP ═══════════
@@ -1060,10 +1249,17 @@ function renderTimeline() {
 
     if (appt) {
       var nomesServicos = getNomesServicos(appt);
-      rows += '<td class="slot-td tem-appt" onclick="verAgendamento(' + appt.id + ')">' +
-        '<div class="slot-appt-content">' +
+      var valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
+      rows += '<td class="slot-td tem-appt">' +
+        '<div class="slot-appt-content" onclick="verAgendamento(' + appt.id + ')">' +
           '<div class="slot-nome">' + appt.nomeCliente + '</div>' +
           '<div class="slot-svc">' + nomesServicos + '</div>' +
+        '</div>' +
+        '<div class="slot-valor-wrap" onclick="event.stopPropagation()">' +
+          '<span class="slot-valor-prefix">R$</span>' +
+          '<input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="' + valorAtual + '" ' +
+          'onclick="event.stopPropagation()" ' +
+          'onchange="salvarValorAgendamento(' + appt.id + ', this.value)">' +
         '</div>' +
       '</td>';
     } else {
@@ -1419,8 +1615,14 @@ function showPage(id) {
   if (id === 'agenda') { renderWeek(); renderTimeline(); }
   if (id === 'clientes') { renderClientes(); }
 
-  if (id === 'funcionarios') { renderFuncionarios(); updateStats(); }
+  if (id === 'funcionarios') {
+    renderFuncionarios();
+    updateStats();
+    const cardSenha = document.getElementById('card-trocar-senha');
+    if (cardSenha) cardSenha.style.display = (currentUser === 1) ? 'block' : 'none';
+  }
   if (id === 'servicos') renderServicos();
+  if (id === 'faturamento') renderFaturamento();
 }
 
 function openModal(id) {
