@@ -1215,6 +1215,12 @@ function getNomesServicos(appt) {
 }
 
 function renderTimeline() {
+  // Se o usuário está digitando no campo de valor, não reconstrói a tabela agora
+  // (evita fechar o teclado/perder o foco a cada sincronização automática).
+  var elFoco = document.activeElement;
+  if (elFoco && elFoco.classList && elFoco.classList.contains('slot-valor-input')) {
+    return;
+  }
   renderProfTabs();
   var dayAppts = [];
   for (var i = 0; i < agendamentos.length; i++) {
