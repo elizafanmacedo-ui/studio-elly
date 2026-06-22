@@ -1215,12 +1215,6 @@ function getNomesServicos(appt) {
 }
 
 function renderTimeline() {
-  // Se o usuário está digitando no campo de valor, não reconstrói a tabela agora
-  // (evita fechar o teclado/perder o foco a cada sincronização automática).
-  var elFoco = document.activeElement;
-  if (elFoco && elFoco.classList && elFoco.classList.contains('slot-valor-input')) {
-    return;
-  }
   renderProfTabs();
   var dayAppts = [];
   for (var i = 0; i < agendamentos.length; i++) {
@@ -1273,6 +1267,66 @@ function renderTimeline() {
     }
     rows += '</tr>';
   }
+
+  // ── Rodapé: totais do dia ──
+  var agendsDia = agendamentos.filter(function(a) {
+    return a.data === selectedDate && a.status !== 'cancelado';
+  });
+
+  var ehDono = (currentUser === 1);
+
+  if (ehDono) {
+    // Total do profissional ativo na aba
+    var totalAtivo = 0;
+    agendsDia.forEach(function(a) {
+      if (a.profId === activeProfId && typeof a.valor === 'number') totalAtivo += a.valor;
+    });
+
+    // Total por profissional e geral
+    var totaisPorProf = {};
+    FUNCIONARIOS.forEach(function(f) { totaisPorProf[f.id] = 0; });
+    var totalGeral = 0;
+    agendsDia.forEach(function(a) {
+      var v = typeof a.valor === 'number' ? a.valor : 0;
+      totalGeral += v;
+      if (totaisPorProf[a.profId] !== undefined) totaisPorProf[a.profId] += v;
+    });
+
+    var profAtivo = FUNCIONARIOS.find(function(f){ return f.id === activeProfId; });
+    var nomeAtivo = profAtivo ? profAtivo.nome : '';
+
+    var linhasPorProf = FUNCIONARIOS.map(function(f) {
+      return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06)">' +
+        '<span>' + f.emoji + ' ' + f.nome + '</span>' +
+        '<strong>R$ ' + totaisPorProf[f.id].toFixed(2) + '</strong>' +
+      '</div>';
+    }).join('');
+
+    rows += '<tr><td colspan="' + (slots.length + 1) + '" style="padding:0">' +
+      '<div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px">' +
+        '<div style="font-size:0.78rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">💰 Totais do dia</div>' +
+        linhasPorProf +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0 0;margin-top:4px">' +
+          '<strong style="color:var(--dark)">Total Geral</strong>' +
+          '<strong style="color:var(--rose-dark);font-size:1.05rem">R$ ' + totalGeral.toFixed(2) + '</strong>' +
+        '</div>' +
+      '</div>' +
+    '</td></tr>';
+
+  } else {
+    // Profissional comum: vê só o próprio total do dia
+    var meuTotal = 0;
+    agendsDia.forEach(function(a) {
+      if (a.profId === currentUser && typeof a.valor === 'number') meuTotal += a.valor;
+    });
+    rows += '<tr><td colspan="' + (slots.length + 1) + '" style="padding:0">' +
+      '<div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>' +
+        '<strong style="color:var(--rose-dark);font-size:1.05rem">R$ ' + meuTotal.toFixed(2) + '</strong>' +
+      '</div>' +
+    '</td></tr>';
+  }
+
   var tel = document.getElementById('timeline');
   if (tel) tel.innerHTML = '<table class="grade-table"><tbody>' + rows + '</tbody></table>';
 }
