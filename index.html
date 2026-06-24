@@ -324,8 +324,9 @@
 
 <!-- LOGIN -->
 <div id="login-page">
-  <div class="login-logo">Studio Elly</div>
-  <div class="login-sub">Designer</div>
+  <img src="https://raw.githubusercontent.com/elizafanmacedo-ui/estúdio-elly/main/logo.png" 
+       alt="Studio Elly Designer" 
+       style="width:85%;max-width:420px;margin-bottom:24px;display:block;object-fit:contain">
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
     <div class="prof-select-grid" id="prof-grid">
@@ -615,6 +616,7 @@
     <div id="va-body"></div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="editarAgendamento()">✏️ Editar</button>
+      <button class="btn btn-primary btn-sm" onclick="enviarLembrete()">📱 Lembrete</button>
       <button class="btn btn-danger btn-sm" onclick="cancelarAgendamento()">🗑 Cancelar</button>
       <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-ver-agendamento')">Fechar</button>
     </div>
@@ -1353,6 +1355,34 @@ function cancelarAgendamento() {
   showToast('Agendamento cancelado');
 }
 
+function enviarLembrete() {
+  if (!viewingApptId) return;
+  const appt = agendamentos.find(a => a.id === viewingApptId);
+  if (!appt) return;
+  
+  // Formatar data e hora
+  const dataObj = new Date(appt.data + 'T00:00:00');
+  const diaSemana = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][dataObj.getDay()];
+  const dia = dataObj.getDate();
+  const mes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][dataObj.getMonth()];
+  
+  // Montar mensagem
+  const nome = appt.cliente || 'Cliente';
+  const hora = appt.hora || '00:00';
+  const mensagem = `Oi ${nome}! 👋\n\nEste é um lembrete de que você tem um agendamento conosco:\n\n📅 ${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}, ${dia} de ${mes}\n🕐 ${hora}\n\nPodemos confirmar? Qualquer dúvida é só chamar! ☺️`;
+  
+  // Abrir WhatsApp
+  const fone = appt.fone || '';
+  if (!fone) {
+    showToast('❌ Telefone não cadastrado');
+    return;
+  }
+  
+  const whatsappUrl = 'https://wa.me/' + fone.replace(/\D/g, '') + '?text=' + encodeURIComponent(mensagem);
+  window.open(whatsappUrl, '_blank');
+  showToast('✅ Abrindo WhatsApp...');
+}
+
 function salvarAgendamento() {
   const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value || '') || null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
@@ -1489,6 +1519,7 @@ function salvarNovoServico() {
 
   const novoId = Math.max(...SERVICOS.map(s => s.id), 0) + 1;
   SERVICOS.push({ id: novoId, nome, duracao, preco: preco || 'A definir', profissionais: profIds, cat });
+  save('SERVICOS', SERVICOS);
   closeModal('modal-novo-servico');
   renderServicos();
   showToast('✅ Serviço adicionado!');
@@ -1579,6 +1610,14 @@ function salvarProfissional(id) {
   showToast('✅ Profissional atualizada!');
 }
 
+// ═══════════ FORMATAÇÃO ═══════════
+function formatarMoeda(valor) {
+  if (!valor && valor !== 0) return 'A definir';
+  const num = parseFloat(valor);
+  if (isNaN(num)) return 'A definir';
+  return 'R$ ' + num.toFixed(2).replace('.', ',');
+}
+
 function renderServicos() {
   const cats = [...new Set(SERVICOS.map(s => s.cat))];
   let html = '';
@@ -1587,13 +1626,14 @@ function renderServicos() {
     html += `<div style="margin-bottom:4px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rose-dark);font-weight:600;padding:8px 0 4px">${cat}</div>`;
     svcs.forEach(s => {
       const profs = s.profissionais.map(id => FUNCIONARIOS.find(f=>f.id===id)?.nome).join(', ');
+      const precoFormatado = formatarMoeda(s.preco);
       html += `<div class="service-row">
         <div>
           <div class="service-name">${s.nome}</div>
           <div class="service-meta">⏱ ${s.duracao}min · ${profs}</div>
         </div>
         <div class="service-price">
-          <span style="color:var(--mid);font-size:0.75rem">A definir</span>
+          <span style="color:var(--mid);font-size:0.75rem">${precoFormatado}</span>
         </div>
       </div>`;
     });
