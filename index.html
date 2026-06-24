@@ -324,7 +324,7 @@
 
 <!-- LOGIN -->
 <div id="login-page">
-  <img src="https://raw.githubusercontent.com/elizafanmacedo-ui/studio-elly/principal/logo-studio.PNG" 
+  <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" 
        alt="Studio Elly Designer" 
        style="width:85%;max-width:420px;margin-bottom:24px;display:block;object-fit:contain">
   <div class="login-card">
@@ -1366,10 +1366,12 @@ function enviarLembrete() {
   const dia = dataObj.getDate();
   const mes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][dataObj.getMonth()];
   
-  // Montar mensagem
-  const nome = appt.cliente || 'Cliente';
+  // Montar mensagem melhorada
+  const nome = (appt.cliente && appt.cliente.trim()) ? appt.cliente.trim() : 'Cliente';
   const hora = appt.hora || '00:00';
-  const mensagem = `Oi ${nome}! 👋\n\nEste é um lembrete de que você tem um agendamento conosco:\n\n📅 ${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}, ${dia} de ${mes}\n🕐 ${hora}\n\nPodemos confirmar? Qualquer dúvida é só chamar! ☺️`;
+  const profissional = FUNCIONARIOS.find(f => f.id === appt.profId)?.nome || '';
+  
+  const mensagem = `Oi ${nome}! 👋\n\n✨ *Lembrete do seu agendamento* ✨\n\n📅 ${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}, ${dia} de ${mes}\n🕐 ${hora}\n${profissional ? '💅 Com: ' + profissional + '\n' : ''}\nPodemos confirmar sua presença? 😊\n\nQualquer dúvida é só chamar! 💬`;
   
   // Abrir WhatsApp
   const fone = appt.fone || '';
