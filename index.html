@@ -1,355 +1,227 @@
 <!DOCTYPE html>
-<!-- saved from url=(0039)https://musical-cat-6f89f0.netlify.app/ -->
-<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Studio Elly Designer – Agenda</title>
-<link href="./studio-elly-agendamento_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --rose: #c7868d;
-    --rose-light: #efd7db;
-    --rose-dark: #7e4e57;
-    --cream: #fcf8f5;
-    --gold: #c8ab74;
-    --gold-light: #f2e6cf;
-    --dark: #2f2325;
-    --mid: #6f5b60;
-    --light: #f7efea;
-    --white: #ffffff;
-    --sage: #8eb79a;
-    --sage-dark: #6e9580;
-    --shadow: 0 6px 24px rgba(58,34,39,0.12);
-    --radius: 16px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+:root {
+  --rose: #c7868d;
+  --rose-light: #efd7db;
+  --rose-dark: #7e4e57;
+  --cream: #fcf8f5;
+  --gold: #c8ab74;
+  --gold-light: #f2e6cf;
+  --dark: #2f2325;
+  --mid: #6f5b60;
+  --light: #f7efea;
+  --white: #ffffff;
+  --sage: #8eb79a;
+  --sage-dark: #6e9580;
+  --shadow: 0 6px 24px rgba(58,34,39,0.12);
+  --shadow-sm: 0 2px 10px rgba(58,34,39,0.08);
+  --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
 
-  /* ── HEADER ── */
-  .header {
-    background: linear-gradient(135deg, #4a3137 0%, #8e5963 55%, #bf7f89 100%);
-    color: white;
-    padding: 12px 16px 10px;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 14px rgba(42,31,31,0.22);
-  }
-  .header-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.24rem;
-    font-weight: 800;
-    letter-spacing: 0.035em;
-    line-height: 1.05;
-    color: #fff7ef;
-    text-shadow: 0 1px 3px rgba(42,31,31,0.25);
-  }
-  .header-logo span {
-    display: block;
-    font-size: 0.62rem;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #f4dfd4;
-    opacity: 0.95;
-    margin-top: 2px;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.22), 0 3px 8px rgba(42,31,31,0.24);
-  }
-  .header-user { font-size: 0.76rem; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 5px 11px; cursor: pointer; transition: background 0.2s; }
-  .header-user:hover { background: rgba(255,255,255,0.2); }
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #4a3137 0%, #8e5963 55%, #bf7f89 100%);
+  color: white; padding: 12px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 14px rgba(42,31,31,0.22);
+}
+.header::after { content:''; position:absolute; left:0; right:0; top:0; height:45%; background:linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0)); pointer-events:none; }
+.header-logo { font-family:'Cormorant Garamond',serif; font-size:1.24rem; font-weight:800; letter-spacing:0.035em; line-height:1.05; color:#fff7ef; text-shadow:0 1px 3px rgba(42,31,31,0.25); }
+.header-logo span { display:block; font-size:0.62rem; font-family:'DM Sans',sans-serif; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#f4dfd4; opacity:0.95; margin-top:2px; }
+.header-user { font-size:0.76rem; background:rgba(255,255,255,0.12); border-radius:18px; padding:5px 11px; cursor:pointer; transition:background 0.2s; }
+.header-user:hover { background:rgba(255,255,255,0.2); }
 
-  .header::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0; top: 0;
-    height: 45%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0));
-    pointer-events: none;
-  }
+/* ── NAV ── */
+.nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; overflow-x:auto; }
+.nav::-webkit-scrollbar { display:none; }
+.nav-btn { flex:1; min-width:60px; padding:11px 4px 10px; font-size:0.63rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.04em; text-transform:uppercase; }
+.nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
+.nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; }
 
-  /* ── NAV ── */
-  .nav {
-    display: flex; background: var(--white); border-bottom: 1px solid var(--rose-light);
-    position: sticky; top: 52px; z-index: 90; overflow-x: auto;
-  }
-  .nav-btn {
-    flex: 1; min-width: 72px; padding: 11px 6px 10px; font-size: 0.68rem; font-weight: 600;
-    text-align: center; border: none; background: none; cursor: pointer; color: var(--mid);
-    border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .nav-btn.active { color: var(--rose-dark); border-bottom-color: var(--rose); }
-  .nav-btn .nav-icon { font-size: 1.2rem; display: block; margin-bottom: 3px; }
+/* ── PAGES ── */
+.page { display:none; padding:18px 16px 90px; }
+.page.active { display:block; }
 
-  /* ── PAGES ── */
-  .page { display: none; padding: 18px 16px 84px; }
-  .page.active { display: block; }
+/* ── CARDS ── */
+.card { background:var(--white); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); margin-bottom:14px; }
+.card-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:var(--rose-dark); margin-bottom:12px; display:flex; align-items:center; gap:8px; letter-spacing:0.01em; }
 
-  /* ── CARDS ── */
-  .card {
-    background: var(--white); border-radius: var(--radius); padding: 18px;
-    box-shadow: var(--shadow); margin-bottom: 14px;
-  }
-  .card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--rose-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.01em; }
+/* ── STATUS BADGES ── */
+.status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; letter-spacing:0.04em; }
+.status-confirmado { background:#e8f5e9; color:#2e7d32; }
+.status-atendido { background:#e3f2fd; color:#1565c0; }
+.status-faltou { background:#fff3e0; color:#e65100; }
+.status-reagendado { background:#f3e5f5; color:#6a1b9a; }
+.status-cancelado { background:#fce4ec; color:#b71c1c; }
+.status-agendado { background:#fff9e6; color:#b8860b; }
 
-  /* ── STATUS BADGES ── */
-  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; }
-  .status-confirmado { background: #e8f5e9; color: #2e7d32; }
-  .status-atendido { background: #e3f2fd; color: #1565c0; }
-  .status-faltou { background: #fff3e0; color: #e65100; }
-  .status-reagendado { background: #f3e5f5; color: #6a1b9a; }
-  .status-cancelado { background: #fce4ec; color: #b71c1c; }
+/* ── BUTTONS ── */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:12px 20px; border-radius:30px; font-size:0.85rem; font-weight:500; border:none; cursor:pointer; transition:all 0.2s; letter-spacing:0.02em; }
+.btn-primary { background:linear-gradient(135deg,#9a626b,var(--rose)); color:white; box-shadow:0 4px 14px rgba(155,98,107,0.35); }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(155,98,107,0.45); }
+.btn-gold { background:linear-gradient(135deg,var(--gold),#e8c77a); color:var(--dark); }
+.btn-ghost { background:var(--light); color:var(--rose-dark); }
+.btn-danger { background:#ffe0e0; color:#c0392b; }
+.btn-green { background:#e8f5e9; color:#2e7d32; }
+.btn-sm { padding:7px 14px; font-size:0.78rem; }
+.btn-full { width:100%; justify-content:center; }
 
-  /* ── BUTTONS ── */
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 12px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 500;
-    border: none; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
-  }
-  .btn-primary { background: linear-gradient(135deg, #9a626b, var(--rose)); color: white; box-shadow: 0 4px 14px rgba(155, 98, 107, 0.35); }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(155, 98, 107, 0.45); }
-  .btn-gold { background: linear-gradient(135deg, var(--gold), #e8c77a); color: var(--dark); }
-  .btn-ghost { background: var(--light); color: var(--rose-dark); }
-  .btn-danger { background: #ffe0e0; color: #c0392b; }
-  .btn-sm { padding: 7px 14px; font-size: 0.78rem; }
-  .btn-full { width: 100%; justify-content: center; }
+/* ── FORM ── */
+.form-group { margin-bottom:14px; }
+label { display:block; font-size:0.78rem; font-weight:500; color:var(--mid); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.06em; }
+input, select, textarea { width:100%; padding:12px 14px; border:1.5px solid var(--rose-light); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.9rem; background:var(--cream); color:var(--dark); outline:none; transition:border 0.2s; }
+input:focus, select:focus, textarea:focus { border-color:var(--rose); background:white; }
+textarea { resize:vertical; min-height:80px; }
 
-  /* ── FORM ── */
-  .form-group { margin-bottom: 14px; }
-  label { display: block; font-size: 0.78rem; font-weight: 500; color: var(--mid); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
-  input, select, textarea {
-    width: 100%; padding: 12px 14px; border: 1.5px solid var(--rose-light);
-    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-    background: var(--cream); color: var(--dark); outline: none; transition: border 0.2s;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--rose); background: white; }
-  textarea { resize: vertical; min-height: 80px; }
+/* ── AGENDA CALENDAR ── */
+.date-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.date-nav-btn { width:36px; height:36px; border-radius:50%; border:none; background:var(--light); color:var(--rose-dark); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.date-label { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:600; color:var(--dark); }
+.week-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:16px; }
+.week-scroll::-webkit-scrollbar { display:none; }
+.day-chip { flex-shrink:0; width:52px; text-align:center; padding:10px 0; border-radius:12px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; }
+.day-chip .dc-name { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--mid); font-weight:500; }
+.day-chip .dc-num { font-size:1.2rem; font-weight:600; color:var(--dark); margin-top:2px; }
+.day-chip .dc-dot { width:5px; height:5px; border-radius:50%; background:var(--rose); margin:4px auto 0; opacity:0; }
+.day-chip.has-event .dc-dot { opacity:1; }
+.day-chip.selected { background:var(--rose-dark); border-color:var(--rose-dark); }
+.day-chip.selected .dc-name, .day-chip.selected .dc-num { color:white; }
+.day-chip.selected .dc-dot { background:white; }
+.day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
-  /* ── AGENDA CALENDAR ── */
-  .date-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .date-nav-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--light); color: var(--rose-dark); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .date-label { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--dark); }
+/* ── TIMELINE ── */
+.prof-tab-wrap { display:grid; grid-template-columns:repeat(3,1fr); position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
+.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
+.prof-tab.active { opacity:1; box-shadow:inset 0 -4px 0 rgba(255,255,255,0.75); }
+.pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
+.pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
+.pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
+.grade-table { width:100%; border-collapse:collapse; }
+.grade-table tr { border-bottom:1px solid var(--rose-light); }
+.hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:44px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
+.slot-td { height:44px; padding:4px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
+.slot-td:hover { background:var(--light); }
+.slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:default; }
+.slot-appt-content { display:flex; flex-direction:column; justify-content:center; min-height:100%; cursor:pointer; flex:1; min-width:0; }
+.slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; }
+.slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
+.slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
+.slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
+.slot-valor-input { width:52px; border:none; background:transparent; font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
+.slot-valor-input:focus { outline:none; }
 
-  .week-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-  .week-scroll::-webkit-scrollbar { display: none; }
-  .day-chip {
-    flex-shrink: 0; width: 52px; text-align: center; padding: 10px 0;
-    border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
-  }
-  .day-chip .dc-name { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mid); font-weight: 500; }
-  .day-chip .dc-num { font-size: 1.2rem; font-weight: 600; color: var(--dark); margin-top: 2px; }
-  .day-chip .dc-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rose); margin: 4px auto 0; opacity: 0; }
-  .day-chip.has-event .dc-dot { opacity: 1; }
-  .day-chip.selected { background: var(--rose-dark); border-color: var(--rose-dark); }
-  .day-chip.selected .dc-name, .day-chip.selected .dc-num { color: white; }
-  .day-chip.selected .dc-dot { background: white; }
-  .day-chip:not(.selected):hover { border-color: var(--rose-light); background: var(--light); }
+/* ── LISTAS ── */
+.list-item { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--light); }
+.list-item:last-child { border-bottom:none; }
+.avatar { width:42px; height:42px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:700; color:white; }
+.av-rose { background:linear-gradient(135deg,var(--rose),var(--rose-dark)); }
+.av-gold { background:linear-gradient(135deg,var(--gold),#a0742e); }
+.av-green { background:linear-gradient(135deg,#66bb6a,#388e3c); }
+.av-blue { background:linear-gradient(135deg,#7d9bc9,#4a6fa5); }
+.list-info { flex:1; min-width:0; }
+.list-name { font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.list-sub { font-size:0.75rem; color:var(--mid); margin-top:1px; }
+.list-actions { display:flex; gap:6px; }
 
-  /* colunas */
-  .time-slot { display: flex; gap: 10px; margin-bottom: 6px; min-height: 48px; }
-  .time-label { width: 44px; font-size: 0.7rem; color: var(--mid); text-align: right; flex-shrink: 0; padding-top: 4px; font-weight: 500; }
-  .time-line { flex: 1; border-top: 1px dashed var(--rose-light); padding-top: 4px; position: relative; }
-  .appt-block {
-    background: linear-gradient(135deg, var(--rose-light), #f7dada);
-    border-left: 3px solid var(--rose);
-    border-radius: 8px; padding: 8px 10px; margin-bottom: 4px; cursor: pointer;
-    transition: box-shadow 0.2s;
-  }
-  .appt-block:hover { box-shadow: 0 3px 12px rgba(201,125,125,0.3); }
-  .appt-block.gold { background: linear-gradient(135deg, var(--gold-light), #f5e4c0); border-left-color: var(--gold); }
-  .appt-block.green { background: #e8f5e9; border-left-color: #66bb6a; }
-  .appt-name { font-weight: 600; font-size: 0.85rem; color: var(--dark); }
-  .appt-detail { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
-  .appt-prof { display: inline-block; font-size: 0.68rem; background: var(--rose-dark); color: white; border-radius: 10px; padding: 1px 7px; margin-top: 4px; }
+/* ── FAB ── */
+.fab { position:fixed; bottom:18px; right:14px; z-index:200; width:50px; height:50px; border-radius:50%; background:linear-gradient(145deg,#e2a1a8 0%,#b8757f 55%,#8c505b 100%); color:#fff8f5; font-size:1.55rem; font-weight:800; border:1px solid rgba(255,255,255,0.28); cursor:pointer; box-shadow:inset 0 2px 0 rgba(255,255,255,0.35),inset 0 -4px 8px rgba(84,40,50,0.28),0 9px 18px rgba(126,78,87,0.28); display:flex; align-items:center; justify-content:center; transition:transform 0.2s,box-shadow 0.2s; }
+.fab:hover { transform:translateY(-2px) scale(1.06); }
 
-  /* ── BADGES ── */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
-  .badge-rose { background: var(--rose-light); color: var(--rose-dark); }
-  .badge-gold { background: var(--gold-light); color: #7a5c1e; }
-  .badge-green { background: #e8f5e9; color: #2e7d32; }
+/* ── MODAL ── */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(42,31,31,0.55); z-index:300; align-items:flex-end; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:var(--white); border-radius:24px 24px 0 0; padding:24px 20px 40px; width:100%; max-width:540px; max-height:92vh; overflow-y:auto; animation:slideUp 0.3s ease; }
+@keyframes slideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.modal-handle { width:40px; height:4px; background:var(--rose-light); border-radius:2px; margin:0 auto 20px; }
+.modal-title { font-family:'Cormorant Garamond',serif; font-size:1.3rem; font-weight:700; color:var(--rose-dark); margin-bottom:18px; }
 
-  /* ── LISTS ── */
-  .list-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 13px 0; border-bottom: 1px solid var(--light);
-  }
-  .list-item:last-child { border-bottom: none; }
-  .avatar {
-    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 700; color: white;
-  }
-  .av-rose { background: linear-gradient(135deg, var(--rose), var(--rose-dark)); }
-  .av-gold { background: linear-gradient(135deg, var(--gold), #a0742e); }
-  .av-green { background: linear-gradient(135deg, #66bb6a, #388e3c); }
-  .av-blue { background: linear-gradient(135deg, #7d9bc9, #4a6fa5); }
-  .list-info { flex: 1; min-width: 0; }
-  .list-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .list-sub { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
-  .list-actions { display: flex; gap: 6px; }
+/* ── STATS ── */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.stats-grid-4 { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+.stat-card { background:var(--white); border-radius:14px; padding:16px; box-shadow:var(--shadow); text-align:center; }
+.stat-card.gold { background:linear-gradient(135deg,#fdf6e3,#f5e6c0); }
+.stat-card.rose { background:linear-gradient(135deg,#fef0f2,#f9dde0); }
+.stat-num { font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:700; color:var(--rose-dark); line-height:1; }
+.stat-num.sm { font-size:1.2rem; }
+.stat-label { font-size:0.68rem; color:var(--mid); margin-top:4px; text-transform:uppercase; letter-spacing:0.06em; }
 
-  /* ── FAB ── */
-  .fab {
-    position: fixed; bottom: 18px; right: 14px; z-index: 200;
-    width: 50px; height: 50px; border-radius: 50%;
-    background: linear-gradient(145deg, #e2a1a8 0%, #b8757f 55%, #8c505b 100%);
-    color: #fff8f5; font-size: 1.55rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.28); cursor: pointer;
-    box-shadow:
-      inset 0 2px 0 rgba(255,255,255,0.35),
-      inset 0 -4px 8px rgba(84,40,50,0.28),
-      0 9px 18px rgba(126,78,87,0.28);
-    display: flex; align-items: center; justify-content: center;
-    text-shadow: 0 1px 0 #8c505b, 0 3px 6px rgba(42,31,31,0.32);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .fab:hover { transform: translateY(-2px) scale(1.06); box-shadow: inset 0 2px 0 rgba(255,255,255,0.38), inset 0 -4px 8px rgba(84,40,50,0.30), 0 12px 22px rgba(126,78,87,0.34); }
+/* ── SERVIÇOS ── */
+.service-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--light); }
+.service-row:last-child { border-bottom:none; }
+.service-name { font-size:0.88rem; font-weight:500; }
+.service-meta { font-size:0.75rem; color:var(--mid); margin-top:1px; }
+.service-price { font-size:0.85rem; font-weight:600; color:var(--gold); text-align:right; }
 
-  /* ── MODAL ── */
-  .modal-bg {
-    display: none; position: fixed; inset: 0; background: rgba(42,31,31,0.55);
-    z-index: 300; align-items: flex-end; justify-content: center;
-  }
-  .modal-bg.open { display: flex; }
-  .modal {
-    background: var(--white); border-radius: 24px 24px 0 0; padding: 24px 20px 40px;
-    width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto;
-    animation: slideUp 0.3s ease;
-  }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-handle { width: 40px; height: 4px; background: var(--rose-light); border-radius: 2px; margin: 0 auto 20px; }
-  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 18px; }
+/* ── BADGES ── */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:500; }
+.badge-rose { background:var(--rose-light); color:var(--rose-dark); }
+.badge-gold { background:var(--gold-light); color:#7a5c1e; }
+.badge-green { background:#e8f5e9; color:#2e7d32; }
 
-  /* ── STATS ── */
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .stat-card { background: var(--white); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); text-align: center; }
-  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--rose-dark); line-height: 1; }
-  .stat-label { font-size: 0.72rem; color: var(--mid); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+/* ── LOGIN ── */
+#login-page {
+  position:fixed; inset:0; z-index:500;
+  background:linear-gradient(160deg,var(--dark) 0%,var(--rose-dark) 100%);
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  padding:0 0 24px 0; overflow-y:auto;
+}
+.login-banner-wrap {
+  width:100%; flex-shrink:0;
+}
+.login-banner-wrap img {
+  width:100%; display:block; object-fit:cover;
+}
+.login-card { background:white; border-radius:24px; padding:28px 22px; width:calc(100% - 32px); max-width:400px; margin-top:20px; }
+.login-title { font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--rose-dark); margin-bottom:20px; font-weight:600; }
+.prof-select-grid { display:grid; gap:10px; margin-bottom:20px; }
+.prof-option { display:flex; align-items:center; gap:14px; padding:14px 16px; border:2px solid var(--rose-light); border-radius:14px; cursor:pointer; transition:all 0.2s; }
+.prof-option:hover, .prof-option.selected { border-color:var(--rose-dark); background:var(--light); }
+.prof-option .po-name { font-weight:600; font-size:0.9rem; }
+.prof-option .po-role { font-size:0.72rem; color:var(--mid); margin-top:1px; }
 
-  /* ── SERVIÇOS ── */
-  .service-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--light); }
-  .service-row:last-child { border-bottom: none; }
-  .service-name { font-size: 0.88rem; font-weight: 500; }
-  .service-meta { font-size: 0.75rem; color: var(--mid); margin-top: 1px; }
-  .service-price { font-size: 0.85rem; font-weight: 600; color: var(--gold); text-align: right; }
-  .service-price small { display: block; font-size: 0.68rem; color: var(--mid); font-weight: 400; }
+/* ── TOAST ── */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--dark); color:white; padding:10px 20px; border-radius:20px; font-size:0.82rem; z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; }
+.toast.show { opacity:1; }
 
-  /* ── LOGIN ── */
-  #login-page {
-    position: fixed; inset: 0; z-index: 500; background: linear-gradient(160deg, var(--dark) 0%, var(--rose-dark) 100%);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px;
-  }
-  .login-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2.35rem;
-    font-weight: 800;
-    color: #fff7ef;
-    text-align: center;
-    margin-bottom: 6px;
-    letter-spacing: 0.035em;
-    text-shadow:
-      0 1px 0 #e9caca,
-      0 2px 0 #c99099,
-      0 4px 0 #7e4e57,
-      0 12px 20px rgba(42,31,31,0.42);
-    transform: perspective(480px) rotateX(4deg);
-  }
-  .login-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-align: center; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 40px; }
-  .login-card { background: white; border-radius: 24px; padding: 28px 22px; width: 100%; max-width: 360px; }
-  .login-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--rose-dark); margin-bottom: 20px; font-weight: 600; }
-  .prof-select-grid { display: grid; gap: 10px; margin-bottom: 20px; }
-  .prof-option {
-    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
-    border: 2px solid var(--rose-light); border-radius: 14px; cursor: pointer; transition: all 0.2s;
-  }
-  .prof-option:hover, .prof-option.selected { border-color: var(--rose-dark); background: var(--light); }
-  .prof-option .po-name { font-weight: 600; font-size: 0.9rem; }
-  .prof-option .po-role { font-size: 0.72rem; color: var(--mid); margin-top: 1px; }
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:40px 20px; color:var(--mid); }
+.empty-state .es-icon { font-size:2.5rem; margin-bottom:10px; }
+.empty-state p { font-size:0.85rem; }
 
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--mid); }
-  .empty-state .es-icon { font-size: 2.5rem; margin-bottom: 10px; }
-  .empty-state p { font-size: 0.85rem; }
+/* ── DIVISOR ── */
+.divider { height:1px; background:var(--rose-light); margin:12px 0; }
 
-  .toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-    background: var(--dark); color: white; padding: 10px 20px; border-radius: 20px;
-    font-size: 0.82rem; z-index: 999; opacity: 0; transition: opacity 0.3s;
-    pointer-events: none; white-space: nowrap;
-  }
-  .toast.show { opacity: 1; }
-
-  /* colunas por profissional */
-  .cols-wrap { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .col-prof { border-radius: 12px; overflow: hidden; background: var(--cream); }
-  .col-header { padding: 10px; display: flex; align-items: center; gap: 6px; }
-  .col-header.rose { background: linear-gradient(135deg, var(--rose-dark), var(--rose)); color: white; }
-  .col-header.gold { background: linear-gradient(135deg, #8a6020, var(--gold)); color: white; }
-  .col-header.green { background: linear-gradient(135deg, #2e7d32, #66bb6a); color: white; }
-  .col-hname { font-weight: 600; font-size: 0.82rem; }
-  .col-hcount { font-size: 0.7rem; opacity: 0.85; margin-left: auto; }
-  .col-body { padding: 8px; min-height: 60px; }
-  .col-empty { text-align: center; padding: 16px 8px; color: var(--mid); font-size: 0.73rem; }
-  .appt-hora { font-size: 0.68rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 2px; }
-
-  .prof-tab-wrap { display: grid; grid-template-columns: repeat(3,1fr); position: sticky; top: 108px; z-index: 80; box-shadow: 0 2px 8px rgba(42,31,31,0.2); overflow: hidden; }
-  .prof-tab { padding: 16px 8px; text-align: center; font-weight: 700; font-size: 0.9rem; cursor: pointer; color: white; opacity: 0.72; transition: all 0.2s; letter-spacing: 0.02em; }
-  .prof-tab.active { opacity: 1; box-shadow: inset 0 -4px 0 rgba(255,255,255,0.75); }
-  .pt-rose { background: linear-gradient(135deg, #8a565f, #b67079); }
-  .pt-gold { background: linear-gradient(135deg, #a9874d, #ccb178); }
-  .pt-green { background: linear-gradient(135deg, var(--sage-dark), var(--sage)); }
-  .grade-table { width: 100%; border-collapse: collapse; }
-  .grade-table tr { border-bottom: 1px solid var(--rose-light); }
-  .hora-td { width: 58px; font-size: 0.74rem; color: var(--mid); font-weight: 700; text-align: right; padding: 0 10px; height: 44px; background: var(--cream); border-right: 2px solid #ead4d7; white-space: nowrap; }
-  .slot-td { height: 44px; padding: 4px 10px; cursor: pointer; vertical-align: middle; transition: background 0.2s; }
-  .slot-td:hover { background: var(--light); }
-  .slot-td.tem-appt {
-    background: linear-gradient(135deg, #efd8dc, #e8c8ce);
-    box-shadow: inset 5px 0 0 #bb7b84, 0 4px 10px rgba(187, 123, 132, 0.08);
-    border-radius: 0 12px 12px 0;
-    padding: 7px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    cursor: default;
-  }
-  .slot-appt-content { display: flex; flex-direction: column; justify-content: center; min-height: 100%; cursor: pointer; flex: 1; min-width: 0; }
-  .slot-nome { font-size: 0.92rem; font-weight: 800; color: var(--dark); line-height: 1.08; }
-  .slot-svc { font-size: 0.86rem; font-weight: 800; color: var(--rose-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.08; margin-top: 4px; }
-  .slot-valor-wrap { display: flex; align-items: center; gap: 2px; flex-shrink: 0; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 2px 6px; }
-  .slot-valor-prefix { font-size: 0.72rem; font-weight: 700; color: var(--mid); }
-  .slot-valor-input { width: 52px; border: none; background: transparent; font-size: 0.86rem; font-weight: 800; color: var(--dark); text-align: right; }
-  .slot-valor-input:focus { outline: none; }
+/* ── CONFIG ── */
+.config-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--light); }
+.config-row:last-child { border-bottom:none; }
+.config-label { font-size:0.82rem; font-weight:600; color:var(--mid); }
+.config-val { font-size:0.88rem; color:var(--dark); text-align:right; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-page">
-  <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" 
-       alt="Studio Elly Designer" 
-       style="width:100%;height:280px;margin-bottom:8px;display:block;object-fit:contain">
+  <div class="login-banner-wrap">
+    <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" alt="Studio Elly Designer" id="login-banner-img">
+  </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
-    <div class="prof-select-grid" id="prof-grid">
-    <div class="prof-option" id="po-1" onclick="selectProf(1)">
-      <div class="avatar av-rose" style="width:40px;height:40px;font-size:1rem">👑</div>
-      <div><div class="po-name">Elly</div><div class="po-role">Proprietária &amp; Especialista</div></div>
-    </div>
-  
-    <div class="prof-option" id="po-2" onclick="selectProf(2)">
-      <div class="avatar av-gold" style="width:40px;height:40px;font-size:1rem">✂️</div>
-      <div><div class="po-name">Denny</div><div class="po-role">Especialista em Cabelos</div></div>
-    </div>
-  
-    <div class="prof-option" id="po-3" onclick="selectProf(3)">
-      <div class="avatar av-green" style="width:40px;height:40px;font-size:1rem">💅</div>
-      <div><div class="po-name">Lanna</div><div class="po-role">Especialista em Beleza</div></div>
-    </div>
-  </div>
+    <div class="prof-select-grid" id="prof-grid"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()">Entrar →</button>
   </div>
 </div>
 
-<!-- MODAL SENHA (acesso protegido da Elly) -->
+<!-- ═══════════ MODAL SENHA ═══════════ -->
 <div class="modal-bg" id="modal-senha" style="z-index:600">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -358,14 +230,14 @@
       <label>Digite sua senha</label>
       <input type="password" id="senha-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')confirmarSenha()">
     </div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
+    <div style="display:flex;gap:10px;margin-top:8px">
       <button class="btn btn-ghost btn-sm" onclick="cancelarSenha()">Cancelar</button>
       <button class="btn btn-primary" style="flex:1" onclick="confirmarSenha()">Entrar</button>
     </div>
   </div>
 </div>
 
-<!-- HEADER -->
+<!-- ═══════════ HEADER ═══════════ -->
 <div class="header">
   <div class="header-logo">Studio Elly <span>Designer</span></div>
   <div style="display:flex;align-items:center;gap:8px">
@@ -374,23 +246,14 @@
   </div>
 </div>
 
-<!-- NAV -->
+<!-- ═══════════ NAV ═══════════ -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showPage(&#39;agenda&#39;)">
-    <span class="nav-icon">📅</span>Agenda
-  </button>
-  <button class="nav-btn" onclick="showPage(&#39;clientes&#39;)">
-    <span class="nav-icon">👤</span>Clientes
-  </button>
-  <button class="nav-btn" onclick="showPage(&#39;funcionarios&#39;)">
-    <span class="nav-icon">💅</span>Equipe
-  </button>
-  <button class="nav-btn" onclick="showPage(&#39;servicos&#39;)">
-    <span class="nav-icon">✨</span>Serviços
-  </button>
-  <button class="nav-btn" onclick="showPage(&#39;faturamento&#39;)">
-    <span class="nav-icon">💰</span>Faturamento
-  </button>
+  <button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button>
+  <button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button>
+  <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
+  <button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button>
+  <button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button>
+  <button class="nav-btn" id="nav-config" style="display:none" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button>
 </nav>
 
 <!-- ═══════════ AGENDA ═══════════ -->
@@ -403,9 +266,8 @@
     </div>
     <div class="week-scroll" id="week-scroll"></div>
   </div>
-
   <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
-  <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px;">
+  <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px">
     <div id="timeline"></div>
   </div>
 </div>
@@ -414,12 +276,11 @@
 <div class="page" id="page-clientes">
   <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
-      <span>👤 Cadastro de Clientes</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-nova-cliente')" style="font-size:0.8rem;padding:6px 14px">+ Nova</button>
+      <span>👤 Clientes</span>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-nova-cliente')">+ Nova</button>
     </div>
-    <div class="form-group">
-      <label>Buscar Cliente</label>
-      <input type="text" id="search-cliente" placeholder="Digite o nome da cliente..." oninput="renderClientes()">
+    <div class="form-group" style="margin-bottom:8px">
+      <input type="text" id="search-cliente" placeholder="🔍 Buscar cliente..." oninput="renderClientes()" style="border-radius:20px">
     </div>
     <div id="lista-clientes"></div>
   </div>
@@ -430,7 +291,7 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-num" id="stat-hoje">0</div>
-      <div class="stat-label">Hoje</div>
+      <div class="stat-label">Agendamentos Hoje</div>
     </div>
     <div class="stat-card">
       <div class="stat-num" id="stat-semana">0</div>
@@ -442,14 +303,14 @@
     <div id="lista-funcionarios"></div>
   </div>
   <div class="card" id="card-trocar-senha" style="display:none">
-    <div class="card-title">🔒 Minha Senha de Acesso</div>
+    <div class="card-title">🔒 Alterar Senha</div>
     <div class="form-group">
       <label>Nova senha</label>
-      <input type="password" id="nova-senha-input" placeholder="Digite a nova senha">
+      <input type="password" id="nova-senha-input" placeholder="Nova senha">
     </div>
     <div class="form-group">
-      <label>Confirmar nova senha</label>
-      <input type="password" id="confirma-senha-input" placeholder="Repita a nova senha">
+      <label>Confirmar senha</label>
+      <input type="password" id="confirma-senha-input" placeholder="Repita a senha">
     </div>
     <button class="btn btn-primary btn-full" onclick="trocarSenhaElly()">Salvar Nova Senha</button>
   </div>
@@ -460,92 +321,75 @@
   <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>✨ Tabela de Serviços</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')" style="font-size:0.8rem;padding:6px 14px">+ Novo</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')">+ Novo</button>
+    </div>
+    <div class="form-group" style="margin-bottom:8px">
+      <input type="text" id="search-servico" placeholder="🔍 Buscar serviço..." oninput="renderServicos()" style="border-radius:20px">
     </div>
     <div id="lista-servicos"></div>
   </div>
 </div>
 
-<!-- ═══════════ FATURAMENTO ═══════════ -->
+<!-- ═══════════ FINANCEIRO ═══════════ -->
 <div class="page" id="page-faturamento">
-  <div class="date-nav">
+  <div class="date-nav" style="margin-bottom:12px">
     <button class="date-nav-btn" onclick="moveMesFaturamento(-1)">‹</button>
-    <div id="fat-mes-label" style="font-weight:600"></div>
+    <div id="fat-mes-label" style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600"></div>
     <button class="date-nav-btn" onclick="moveMesFaturamento(1)">›</button>
   </div>
+  <div id="fat-conteudo"></div>
+</div>
+
+<!-- ═══════════ CONFIG ═══════════ -->
+<div class="page" id="page-config">
   <div class="card">
-    <div class="card-title">💰 Faturamento do Mês</div>
-    <div id="fat-conteudo"></div>
+    <div class="card-title">⚙️ Configurações do Studio</div>
+    <div class="form-group">
+      <label>Nome do Studio</label>
+      <input type="text" id="cfg-nome" placeholder="Ex: Studio Elly Designer">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp do Studio</label>
+      <input type="tel" id="cfg-whatsapp" placeholder="(98) 9XXXX-XXXX">
+    </div>
+    <div class="form-group">
+      <label>Endereço</label>
+      <input type="text" id="cfg-endereco" placeholder="Rua, número, bairro...">
+    </div>
+    <div class="form-group">
+      <label>Link Google Maps</label>
+      <input type="url" id="cfg-maps" placeholder="https://maps.app.goo.gl/...">
+    </div>
+    <div class="form-group">
+      <label>Instagram</label>
+      <input type="text" id="cfg-instagram" placeholder="@studioelly">
+    </div>
+    <div class="form-group">
+      <label>PIX</label>
+      <input type="text" id="cfg-pix" placeholder="Chave PIX">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="salvarConfig()" style="margin-top:4px">💾 Salvar Configurações</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Mensagens WhatsApp</div>
+    <div class="form-group">
+      <label>Mensagem de Confirmação</label>
+      <textarea id="cfg-msg-confirmar" rows="4" placeholder="Use {nome}, {servico}, {data}, {hora}, {profissional}"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Mensagem de Lembrete</label>
+      <textarea id="cfg-msg-lembrete" rows="4" placeholder="Use {nome}, {servico}, {data}, {hora}, {profissional}"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Mensagem de Reagendamento</label>
+      <textarea id="cfg-msg-reagendar" rows="3" placeholder="Use {nome}, {servico}, {data}, {hora}"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="salvarMensagens()">💾 Salvar Mensagens</button>
   </div>
 </div>
 
-<!-- MODAL NOVA CLIENTE -->
-<div class="modal-bg" id="modal-nova-cliente">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">👤 Nova Cliente</div>
-    <div class="form-group">
-      <label>Nome da Cliente</label>
-      <input type="text" id="nc-nome" placeholder="Nome completo...">
-    </div>
-    <div class="form-group">
-      <label>WhatsApp</label>
-      <input type="tel" id="nc-fone" placeholder="(98) 9XXXX-XXXX">
-    </div>
-    <div class="form-group">
-      <label>Observações</label>
-      <textarea id="nc-obs" placeholder="Preferências, alergias, histórico..."></textarea>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-nova-cliente')">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1" onclick="salvarCliente()">Salvar Cliente</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR PROFISSIONAL -->
-<div class="modal-bg" id="modal-editar-prof">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="ep-titulo">✏️ Editar Profissional</div>
-    <div id="ep-body"></div>
-  </div>
-</div>
-
-<!-- MODAL NOVO SERVIÇO -->
-<div class="modal-bg" id="modal-novo-servico">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✨ Novo Serviço</div>
-    <div class="form-group">
-      <label>Nome do Serviço</label>
-      <input type="text" id="ns-nome" placeholder="Ex: Penteado, Luzes...">
-    </div>
-    <div class="form-group">
-      <label>Duração (minutos)</label>
-      <input type="number" id="ns-duracao" placeholder="Ex: 60" min="5" step="5">
-    </div>
-    <div class="form-group">
-      <label>Preço (R$)</label>
-      <input type="number" id="ns-preco" placeholder="Ex: 80" min="0" step="1">
-    </div>
-    <div class="form-group">
-      <label>Profissionais que atendem</label>
-      <div id="ns-profs" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
-    </div>
-    <div class="form-group">
-      <label>Categoria</label>
-      <input type="text" id="ns-cat" placeholder="Ex: Coloração, Tratamento...">
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-servico')">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1" onclick="salvarNovoServico()">Salvar Serviço</button>
-    </div>
-  </div>
-</div>
-
-<!-- FAB -->
-<button class="fab" onclick="openModal(&#39;modal-novo-agendamento&#39;)" title="Novo agendamento">+</button>
+<!-- ═══════════ FAB ═══════════ -->
+<button class="fab" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
@@ -559,49 +403,36 @@
       </select>
     </div>
     <div class="form-group">
-      <label>Nome da Cliente</label>
-      <input type="text" id="na-cliente" placeholder="Digite o nome da cliente...">
+      <label>Nome da Cliente *</label>
+      <input type="text" id="na-cliente" placeholder="Nome completo...">
     </div>
     <div class="form-group">
       <label>WhatsApp (opcional)</label>
       <input type="tel" id="na-fone" placeholder="(98) 9XXXX-XXXX">
     </div>
     <div class="form-group">
-      <label>Serviço</label>
-      <div id="na-servicos-lista" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px;"></div>
+      <label>Serviço *</label>
+      <div id="na-servicos-lista" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px"></div>
     </div>
     <div class="form-group">
-      <label>Profissional</label>
+      <label>Profissional *</label>
       <select id="na-profissional">
-        <option value="">Selecione a profissional...</option>
+        <option value="">Selecione...</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Data</label>
+      <label>Data *</label>
       <input type="date" id="na-data">
     </div>
     <div class="form-group">
-      <label>Horário</label>
+      <label>Horário *</label>
       <input type="time" id="na-hora" value="09:00">
     </div>
     <div class="form-group">
       <label>Observações</label>
       <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
     </div>
-    <div class="form-group">
-      <label>📲 Lembretes via WhatsApp</label>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
-          <input type="checkbox" id="na-lembrete24" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
-          Lembrete 24h antes (automático)
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:0.9rem;cursor:pointer">
-          <input type="checkbox" id="na-lembrete2" style="width:18px;height:18px;accent-color:var(--rose);cursor:pointer">
-          Lembrete 2h antes (automático)
-        </label>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
+    <div style="display:flex;gap:10px;margin-top:8px">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-agendamento')">Cancelar</button>
       <button class="btn btn-primary" style="flex:1" id="na-btn-salvar" onclick="salvarAgendamento()">Confirmar Agendamento</button>
     </div>
@@ -616,9 +447,78 @@
     <div id="va-body"></div>
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="editarAgendamento()">✏️ Editar</button>
-      <button class="btn btn-primary btn-sm" onclick="enviarLembrete()">📱 Lembrete</button>
       <button class="btn btn-danger btn-sm" onclick="cancelarAgendamento()">🗑 Cancelar</button>
       <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-ver-agendamento')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: NOVA CLIENTE ═══════════ -->
+<div class="modal-bg" id="modal-nova-cliente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="nc-titulo">👤 Nova Cliente</div>
+    <div class="form-group">
+      <label>Nome *</label>
+      <input type="text" id="nc-nome" placeholder="Nome completo...">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp</label>
+      <input type="tel" id="nc-fone" placeholder="(98) 9XXXX-XXXX">
+    </div>
+    <div class="form-group">
+      <label>Aniversário (opcional)</label>
+      <input type="date" id="nc-aniversario">
+    </div>
+    <div class="form-group">
+      <label>Observações</label>
+      <textarea id="nc-obs" placeholder="Preferências, alergias..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-nova-cliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" id="nc-btn-salvar" onclick="salvarCliente()">Salvar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: EDITAR PROFISSIONAL ═══════════ -->
+<div class="modal-bg" id="modal-editar-prof">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="ep-titulo">✏️ Editar Profissional</div>
+    <div id="ep-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: SERVIÇO ═══════════ -->
+<div class="modal-bg" id="modal-novo-servico">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="ns-titulo">✨ Novo Serviço</div>
+    <div class="form-group">
+      <label>Nome do Serviço *</label>
+      <input type="text" id="ns-nome" placeholder="Ex: Hidratação, Escova...">
+    </div>
+    <div class="form-group">
+      <label>Categoria</label>
+      <input type="text" id="ns-cat" placeholder="Ex: Tratamento, Coloração...">
+    </div>
+    <div class="form-group">
+      <label>Duração (minutos) *</label>
+      <input type="number" id="ns-duracao" placeholder="Ex: 60" min="5" step="5">
+    </div>
+    <div class="form-group">
+      <label>Preço (R$)</label>
+      <input type="number" id="ns-preco" placeholder="Ex: 80" min="0" step="0.5">
+    </div>
+    <div class="form-group">
+      <label>Profissionais que atendem *</label>
+      <div id="ns-profs" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
+    </div>
+    <input type="hidden" id="ns-editando-id" value="">
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-servico')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarServico()">Salvar Serviço</button>
     </div>
   </div>
 </div>
@@ -627,393 +527,447 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════ DADOS ═══════════
+// ═══════════════════════════════════════
+// DADOS BASE
+// ═══════════════════════════════════════
 const FUNCIONARIOS = [
-  { id: 1, nome: 'Elly', cor: 'av-rose', emoji: '👑', role: 'Proprietária & Especialista' },
-  { id: 2, nome: 'Denny', cor: 'av-gold', emoji: '✂️', role: 'Especialista em Cabelos' },
-  { id: 3, nome: 'Lanna', cor: 'av-green', emoji: '💅', role: 'Especialista em Beleza' },
+  { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
+  { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos' },
+  { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza' },
 ];
 
-const SERVICOS = [
-  { id: 1, nome: 'Micropigmentação sobrancelhas', duracao: 90, profissionais: [1], cat: 'Micropigmentação' },
-  { id: 2, nome: 'Micropigmentação Barba', duracao: 150, profissionais: [1], cat: 'Micropigmentação' },
-  { id: 3, nome: 'Micropigmentação Capilar', duracao: 150, profissionais: [1], cat: 'Micropigmentação' },
-  { id: 4, nome: 'Progressiva', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
-  { id: 5, nome: 'Selagem', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
-  { id: 6, nome: 'Escova', duracao: 60, profissionais: [2,3], cat: 'Acabamento' },
-  { id: 7, nome: 'Chapinha', duracao: 45, profissionais: [2,3], cat: 'Acabamento' },
-  { id: 8, nome: 'Botox Capilar', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
-  { id: 9, nome: 'Corte Feminino', duracao: 45, profissionais: [1], cat: 'Corte' },
-  { id: 10, nome: 'Designer de Sobrancelha', duracao: 15, profissionais: [1,3], cat: 'Estética' },
-  { id: 11, nome: 'Henna', duracao: 30, profissionais: [1,3], cat: 'Estética' },
-  { id: 12, nome: 'Buço', duracao: 15, profissionais: [1,3], cat: 'Depilação' },
-  { id: 13, nome: 'Cauterização', duracao: 90, profissionais: [2,3], cat: 'Tratamento' },
-  { id: 14, nome: 'Banho de Brilho', duracao: 90, profissionais: [2], cat: 'Acabamento' },
-  { id: 15, nome: 'Hidratação', duracao: 30, profissionais: [2,3], cat: 'Tratamento' },
-  { id: 16, nome: 'Depilação Facial', duracao: 30, profissionais: [1,3], cat: 'Depilação' },
-  { id: 17, nome: 'Luzes e Mechas', duracao: 180, profissionais: [2], cat: 'Coloração' },
-  { id: 18, nome: 'Morena Iluminada', duracao: 180, profissionais: [2], cat: 'Coloração' },
+// Serviços padrão (fallback se Firebase estiver vazio)
+const SERVICOS_PADRAO = [
+  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:250, profissionais:[1], cat:'Micropigmentação' },
+  { id:2,  nome:'Micropigmentação Barba',        duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
+  { id:3,  nome:'Micropigmentação Capilar',      duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
+  { id:4,  nome:'Progressiva',     duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:5,  nome:'Selagem',         duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:6,  nome:'Escova',          duracao:60,  preco:null, profissionais:[2,3], cat:'Acabamento' },
+  { id:7,  nome:'Chapinha',        duracao:45,  preco:null, profissionais:[2,3], cat:'Acabamento' },
+  { id:8,  nome:'Botox Capilar',   duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:9,  nome:'Corte Feminino',  duracao:45,  preco:null, profissionais:[1],   cat:'Corte' },
+  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:null, profissionais:[1,3], cat:'Estética' },
+  { id:11, nome:'Henna',           duracao:30,  preco:null, profissionais:[1,3], cat:'Estética' },
+  { id:12, nome:'Buço',            duracao:15,  preco:null, profissionais:[1,3], cat:'Depilação' },
+  { id:13, nome:'Cauterização',    duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:14, nome:'Banho de Brilho', duracao:90,  preco:null, profissionais:[2],   cat:'Acabamento' },
+  { id:15, nome:'Hidratação',      duracao:30,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:16, nome:'Depilação Facial',duracao:30,  preco:null, profissionais:[1,3], cat:'Depilação' },
+  { id:17, nome:'Luzes e Mechas',  duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
+  { id:18, nome:'Morena Iluminada',duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
 ];
 
-// LocalStorage
-const DB_URL = "https://studio-elly-default-rtdb.firebaseio.com";
+let SERVICOS = [...SERVICOS_PADRAO];
+
+// ═══════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════
+const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
 let agendamentos = [];
 let clientes = [];
+let configStudio = {};
 let syncInterval = null;
 
+// --- AGENDAMENTOS ---
 async function loadFromFirebase() {
   try {
-    const res = await fetch(DB_URL + "/agendamentos.json");
+    const res = await fetch(DB_URL + '/agendamentos.json');
     const data = await res.json();
     let novos = [];
-    let migrarArrayAntigo = null;
     if (data) {
       if (Array.isArray(data)) {
-        // é array de arrays ou array de objetos
         data.forEach(item => {
-          if (Array.isArray(item)) {
-            item.forEach(a => { if (a && a.id) novos.push(a); });
-          } else if (item && item.id) {
-            novos.push(item);
-          }
+          if (Array.isArray(item)) item.forEach(a => { if (a && a.id) novos.push(a); });
+          else if (item && item.id) novos.push(item);
         });
       } else if (typeof data === 'object') {
         Object.entries(data).forEach(([chave, item]) => {
           if (Array.isArray(item)) {
-            // Formato antigo: array inteiro salvo sob uma chave (ex: "elly_agendamentos")
             item.forEach(a => { if (a && a.id) novos.push(a); });
-            migrarArrayAntigo = chave;
+            // migrar formato antigo
+            novos.forEach(a => {
+              fetch(DB_URL + '/agendamentos/' + a.id + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(a) }).catch(()=>{});
+            });
+            fetch(DB_URL + '/agendamentos/' + chave + '.json', { method:'DELETE' }).catch(()=>{});
           } else if (item && item.id) {
             novos.push(item);
           }
         });
       }
     }
-    // Remove duplicados por id (caso o mesmo agendamento exista no array antigo E em chave própria)
     const porId = {};
     novos.forEach(a => { porId[a.id] = a; });
     agendamentos = Object.values(porId);
-
-    // Migração: se achou o formato antigo (array sob uma chave única), reescreve
-    // cada agendamento em seu próprio nó e remove a chave antiga. Evita que o
-    // array antigo seja sobrescrito por um usuário e apague agendamentos de outro.
-    if (migrarArrayAntigo) {
-      agendamentos.forEach(a => {
-        fetch(DB_URL + "/agendamentos/" + a.id + ".json", {
-          method: "PUT",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(a)
-        }).catch(()=>{});
-      });
-      fetch(DB_URL + "/agendamentos/" + migrarArrayAntigo + ".json", { method: "DELETE" }).catch(()=>{});
-    }
-
-    if (currentUser) {
-      renderWeek();
-      setTimeout(function(){ renderTimeline(); }, 100);
-      updateStats();
-    }
-  } catch(e) { console.log('Sync error', e); }
+    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); }
+  } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
-async function loadClientesFromFirebase() {
-  try {
-    const res = await fetch(DB_URL + "/clientes.json");
-    const data = await res.json();
-    let novos = [];
-    if (data) {
-      if (Array.isArray(data)) {
-        data.forEach(c => { if (c && c.id) novos.push(c); });
-      } else if (typeof data === 'object') {
-        Object.values(data).forEach(c => { if (c && c.id) novos.push(c); });
-      }
-    }
-    clientes = novos.sort((a,b) => (a.nome || '').localeCompare(b.nome || ''));
-    if (currentUser) {
-      renderClientes();
-      populateClientesSelect();
-    }
-  } catch(e) { console.log('Clientes sync error', e); }
-}
-
-async function saveClienteFirebase(cliente) {
-  await fetch(DB_URL + "/clientes/" + cliente.id + ".json", {
-    method: "PUT",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(cliente)
-  });
-  await loadClientesFromFirebase();
-}
-
-async function save(id, val) {
-  // Salva CADA agendamento em seu próprio nó (chave = id do agendamento),
-  // evitando que dois usuários salvando ao mesmo tempo apaguem um ao outro.
-  await fetch(DB_URL + "/agendamentos/" + id + ".json", {
-    method: "PUT",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(val)
+async function saveAgendamento(id, val) {
+  await fetch(DB_URL + '/agendamentos/' + id + '.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
   });
   await loadFromFirebase();
 }
 
-function startSync() {
-  loadFromFirebase();
-  loadClientesFromFirebase();
-  syncInterval = setInterval(function(){ loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
-  setInterval(checkLembretes, 60000);
-  setTimeout(checkLembretes, 3000);
+// --- CLIENTES ---
+async function loadClientesFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/clientes.json');
+    const data = await res.json();
+    let novos = [];
+    if (data) {
+      if (Array.isArray(data)) data.forEach(c => { if (c && c.id) novos.push(c); });
+      else if (typeof data === 'object') Object.values(data).forEach(c => { if (c && c.id) novos.push(c); });
+    }
+    clientes = novos.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+    if (currentUser) { renderClientes(); populateClientesSelect(); }
+  } catch(e) { console.log('Clientes sync error', e); }
 }
 
-// ═══════════ LEMBRETES ═══════════
-const LOCALIZACAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
+async function saveClienteFirebase(cliente) {
+  await fetch(DB_URL + '/clientes/' + cliente.id + '.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cliente)
+  });
+  await loadClientesFromFirebase();
+}
 
-function msgLembrete(a, tipo) {
-  const svc = SERVICOS.find(s => s.id === a.servicoId);
-  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  if (tipo === '24h') {
-    return `Olá, ${a.nomeCliente}! 😊\nPassando para lembrar que amanhã você tem um horário agendado no *Studio Elly Designer*.\n\n📅 Data: *${formatDate(a.data)}*\n🕐 Horário: *${a.hora}*\n✨ Serviço: *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nEm caso de imprevisto, entre em contato com antecedência para reagendarmos.\nTe esperamos! 💕`;
-  } else if (tipo === '2h') {
-    return `${a.nomeCliente}, seu horário está chegando! ⏰\n\nEm *2 horas* você tem:\n✨ *${svc ? svc.nome : '—'}*\n🕐 Às *${a.hora}* com *${prof ? prof.nome : '—'}*\n📍 Studio Elly Designer — ${LOCALIZACAO}\n\nNos vemos em breve! 💕`;
-  } else {
-    return `Olá, ${a.nomeCliente}! 😊\nLembrando do seu horário no *Studio Elly Designer*:\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc ? svc.nome : '—'}*\n💅 Profissional: *${prof ? prof.nome : '—'}*\n📍 Localização: ${LOCALIZACAO}\n\nQualquer dúvida, é só chamar! 💕`;
+// --- SERVIÇOS (nó próprio /servicos) ---
+async function loadServicosFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/servicos.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      let lista = [];
+      if (Array.isArray(data)) {
+        lista = data.filter(s => s && s.id);
+      } else {
+        Object.values(data).forEach(s => { if (s && s.id) lista.push(s); });
+      }
+      if (lista.length > 0) {
+        SERVICOS = lista;
+      } else {
+        // Nó existe mas está vazio — usar padrão e salvar
+        SERVICOS = [...SERVICOS_PADRAO];
+        await saveServicosFirebase();
+      }
+    } else {
+      // Nó não existe — salvar padrão no Firebase
+      SERVICOS = [...SERVICOS_PADRAO];
+      await saveServicosFirebase();
+    }
+    if (currentUser) renderServicos();
+  } catch(e) {
+    console.log('Servicos sync error', e);
+    SERVICOS = [...SERVICOS_PADRAO];
   }
 }
 
-function waLink(fone, msg) {
-  return `https://wa.me/55${fone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+async function saveServicosFirebase() {
+  // Salva cada serviço em seu próprio nó
+  const batch = SERVICOS.map(s =>
+    fetch(DB_URL + '/servicos/' + s.id + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s)
+    }).catch(()=>{})
+  );
+  await Promise.all(batch);
 }
 
-function checkLembretes() {
-  const now = new Date();
-  agendamentos.forEach(a => {
-    if (a.status === 'cancelado' || !a.fone) return;
-    const apptDateTime = new Date(a.data + 'T' + a.hora + ':00');
-    const diffHrs = (apptDateTime - now) / (1000 * 60 * 60);
-    const lembretes = a.lembretes || {};
-    if (a.lembrete24 && diffHrs <= 24 && diffHrs > 23 && !lembretes.h24) {
-      window.open(waLink(a.fone, msgLembrete(a, '24h')), '_blank');
-      a.lembretes = { ...lembretes, h24: true };
-      save(a.id, a);
-      showToast('📲 Lembrete 24h enviado para ' + a.nomeCliente);
+async function deletarServicoFirebase(id) {
+  await fetch(DB_URL + '/servicos/' + id + '.json', { method:'DELETE' });
+}
+
+// --- CONFIG ---
+async function loadConfigFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/config.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      configStudio = data;
+      preencherConfig();
     }
-    if (a.lembrete2 && diffHrs <= 2 && diffHrs > 1.83 && !lembretes.h2) {
-      window.open(waLink(a.fone, msgLembrete(a, '2h')), '_blank');
-      a.lembretes = { ...lembretes, h2: true };
-      save(a.id, a);
-      showToast('📲 Lembrete 2h enviado para ' + a.nomeCliente);
-    }
+  } catch(e) { console.log('Config load error', e); }
+}
+
+async function saveConfigFirebase(obj) {
+  await fetch(DB_URL + '/config.json', {
+    method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
   });
 }
 
-// ═══════════ STATUS ═══════════
+// --- SYNC ---
+function startSync() {
+  loadFromFirebase();
+  loadClientesFromFirebase();
+  loadServicosFromFirebase();
+  loadConfigFromFirebase();
+  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
+}
+
+// ═══════════════════════════════════════
+// CONFIGURAÇÃO DO STUDIO
+// ═══════════════════════════════════════
+const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
+
+function getConfig(campo, fallback) {
+  return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
+}
+
+function preencherConfig() {
+  const campos = ['nome','whatsapp','endereco','maps','instagram','pix'];
+  campos.forEach(c => {
+    const el = document.getElementById('cfg-' + c);
+    if (el && configStudio[c]) el.value = configStudio[c];
+  });
+  if (configStudio.msgConfirmar) document.getElementById('cfg-msg-confirmar').value = configStudio.msgConfirmar;
+  if (configStudio.msgLembrete)  document.getElementById('cfg-msg-lembrete').value  = configStudio.msgLembrete;
+  if (configStudio.msgReagendar) document.getElementById('cfg-msg-reagendar').value = configStudio.msgReagendar;
+}
+
+async function salvarConfig() {
+  const cfg = {
+    nome:      document.getElementById('cfg-nome').value.trim(),
+    whatsapp:  document.getElementById('cfg-whatsapp').value.trim(),
+    endereco:  document.getElementById('cfg-endereco').value.trim(),
+    maps:      document.getElementById('cfg-maps').value.trim(),
+    instagram: document.getElementById('cfg-instagram').value.trim(),
+    pix:       document.getElementById('cfg-pix').value.trim(),
+  };
+  Object.assign(configStudio, cfg);
+  await saveConfigFirebase(cfg);
+  showToast('✅ Configurações salvas!');
+}
+
+async function salvarMensagens() {
+  const cfg = {
+    msgConfirmar: document.getElementById('cfg-msg-confirmar').value.trim(),
+    msgLembrete:  document.getElementById('cfg-msg-lembrete').value.trim(),
+    msgReagendar: document.getElementById('cfg-msg-reagendar').value.trim(),
+  };
+  Object.assign(configStudio, cfg);
+  await saveConfigFirebase(cfg);
+  showToast('✅ Mensagens salvas!');
+}
+
+// ═══════════════════════════════════════
+// WHATSAPP MENSAGENS
+// ═══════════════════════════════════════
+function buildMsg(template, a) {
+  if (!template) return null;
+  const svcs = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
+  const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
+  const maps = getConfig('maps', LOCALIZACAO_PADRAO);
+  const endereco = getConfig('endereco', 'Studio Elly Designer');
+  return template
+    .replace(/{nome}/g, a.nomeCliente || 'Cliente')
+    .replace(/{servico}/g, svcs)
+    .replace(/{data}/g, formatDate(a.data))
+    .replace(/{hora}/g, a.hora)
+    .replace(/{profissional}/g, prof ? prof.nome : '—')
+    .replace(/{endereco}/g, endereco)
+    .replace(/{maps}/g, maps);
+}
+
+const MSG_CONFIRMAR_PADRAO = `Olá, {nome}! 😊\nSeu agendamento está *confirmado* no *Studio Elly Designer*!\n\n📅 *{data}* às *{hora}*\n✨ *{servico}*\n💅 Profissional: *{profissional}*\n📍 {maps}\n\nTe esperamos! 💕`;
+const MSG_LEMBRETE_PADRAO  = `Oi {nome}! 👋\n\n✨ *Lembrete do seu agendamento* ✨\n\n📅 *{data}* às *{hora}*\n💅 Serviço: *{servico}*\n👩 Profissional: *{profissional}*\n📍 {maps}\n\nPodemos confirmar sua presença? 😊\nQualquer dúvida é só chamar! 💬`;
+const MSG_REAGENDAR_PADRAO = `Olá, {nome}! 😊\nPrecisamos reagendar seu horário de *{servico}* marcado para *{data}* às *{hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\nStudio Elly Designer 💕`;
+
+function waLink(fone, msg) {
+  const numero = fone.replace(/\D/g,'');
+  const prefixo = numero.startsWith('55') ? numero : '55' + numero;
+  return `https://wa.me/${prefixo}?text=${encodeURIComponent(msg)}`;
+}
+
+function abrirWA(a, tipo) {
+  if (!a.fone) { showToast('❌ Telefone não cadastrado'); return; }
+  let template;
+  if (tipo === 'confirmar')  template = getConfig('msgConfirmar', MSG_CONFIRMAR_PADRAO);
+  if (tipo === 'lembrete')   template = getConfig('msgLembrete',  MSG_LEMBRETE_PADRAO);
+  if (tipo === 'reagendar')  template = getConfig('msgReagendar', MSG_REAGENDAR_PADRAO);
+  const msg = buildMsg(template, a);
+  if (!msg) return;
+  window.open(waLink(a.fone, msg), '_blank');
+}
+
+// ═══════════════════════════════════════
+// STATUS
+// ═══════════════════════════════════════
 const STATUS_LABELS = {
-  confirmado: { label: 'Confirmado', cls: 'status-confirmado', emoji: '✅' },
-  atendido:   { label: 'Atendido',   cls: 'status-atendido',   emoji: '💅' },
-  faltou:     { label: 'Faltou',     cls: 'status-faltou',     emoji: '⚠️' },
-  reagendado: { label: 'Reagendado', cls: 'status-reagendado', emoji: '🔄' },
-  cancelado:  { label: 'Cancelado',  cls: 'status-cancelado',  emoji: '❌' },
+  confirmado: { label:'Confirmado', cls:'status-confirmado', emoji:'✅' },
+  atendido:   { label:'Atendido',   cls:'status-atendido',   emoji:'💅' },
+  faltou:     { label:'Faltou',     cls:'status-faltou',     emoji:'⚠️' },
+  reagendado: { label:'Reagendado', cls:'status-reagendado', emoji:'🔄' },
+  cancelado:  { label:'Cancelado',  cls:'status-cancelado',  emoji:'❌' },
 };
 
 function alterarStatus(novoStatus) {
   const a = agendamentos.find(x => x.id === viewingApptId);
   if (!a) return;
   a.status = novoStatus;
-  save(a.id, a);
-  renderTimeline();
-  updateStats();
+  saveAgendamento(a.id, a);
   verAgendamento(viewingApptId);
-  showToast('Status atualizado: ' + STATUS_LABELS[novoStatus].label);
+  showToast('Status: ' + STATUS_LABELS[novoStatus].label);
 }
 
+// ═══════════════════════════════════════
+// VALOR (campo para uso futuro — não remover)
+// ═══════════════════════════════════════
 function salvarValorAgendamento(id, valor) {
   const a = agendamentos.find(x => x.id === id);
   if (!a) return;
   const num = parseFloat(valor);
   a.valor = (valor === '' || isNaN(num)) ? null : num;
-  save(a.id, a);
-  if (document.getElementById('page-faturamento').classList.contains('active')) {
-    renderFaturamento();
-  }
+  saveAgendamento(a.id, a);
+  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
 }
 
-// ═══════════ FATURAMENTO ═══════════
+// ═══════════════════════════════════════
+// FATURAMENTO
+// ═══════════════════════════════════════
 let fatMesOffset = 0;
 
-function moveMesFaturamento(delta) {
-  fatMesOffset += delta;
-  renderFaturamento();
-}
+function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
 
 function renderFaturamento() {
   const base = new Date();
   base.setDate(1);
   base.setMonth(base.getMonth() + fatMesOffset);
   const ano = base.getFullYear();
-  const mes = base.getMonth(); // 0-indexed
-  const mesLabel = base.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  const label = document.getElementById('fat-mes-label');
-  if (label) label.textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
+  const mes = base.getMonth();
+  const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const lbl = document.getElementById('fat-mes-label');
+  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
 
   const doMes = agendamentos.filter(a => {
     if (a.status === 'cancelado') return false;
     const [y, m] = a.data.split('-').map(Number);
-    return y === ano && (m - 1) === mes;
+    return y === ano && (m-1) === mes;
   });
 
-  const porProf = {};
-  FUNCIONARIOS.forEach(f => { porProf[f.id] = 0; });
-  let totalGeral = 0;
-  doMes.forEach(a => {
-    const v = (typeof a.valor === 'number') ? a.valor : 0;
-    totalGeral += v;
-    if (porProf[a.profId] !== undefined) porProf[a.profId] += v;
-  });
-
-  const ehDono = currentUser === 1; // Elly (Proprietária)
+  const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
+  // Totais
+  const porProf = {};
+  FUNCIONARIOS.forEach(f => { porProf[f.id] = { total:0, qtd:0 }; });
+  let totalGeral = 0;
+  let totalAtendimentos = 0;
+  const contagemServicos = {};
+
+  doMes.forEach(a => {
+    const v = (typeof a.valor === 'number') ? a.valor : 0;
+    totalGeral += v;
+    totalAtendimentos++;
+    if (porProf[a.profId]) { porProf[a.profId].total += v; porProf[a.profId].qtd++; }
+    const ids = a.servicoIds || [a.servicoId];
+    ids.forEach(sid => { contagemServicos[sid] = (contagemServicos[sid] || 0) + 1; });
+  });
+
+  const ticketMedio = totalAtendimentos > 0 ? (totalGeral / totalAtendimentos) : 0;
+
+  // Serviço mais vendido
+  let svcMaisVendidoNome = '—';
+  let maxQtd = 0;
+  Object.entries(contagemServicos).forEach(([sid, qtd]) => {
+    if (qtd > maxQtd) { maxQtd = qtd; const s = SERVICOS.find(x => x.id === parseInt(sid)); svcMaisVendidoNome = s ? s.nome : '—'; }
+  });
+
+  // Profissional que mais faturou
+  let profTopNome = '—';
+  let maxFat = 0;
+  Object.entries(porProf).forEach(([fid, d]) => {
+    if (d.total > maxFat) { maxFat = d.total; const f = FUNCIONARIOS.find(x => x.id === parseInt(fid)); profTopNome = f ? f.nome : '—'; }
+  });
+
   let html = '';
+
   if (ehDono) {
-    html += '<div class="stats-grid">' +
-      '<div class="stat-card"><div class="stat-num">R$ ' + totalGeral.toFixed(2) + '</div><div class="stat-label">Total do Mês</div></div>' +
-    '</div>';
-    html += '<div style="margin-top:14px">';
+    html += `<div class="stats-grid">
+      <div class="stat-card rose">
+        <div class="stat-num">${formatarMoeda(totalGeral)}</div>
+        <div class="stat-label">Total do Mês</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${totalAtendimentos}</div>
+        <div class="stat-label">Atendimentos</div>
+      </div>
+    </div>
+    <div class="stats-grid" style="margin-bottom:14px">
+      <div class="stat-card gold">
+        <div class="stat-num sm">${formatarMoeda(ticketMedio)}</div>
+        <div class="stat-label">Ticket Médio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num sm" style="font-size:0.85rem;padding-top:4px">${profTopNome}</div>
+        <div class="stat-label">Top Profissional</div>
+      </div>
+    </div>`;
+
+    html += `<div class="card">
+      <div class="card-title" style="margin-bottom:8px">📊 Por Profissional</div>`;
     FUNCIONARIOS.forEach(f => {
-      html += '<div class="slot-td" style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;margin-bottom:8px;background:var(--light)">' +
-        '<span>' + f.emoji + ' ' + f.nome + '</span>' +
-        '<strong>R$ ' + porProf[f.id].toFixed(2) + '</strong>' +
-      '</div>';
+      const d = porProf[f.id];
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light)">
+        <span>${f.emoji} <strong>${f.nome}</strong> <span style="font-size:0.76rem;color:var(--mid)">(${d.qtd} atend.)</span></span>
+        <strong style="color:var(--rose-dark)">${formatarMoeda(d.total)}</strong>
+      </div>`;
     });
-    html += '</div>';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0">
+        <strong>Total Geral</strong>
+        <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalGeral)}</strong>
+      </div></div>`;
+
+    if (svcMaisVendidoNome !== '—') {
+      html += `<div class="card">
+        <div class="card-title" style="margin-bottom:4px">✨ Serviço Mais Realizado</div>
+        <div style="font-size:1rem;font-weight:600">${svcMaisVendidoNome}</div>
+        <div style="font-size:0.78rem;color:var(--mid)">${maxQtd} vezes este mês</div>
+      </div>`;
+    }
   } else {
-    const meuTotal = porProf[currentUser] || 0;
-    html += '<div class="stats-grid">' +
-      '<div class="stat-card"><div class="stat-num">R$ ' + meuTotal.toFixed(2) + '</div><div class="stat-label">Seu Total do Mês</div></div>' +
-    '</div>';
+    const meuTotal = porProf[currentUser] ? porProf[currentUser].total : 0;
+    const minhaQtd = porProf[currentUser] ? porProf[currentUser].qtd : 0;
+    html += `<div class="stats-grid">
+      <div class="stat-card rose">
+        <div class="stat-num">${formatarMoeda(meuTotal)}</div>
+        <div class="stat-label">Seu Total do Mês</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${minhaQtd}</div>
+        <div class="stat-label">Seus Atendimentos</div>
+      </div>
+    </div>`;
   }
+
   cont.innerHTML = html;
 }
 
-// ═══════════ EDITAR AGENDAMENTO ═══════════
-let editingApptId = null;
-
-function editarAgendamento() {
-  const a = agendamentos.find(x => x.id === viewingApptId);
-  if (!a) return;
-  editingApptId = viewingApptId;
-  closeModal('modal-ver-agendamento');
-
-  // Preencher o formulário com os dados do agendamento
-  document.getElementById('na-modal-titulo').textContent = '✏️ Editar Agendamento';
-  document.getElementById('na-btn-salvar').textContent = 'Salvar Alterações';
-  document.getElementById('na-cliente').value = a.nomeCliente;
-  document.getElementById('na-fone').value = a.fone || '';
-  document.getElementById('na-data').value = a.data;
-  document.getElementById('na-hora').value = a.hora;
-  document.getElementById('na-obs').value = a.obs || '';
-  document.getElementById('na-lembrete24').checked = a.lembrete24 || false;
-  document.getElementById('na-lembrete2').checked = a.lembrete2 || false;
-
-  populateSelects();
-
-  // Marcar serviços
-  setTimeout(() => {
-    const ids = a.servicoIds || [a.servicoId];
-    document.querySelectorAll('.svc-check').forEach(c => {
-      c.checked = ids.includes(parseInt(c.value));
-    });
-    // Selecionar profissional
-    document.getElementById('na-profissional').value = a.profId;
-  }, 100);
-
-  openModal('modal-novo-agendamento');
-}
-
-// ═══════════ BOTÕES WA ═══════════
-function msgConfirmacao(a) {
-  const svc = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
-  const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
-  return `Olá, ${a.nomeCliente}! 😊\nSeu agendamento está *confirmado* no *Studio Elly Designer*!\n\n📅 *${formatDate(a.data)}* às *${a.hora}*\n✨ *${svc}*\n💅 Profissional: *${prof?prof.nome:'—'}*\n📍 ${LOCALIZACAO}\n\nTe esperamos! 💕`;
-}
-
-function msgLocalizacao(a) {
-  return `Olá, ${a.nomeCliente}! 😊\nSegue a localização do *Studio Elly Designer*:\n\n📍 ${LOCALIZACAO}\n\nTe esperamos no dia *${formatDate(a.data)}* às *${a.hora}*! 💕`;
-}
-
-function msgReagendamento(a) {
-  const svc = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
-  return `Olá, ${a.nomeCliente}! 😊\nPrecisamos reagendar seu horário de *${svc}* que estava marcado para *${formatDate(a.data)}* às *${a.hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\nStudio Elly Designer 💕`;
-}
-
-function verAgendamento(id) {
-  viewingApptId = id;
-  const a = agendamentos.find(x => x.id === id);
-  const ids = a.servicoIds || [a.servicoId];
-  const svcs = ids.map(sid => SERVICOS.find(s => s.id === sid)).filter(Boolean);
-  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
-  const lembretes = a.lembretes || {};
-  const statusAtual = a.status || 'confirmado';
-  const st = STATUS_LABELS[statusAtual] || STATUS_LABELS.confirmado;
-
-  // Seletor de status
-  const statusOpts = Object.entries(STATUS_LABELS).map(([k,v]) =>
-    `<button onclick="alterarStatus('${k}')" style="padding:5px 10px;border-radius:20px;border:1.5px solid ${k===statusAtual?'var(--rose-dark)':'var(--rose-light)'};background:${k===statusAtual?'var(--rose-light)':'transparent'};font-size:0.75rem;font-weight:600;cursor:pointer;color:var(--dark)">${v.emoji} ${v.label}</button>`
-  ).join('');
-
-  // Botões WhatsApp
-  let botoesWA = '';
-  if (a.fone) {
-    botoesWA = `
-      <div style="background:var(--light);border-radius:10px;padding:10px;margin-top:4px">
-        <div style="font-weight:600;color:var(--rose-dark);margin-bottom:8px;font-size:0.82rem">📱 Lembrete</div>
-        <button class="btn btn-primary btn-sm" style="width:100%" onclick="enviarLembrete()">🔔 Enviar Lembrete via WhatsApp</button>
-      </div>`;
-  }
-
-  const svcsHtml = svcs.map(s => `<span class="badge badge-rose" style="margin-right:4px;margin-bottom:4px">${s.nome}</span>`).join('');
-  document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
-  document.getElementById('va-body').innerHTML = `
-    <div style="display:grid;gap:10px">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
-        ${svcsHtml || '—'}
-        <span class="status-badge ${st.cls}">${st.emoji} ${st.label}</span>
-      </div>
-      <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
-      <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof ? prof.nome : '—'}</strong></div>
-      ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
-      ${botoesWA}
-    </div>`;
-  openModal('modal-ver-agendamento');
-}
-
+// ═══════════════════════════════════════
+// LOGIN / AUTH
+// ═══════════════════════════════════════
+const SENHA_PADRAO = 'Nego197353@';
+let senhaElly = null;
 let currentUser = null;
 let selectedDate = today();
 let weekOffset = 0;
 let viewingApptId = null;
 let activeProfId = 1;
+let editingApptId = null;
+let editingClienteId = null;
 
-function today() {
-  return new Date().toISOString().split('T')[0];
-}
-
-// ═══════════ LOGIN ═══════════
-const SENHA_PADRAO = 'Nego197353@';
-let senhaElly = null; // carregada do Firebase; usa SENHA_PADRAO se ainda não houver nenhuma salva
+function today() { return new Date().toISOString().split('T')[0]; }
 
 async function carregarSenhaElly() {
   try {
-    const res = await fetch(DB_URL + "/config/senhaElly.json");
+    const res = await fetch(DB_URL + '/config/senhaElly.json');
     const val = await res.json();
     senhaElly = (typeof val === 'string' && val) ? val : SENHA_PADRAO;
-  } catch(e) {
-    senhaElly = SENHA_PADRAO;
-  }
+  } catch(e) { senhaElly = SENHA_PADRAO; }
 }
 
 function initLogin() {
-  const grid = document.getElementById('prof-grid');
-  grid.innerHTML = FUNCIONARIOS.map(f => `
+  document.getElementById('prof-grid').innerHTML = FUNCIONARIOS.map(f => `
     <div class="prof-option" id="po-${f.id}" onclick="selectProf(${f.id})">
       <div class="avatar ${f.cor}" style="width:40px;height:40px;font-size:1rem">${f.emoji}</div>
       <div><div class="po-name">${f.nome}</div><div class="po-role">${f.role}</div></div>
@@ -1024,13 +978,13 @@ function initLogin() {
 
 function selectProf(id) {
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
-  document.getElementById('po-'+id).classList.add('selected');
+  const el = document.getElementById('po-' + id);
+  if (el) el.classList.add('selected');
   currentUser = id;
 }
 
 function acessoEllyValidoHoje() {
-  const ultimo = localStorage.getItem('elly_auth_dia');
-  return ultimo === today();
+  return localStorage.getItem('elly_auth_dia') === today();
 }
 
 function doLogin() {
@@ -1045,11 +999,7 @@ function doLogin() {
 
 function confirmarSenha() {
   const digitada = document.getElementById('senha-input').value;
-  const senhaValida = senhaElly || SENHA_PADRAO;
-  if (digitada !== senhaValida) {
-    showToast('Senha incorreta');
-    return;
-  }
+  if (digitada !== (senhaElly || SENHA_PADRAO)) { showToast('Senha incorreta'); return; }
   localStorage.setItem('elly_auth_dia', today());
   closeModal('modal-senha');
   finalizarLogin();
@@ -1065,13 +1015,17 @@ function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   document.getElementById('user-label').textContent = f.emoji + ' ' + f.nome;
+  document.getElementById('sync-dot').style.display = 'block';
+  if (currentUser === 1) document.getElementById('nav-config').style.display = 'flex';
   initApp();
   startSync();
-  document.getElementById('sync-dot').style.display = 'block';
 }
 
 function logout() {
+  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('sync-dot').style.display = 'none';
+  document.getElementById('nav-config').style.display = 'none';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -1082,21 +1036,17 @@ async function trocarSenhaElly() {
   if (!nova || nova.length < 4) { showToast('Senha precisa ter ao menos 4 caracteres'); return; }
   if (nova !== confirma) { showToast('As senhas não conferem'); return; }
   try {
-    await fetch(DB_URL + "/config/senhaElly.json", {
-      method: "PUT",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(nova)
-    });
+    await fetch(DB_URL + '/config/senhaElly.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(nova) });
     senhaElly = nova;
     document.getElementById('nova-senha-input').value = '';
     document.getElementById('confirma-senha-input').value = '';
-    showToast('✅ Senha atualizada com sucesso');
-  } catch(e) {
-    showToast('Erro ao salvar. Verifique sua internet e tente de novo.');
-  }
+    showToast('✅ Senha atualizada!');
+  } catch(e) { showToast('Erro ao salvar senha'); }
 }
 
-// ═══════════ INIT APP ═══════════
+// ═══════════════════════════════════════
+// INIT APP
+// ═══════════════════════════════════════
 function initApp() {
   renderWeek();
   renderTimeline();
@@ -1105,33 +1055,28 @@ function initApp() {
   renderServicos();
   populateSelects();
   updateStats();
-  // Set today's date as default
   document.getElementById('na-data').value = today();
 }
 
-// ═══════════ AGENDA ═══════════
+// ═══════════════════════════════════════
+// AGENDA — SEMANA
+// ═══════════════════════════════════════
 function renderWeek() {
   const now = new Date();
   now.setDate(now.getDate() + weekOffset * 7);
   const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-
-  // find Monday of current week
   const dow = now.getDay();
   const monday = new Date(now);
   monday.setDate(now.getDate() - dow + 1);
-
   document.getElementById('month-label').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
-
   let html = '';
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     const ds = d.toISOString().split('T')[0];
     const hasEvent = agendamentos.some(a => a.data === ds && a.status !== 'cancelado');
-    const sel = ds === selectedDate ? 'selected' : '';
-    const hasClass = hasEvent ? 'has-event' : '';
-    html += `<div class="day-chip ${sel} ${hasClass}" onclick="selectDay('${ds}')">
+    html += `<div class="day-chip ${ds===selectedDate?'selected':''} ${hasEvent?'has-event':''}" onclick="selectDay('${ds}')">
       <div class="dc-name">${days[d.getDay()]}</div>
       <div class="dc-num">${d.getDate()}</div>
       <div class="dc-dot"></div>
@@ -1140,238 +1085,221 @@ function renderWeek() {
   document.getElementById('week-scroll').innerHTML = html;
 }
 
-function selectDay(ds) {
-  selectedDate = ds;
-  renderWeek();
-  renderTimeline();
-}
+function selectDay(ds) { selectedDate = ds; renderWeek(); renderTimeline(); }
+function moveWeek(dir) { weekOffset += dir; renderWeek(); renderTimeline(); }
 
-function moveWeek(dir) {
-  weekOffset += dir;
-  renderWeek();
-  renderTimeline();
-}
-
+// ═══════════════════════════════════════
+// AGENDA — TIMELINE
+// ═══════════════════════════════════════
 function renderProfTabs() {
-  var el = document.getElementById('prof-tab-wrap');
+  const el = document.getElementById('prof-tab-wrap');
   if (!el) return;
-  var colors = ['pt-rose','pt-gold','pt-green'];
-  var tabs = '';
-  for (var i = 0; i < FUNCIONARIOS.length; i++) {
-    var f = FUNCIONARIOS[i];
-    var active = f.id === activeProfId ? 'active' : '';
-    tabs += '<div class="prof-tab ' + colors[i] + ' ' + active + '" onclick="trocarProf(' + f.id + ')">' + f.nome + '</div>';
-  }
-  el.innerHTML = tabs;
+  const colors = ['pt-rose','pt-gold','pt-green'];
+  el.innerHTML = FUNCIONARIOS.map((f, i) =>
+    `<div class="prof-tab ${colors[i]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})">${f.nome}</div>`
+  ).join('');
 }
 
-function trocarProf(id) {
-  activeProfId = id;
-  renderTimeline();
-}
+function trocarProf(id) { activeProfId = id; renderTimeline(); }
 
 function horaParaMinutos(hora) {
-  var partes = hora.split(':');
-  return (parseInt(partes[0], 10) * 60) + parseInt(partes[1], 10);
-}
-
-function minutosParaHora(total) {
-  var horas = Math.floor(total / 60);
-  var mins = total % 60;
-  return (horas < 10 ? '0' : '') + horas + ':' + (mins < 10 ? '0' : '') + mins;
+  const p = hora.split(':');
+  return (parseInt(p[0])*60) + parseInt(p[1]);
 }
 
 function getDuracaoAgendamento(appt) {
-  var total = 0;
-  var ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
-  for (var i = 0; i < ids.length; i++) {
-    var svc = SERVICOS.find(function(s){ return s.id === ids[i]; });
-    if (svc && svc.duracao) total += parseInt(svc.duracao, 10) || 0;
-  }
-  return total || 15;
+  const ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
+  return ids.reduce((t, id) => { const s = SERVICOS.find(x => x.id === id); return t + (s ? (parseInt(s.duracao)||0) : 0); }, 0) || 15;
 }
 
 function getNomesServicos(appt) {
-  var nomesServicos = [];
-  var ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
-  for (var i = 0; i < ids.length; i++) {
-    var svc = SERVICOS.find(function(s){ return s.id === ids[i]; });
-    if (svc) nomesServicos.push(svc.nome);
-  }
-  return nomesServicos.join(' • ');
+  const ids = (appt.servicoIds && appt.servicoIds.length) ? appt.servicoIds : [appt.servicoId];
+  return ids.map(id => { const s = SERVICOS.find(x => x.id === id); return s ? s.nome : ''; }).filter(Boolean).join(' • ');
 }
 
 function renderTimeline() {
   renderProfTabs();
-  var dayAppts = [];
-  for (var i = 0; i < agendamentos.length; i++) {
-    var a = agendamentos[i];
-    if (a.data === selectedDate && a.status !== 'cancelado' && a.profId === activeProfId) {
-      dayAppts.push(a);
-    }
-  }
-  dayAppts.sort(function(a, b) {
-    return horaParaMinutos(a.hora) - horaParaMinutos(b.hora);
-  });
+  const dayAppts = agendamentos
+    .filter(a => a.data === selectedDate && a.status !== 'cancelado' && a.profId === activeProfId)
+    .sort((a,b) => horaParaMinutos(a.hora) - horaParaMinutos(b.hora));
 
-  var apptMap = {};
-  for (var j = 0; j < dayAppts.length; j++) {
-    apptMap[dayAppts[j].hora] = dayAppts[j];
-  }
+  const apptMap = {};
+  dayAppts.forEach(a => { apptMap[a.hora] = a; });
 
-  var slots = [];
-  for (var h = 9; h < 20; h++) {
-    var mins = ['00','15','30','45'];
-    for (var m = 0; m < mins.length; m++) {
-      slots.push((h < 10 ? '0' : '') + h + ':' + mins[m]);
-    }
+  const slots = [];
+  for (let h = 9; h < 20; h++) {
+    ['00','15','30','45'].forEach(m => slots.push((h<10?'0':'')+h+':'+m));
   }
   slots.push('20:00');
 
-  var rows = '';
-  for (var s = 0; s < slots.length; s++) {
-    var slot = slots[s];
-    var appt = apptMap[slot];
-    rows += '<tr><td class="hora-td">' + slot + '</td>';
+  // Verificar se há input em foco para evitar renderização enquanto digitando
+  const focusedEl = document.activeElement;
+  const focusedIsValor = focusedEl && focusedEl.classList.contains('slot-valor-input');
 
+  let rows = '';
+  slots.forEach(slot => {
+    const appt = apptMap[slot];
+    const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
+    rows += `<tr><td class="hora-td">${slot}</td>`;
     if (appt) {
-      var nomesServicos = getNomesServicos(appt);
-      var valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
-      rows += '<td class="slot-td tem-appt">' +
-        '<div class="slot-appt-content" onclick="verAgendamento(' + appt.id + ')">' +
-          '<div class="slot-nome">' + appt.nomeCliente + '</div>' +
-          '<div class="slot-svc">' + nomesServicos + '</div>' +
-        '</div>' +
-        '<div class="slot-valor-wrap" onclick="event.stopPropagation()">' +
-          '<span class="slot-valor-prefix">R$</span>' +
-          '<input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="' + valorAtual + '" ' +
-          'onclick="event.stopPropagation()" ' +
-          'onchange="salvarValorAgendamento(' + appt.id + ', this.value)">' +
-        '</div>' +
-      '</td>';
+      const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
+      rows += `<td class="slot-td tem-appt">
+        <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
+          <div class="slot-nome">${appt.nomeCliente}</div>
+          <div class="slot-svc">${getNomesServicos(appt)}</div>
+        </div>
+        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
+          <span class="slot-valor-prefix">R$</span>
+          <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${valorAtual}"
+            onclick="event.stopPropagation()"
+            onchange="salvarValorAgendamento(${appt.id},this.value)">
+        </div>
+      </td>`;
     } else {
-      rows += '<td class="slot-td" onclick="abrirSlot(' + JSON.stringify(slot) + ')"></td>';
+      rows += `<td class="slot-td" onclick="abrirSlot('${slot}')"></td>`;
     }
     rows += '</tr>';
-  }
-
-  // ── Rodapé: totais do dia ──
-  var agendsDia = agendamentos.filter(function(a) {
-    return a.data === selectedDate && a.status !== 'cancelado';
   });
 
-  var ehDono = (currentUser === 1);
+  // Rodapé de totais
+  const agendsDia = agendamentos.filter(a => a.data === selectedDate && a.status !== 'cancelado');
+  const ehDono = currentUser === 1;
 
   if (ehDono) {
-    // Total do profissional ativo na aba
-    var totalAtivo = 0;
-    agendsDia.forEach(function(a) {
-      if (a.profId === activeProfId && typeof a.valor === 'number') totalAtivo += a.valor;
-    });
-
-    // Total por profissional e geral
-    var totaisPorProf = {};
-    FUNCIONARIOS.forEach(function(f) { totaisPorProf[f.id] = 0; });
-    var totalGeral = 0;
-    agendsDia.forEach(function(a) {
-      var v = typeof a.valor === 'number' ? a.valor : 0;
+    const totaisPorProf = {};
+    FUNCIONARIOS.forEach(f => { totaisPorProf[f.id] = 0; });
+    let totalGeral = 0;
+    agendsDia.forEach(a => {
+      const v = typeof a.valor === 'number' ? a.valor : 0;
       totalGeral += v;
       if (totaisPorProf[a.profId] !== undefined) totaisPorProf[a.profId] += v;
     });
-
-    var profAtivo = FUNCIONARIOS.find(function(f){ return f.id === activeProfId; });
-    var nomeAtivo = profAtivo ? profAtivo.nome : '';
-
-    var linhasPorProf = FUNCIONARIOS.map(function(f) {
-      return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06)">' +
-        '<span>' + f.emoji + ' ' + f.nome + '</span>' +
-        '<strong>R$ ' + totaisPorProf[f.id].toFixed(2) + '</strong>' +
-      '</div>';
-    }).join('');
-
-    rows += '<tr><td colspan="' + (slots.length + 1) + '" style="padding:0">' +
-      '<div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px">' +
-        '<div style="font-size:0.78rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">💰 Totais do dia</div>' +
-        linhasPorProf +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0 0;margin-top:4px">' +
-          '<strong style="color:var(--dark)">Total Geral</strong>' +
-          '<strong style="color:var(--rose-dark);font-size:1.05rem">R$ ' + totalGeral.toFixed(2) + '</strong>' +
-        '</div>' +
-      '</div>' +
-    '</td></tr>';
-
+    const linhas = FUNCIONARIOS.map(f =>
+      `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+        <span>${f.emoji} ${f.nome}</span>
+        <strong>${formatarMoeda(totaisPorProf[f.id])}</strong>
+      </div>`
+    ).join('');
+    rows += `<tr><td colspan="2" style="padding:0">
+      <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">💰 Totais do dia</div>
+        ${linhas}
+        <div style="display:flex;justify-content:space-between;padding:8px 0 0;margin-top:4px">
+          <strong>Total Geral</strong>
+          <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalGeral)}</strong>
+        </div>
+      </div>
+    </td></tr>`;
   } else {
-    // Profissional comum: vê só o próprio total do dia
-    var meuTotal = 0;
-    agendsDia.forEach(function(a) {
-      if (a.profId === currentUser && typeof a.valor === 'number') meuTotal += a.valor;
-    });
-    rows += '<tr><td colspan="' + (slots.length + 1) + '" style="padding:0">' +
-      '<div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">' +
-        '<span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>' +
-        '<strong style="color:var(--rose-dark);font-size:1.05rem">R$ ' + meuTotal.toFixed(2) + '</strong>' +
-      '</div>' +
-    '</td></tr>';
+    let meuTotal = 0;
+    agendsDia.forEach(a => { if (a.profId === currentUser && typeof a.valor === 'number') meuTotal += a.valor; });
+    rows += `<tr><td colspan="2" style="padding:0">
+      <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>
+        <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(meuTotal)}</strong>
+      </div>
+    </td></tr>`;
   }
 
-  var tel = document.getElementById('timeline');
-  if (tel) tel.innerHTML = '<table class="grade-table"><tbody>' + rows + '</tbody></table>';
+  if (!focusedIsValor) {
+    const tel = document.getElementById('timeline');
+    if (tel) tel.innerHTML = `<table class="grade-table"><tbody>${rows}</tbody></table>`;
+  }
 }
 
 function abrirSlot(hora) {
   openModal('modal-novo-agendamento');
-  setTimeout(function(){
+  setTimeout(() => {
     document.getElementById('na-hora').value = hora;
     document.getElementById('na-data').value = selectedDate;
     document.getElementById('na-profissional').value = activeProfId;
   }, 150);
 }
 
+// ═══════════════════════════════════════
+// VER AGENDAMENTO
+// ═══════════════════════════════════════
+function verAgendamento(id) {
+  viewingApptId = id;
+  const a = agendamentos.find(x => x.id === id);
+  if (!a) return;
+  const ids = a.servicoIds || [a.servicoId];
+  const svcs = ids.map(sid => SERVICOS.find(s => s.id === sid)).filter(Boolean);
+  const prof = FUNCIONARIOS.find(f => f.id === a.profId);
+  const st = STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado;
 
+  const statusOpts = Object.entries(STATUS_LABELS).map(([k,v]) =>
+    `<button onclick="alterarStatus('${k}')" style="padding:5px 10px;border-radius:20px;border:1.5px solid ${k===(a.status||'confirmado')?'var(--rose-dark)':'var(--rose-light)'};background:${k===(a.status||'confirmado')?'var(--rose-light)':'transparent'};font-size:0.74rem;font-weight:600;cursor:pointer;color:var(--dark)">${v.emoji} ${v.label}</button>`
+  ).join('');
+
+  const svcsHtml = svcs.map(s => `<span class="badge badge-rose" style="margin-right:4px;margin-bottom:4px">${s.nome}</span>`).join('');
+
+  // WhatsApp buttons
+  const waBtns = a.fone ? `
+    <div style="background:var(--light);border-radius:12px;padding:12px;margin-top:8px">
+      <div style="font-weight:700;font-size:0.8rem;color:var(--rose-dark);margin-bottom:10px">📱 WhatsApp</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-green btn-sm" style="justify-content:center" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'confirmar')">✅ Confirmar</button>
+        <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'lembrete')">🔔 Lembrete</button>
+        <button class="btn btn-ghost btn-sm" style="justify-content:center;grid-column:1/-1" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'reagendar')">🔄 Reagendar</button>
+      </div>
+    </div>` : '';
+
+  document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
+  document.getElementById('va-body').innerHTML = `
+    <div style="display:grid;gap:10px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+        ${svcsHtml || '—'}
+        <span class="status-badge ${st.cls}">${st.emoji} ${st.label}</span>
+      </div>
+      <div style="font-size:0.85rem;color:var(--mid)">📅 ${formatDate(a.data)} às ${a.hora}</div>
+      <div style="font-size:0.85rem;color:var(--mid)">💅 Profissional: <strong>${prof?prof.nome:'—'}</strong></div>
+      ${a.fone ? `<div style="font-size:0.82rem;color:var(--mid)">📱 ${a.fone}</div>` : ''}
+      ${a.obs ? `<div style="font-size:0.82rem;background:var(--light);padding:10px;border-radius:8px">${a.obs}</div>` : ''}
+      <div>
+        <div style="font-size:0.75rem;color:var(--mid);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Alterar status</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${statusOpts}</div>
+      </div>
+      ${waBtns}
+    </div>`;
+  openModal('modal-ver-agendamento');
+}
+
+// ═══════════════════════════════════════
+// AGENDAMENTOS — CRUD
+// ═══════════════════════════════════════
+function editarAgendamento() {
+  const a = agendamentos.find(x => x.id === viewingApptId);
+  if (!a) return;
+  editingApptId = viewingApptId;
+  closeModal('modal-ver-agendamento');
+  document.getElementById('na-modal-titulo').textContent = '✏️ Editar Agendamento';
+  document.getElementById('na-btn-salvar').textContent = 'Salvar Alterações';
+  document.getElementById('na-cliente').value = a.nomeCliente;
+  document.getElementById('na-fone').value = a.fone || '';
+  document.getElementById('na-data').value = a.data;
+  document.getElementById('na-hora').value = a.hora;
+  document.getElementById('na-obs').value = a.obs || '';
+  populateSelects();
+  setTimeout(() => {
+    const ids = a.servicoIds || [a.servicoId];
+    document.querySelectorAll('.svc-check').forEach(c => { c.checked = ids.includes(parseInt(c.value)); });
+    document.getElementById('na-profissional').value = a.profId;
+  }, 100);
+  openModal('modal-novo-agendamento');
+}
 
 function cancelarAgendamento() {
   if (!viewingApptId) return;
   const idx = agendamentos.findIndex(a => a.id === viewingApptId);
-  if (idx >= 0) { agendamentos[idx].status = 'cancelado'; save(agendamentos[idx].id, agendamentos[idx]); }
+  if (idx >= 0) { agendamentos[idx].status = 'cancelado'; saveAgendamento(agendamentos[idx].id, agendamentos[idx]); }
   closeModal('modal-ver-agendamento');
-  renderTimeline();
-  renderWeek();
-  updateStats();
+  renderTimeline(); renderWeek(); updateStats();
   showToast('Agendamento cancelado');
 }
 
-function enviarLembrete() {
-  if (!viewingApptId) return;
-  const appt = agendamentos.find(a => a.id === viewingApptId);
-  if (!appt) return;
-  
-  // Formatar data e hora
-  const dataObj = new Date(appt.data + 'T00:00:00');
-  const diaSemana = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'][dataObj.getDay()];
-  const dia = dataObj.getDate();
-  const mes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][dataObj.getMonth()];
-  
-  // Montar mensagem melhorada
-  const nome = (appt.nomeCliente && appt.nomeCliente.trim()) ? appt.nomeCliente.trim() : 'Cliente';
-  const hora = appt.hora || '00:00';
-  const profissional = FUNCIONARIOS.find(f => f.id === appt.profId)?.nome || '';
-  
-  const mensagem = `Oi ${nome}! 👋\n\n✨ *Lembrete do seu agendamento* ✨\n\n📅 ${diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1)}, ${dia} de ${mes}\n🕐 ${hora}\n${profissional ? '💅 Com: ' + profissional + '\n' : ''}\nPodemos confirmar sua presença? 😊\n\nQualquer dúvida é só chamar! 💬`;
-  
-  // Abrir WhatsApp
-  const fone = appt.fone || '';
-  if (!fone) {
-    showToast('❌ Telefone não cadastrado');
-    return;
-  }
-  
-  const whatsappUrl = 'https://wa.me/' + fone.replace(/\D/g, '') + '?text=' + encodeURIComponent(mensagem);
-  window.open(whatsappUrl, '_blank');
-  showToast('✅ Abrindo WhatsApp...');
-}
-
 function salvarAgendamento() {
-  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value || '') || null;
+  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
   const fone = document.getElementById('na-fone').value.trim();
   const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
@@ -1379,93 +1307,108 @@ function salvarAgendamento() {
   const data = document.getElementById('na-data').value;
   const hora = document.getElementById('na-hora').value;
   const obs = document.getElementById('na-obs').value;
-  const lembrete24 = document.getElementById('na-lembrete24').checked;
-  const lembrete2 = document.getElementById('na-lembrete2').checked;
 
-  if (!nomeCliente || servicoIds.length === 0 || !profId || !data || !hora) {
-    showToast('Preencha todos os campos'); return;
+  if (!nomeCliente || servicoIds.length===0 || !profId || !data || !hora) {
+    showToast('Preencha todos os campos obrigatórios'); return;
   }
 
   if (editingApptId) {
-    // Editar agendamento existente
     const idx = agendamentos.findIndex(a => a.id === editingApptId);
     if (idx >= 0) {
-      const statusAtual = agendamentos[idx].status;
-      const lembretesAtual = agendamentos[idx].lembretes || {};
-      agendamentos[idx] = { ...agendamentos[idx], clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, lembrete24, lembrete2, lembretes: lembretesAtual, status: statusAtual };
-      save(agendamentos[idx].id, agendamentos[idx]);
-      closeModal('modal-novo-agendamento');
-      selectedDate = data;
-      renderWeek();
-      renderTimeline();
-      updateStats();
-      showToast('✅ Agendamento atualizado!');
+      const old = agendamentos[idx];
+      agendamentos[idx] = { ...old, clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs };
+      saveAgendamento(agendamentos[idx].id, agendamentos[idx]);
       editingApptId = null;
+      closeModal('modal-novo-agendamento');
+      selectedDate = data; renderWeek(); renderTimeline(); updateStats();
+      showToast('✅ Agendamento atualizado!');
     }
   } else {
-    // Novo agendamento
-    const novo = { id: Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId: servicoIds[0], profId, data, hora, obs, status: 'confirmado', lembrete24, lembrete2, lembretes: {} };
+    const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{} };
     agendamentos.push(novo);
-    save(novo.id, novo);
+    saveAgendamento(novo.id, novo);
     closeModal('modal-novo-agendamento');
-    selectedDate = data;
-    renderWeek();
-    renderTimeline();
-    updateStats();
+    selectedDate = data; renderWeek(); renderTimeline(); updateStats();
     showToast('✅ Agendamento confirmado!');
   }
 }
 
-// ═══════════ CLIENTES ═══════════
+// ═══════════════════════════════════════
+// CLIENTES
+// ═══════════════════════════════════════
 function renderClientes() {
   const el = document.getElementById('lista-clientes');
   if (!el) return;
-  const q = (document.getElementById('search-cliente')?.value || '').toLowerCase();
-  const lista = clientes.filter(c => (c.nome || '').toLowerCase().includes(q));
-
+  const q = (document.getElementById('search-cliente')?.value||'').toLowerCase();
+  const lista = clientes.filter(c => (c.nome||'').toLowerCase().includes(q));
   if (lista.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="es-icon">👤</div><p>Nenhuma cliente cadastrada</p></div>`;
     return;
   }
-
-  const initials = n => (n || '?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
-  const colors = ['av-rose','av-gold','av-green'];
-
+  const cores = ['av-rose','av-gold','av-green'];
+  const initials = n => (n||'?').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
   el.innerHTML = lista.map((c,i) => {
-    const hist = agendamentos.filter(a => a.clienteId === c.id && a.status !== 'cancelado').length;
-    const foneLimpo = (c.fone || '').replace(/\D/g,'');
+    const hist = agendamentos.filter(a => a.clienteId===c.id && a.status!=='cancelado').length;
+    const totalGasto = agendamentos.filter(a => a.clienteId===c.id && a.status!=='cancelado' && typeof a.valor==='number').reduce((t,a)=>t+a.valor,0);
+    const ultimo = agendamentos.filter(a => a.clienteId===c.id && a.status!=='cancelado').sort((a,b)=>b.data.localeCompare(a.data))[0];
+    const foneLimpo = (c.fone||'').replace(/\D/g,'');
     return `<div class="list-item">
-      <div class="avatar ${colors[i%3]}">${initials(c.nome)}</div>
-      <div class="list-info">
+      <div class="avatar ${cores[i%3]}" style="cursor:pointer" onclick="editarCliente(${c.id})">${initials(c.nome)}</div>
+      <div class="list-info" style="cursor:pointer" onclick="editarCliente(${c.id})">
         <div class="list-name">${c.nome}</div>
-        <div class="list-sub">${c.fone || 'Sem WhatsApp'} · ${hist} agendamento${hist!==1?'s':''}</div>
-        ${c.obs ? `<div class="list-sub" style="font-style:italic">${c.obs}</div>` : ''}
+        <div class="list-sub">${c.fone||'Sem WhatsApp'} · ${hist} agendamento${hist!==1?'s':''}</div>
+        ${totalGasto>0?`<div class="list-sub">💰 Total: ${formatarMoeda(totalGasto)}</div>`:''}
+        ${ultimo?`<div class="list-sub">📅 Último: ${formatDate(ultimo.data)}</div>`:''}
+        ${c.obs?`<div class="list-sub" style="font-style:italic">${c.obs}</div>`:''}
       </div>
       <div class="list-actions">
-        ${foneLimpo ? `<a href="https://wa.me/55${foneLimpo}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>` : ''}
+        ${foneLimpo?`<a href="https://wa.me/55${foneLimpo}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>`:''}
       </div>
     </div>`;
   }).join('');
 }
 
+function editarCliente(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  editingClienteId = id;
+  document.getElementById('nc-titulo').textContent = '✏️ Editar Cliente';
+  document.getElementById('nc-btn-salvar').textContent = 'Salvar Alterações';
+  document.getElementById('nc-nome').value = c.nome || '';
+  document.getElementById('nc-fone').value = c.fone || '';
+  document.getElementById('nc-aniversario').value = c.aniversario || '';
+  document.getElementById('nc-obs').value = c.obs || '';
+  openModal('modal-nova-cliente');
+}
+
 function salvarCliente() {
   const nome = document.getElementById('nc-nome').value.trim();
   const fone = document.getElementById('nc-fone').value.trim();
+  const aniversario = document.getElementById('nc-aniversario').value;
   const obs = document.getElementById('nc-obs').value.trim();
   if (!nome) { showToast('Digite o nome da cliente'); return; }
-  const novo = { id: Date.now(), nome, fone, obs };
-  clientes.push(novo);
-  saveClienteFirebase(novo);
+  if (editingClienteId) {
+    const c = clientes.find(x => x.id === editingClienteId);
+    if (c) { Object.assign(c, { nome, fone, aniversario, obs }); saveClienteFirebase(c); }
+    editingClienteId = null;
+    showToast('✅ Cliente atualizada!');
+  } else {
+    const novo = { id:Date.now(), nome, fone, aniversario, obs };
+    clientes.push(novo);
+    saveClienteFirebase(novo);
+    showToast('✅ Cliente cadastrada!');
+  }
   closeModal('modal-nova-cliente');
   renderClientes();
   populateClientesSelect();
-  showToast('✅ Cliente cadastrada!');
 }
 
-// ═══════════ FUNCIONÁRIOS ═══════════
+// ═══════════════════════════════════════
+// FUNCIONÁRIOS
+// ═══════════════════════════════════════
 function renderFuncionarios() {
   document.getElementById('lista-funcionarios').innerHTML = FUNCIONARIOS.map(f => {
-    const hoje = agendamentos.filter(a => a.profId === f.id && a.data === today() && a.status !== 'cancelado').length;
+    const hoje = agendamentos.filter(a => a.profId===f.id && a.data===today() && a.status!=='cancelado').length;
     return `<div class="list-item" style="cursor:pointer" onclick="editarProfissional(${f.id})">
       <div class="avatar ${f.cor}">${f.emoji}</div>
       <div class="list-info">
@@ -1473,84 +1416,59 @@ function renderFuncionarios() {
         <div class="list-sub">${f.role}</div>
         <div class="list-sub" style="margin-top:4px"><span class="badge badge-rose">${hoje} hoje</span></div>
       </div>
-      <div style="color:var(--mid);font-size:0.8rem;padding-right:4px">✏️</div>
+      <div style="color:var(--mid);font-size:0.8rem">✏️</div>
     </div>`;
   }).join('');
 }
 
 function updateStats() {
-  const hoje = agendamentos.filter(a => a.data === today() && a.status !== 'cancelado').length;
+  const hoje = agendamentos.filter(a => a.data===today() && a.status!=='cancelado').length;
   const now = new Date();
   const dow = now.getDay();
-  const mon = new Date(now); mon.setDate(now.getDate() - dow + 1);
-  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const mon = new Date(now); mon.setDate(now.getDate()-dow+1);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
   const semana = agendamentos.filter(a => {
     const d = new Date(a.data);
-    return d >= mon && d <= sun && a.status !== 'cancelado';
+    return d>=mon && d<=sun && a.status!=='cancelado';
   }).length;
   document.getElementById('stat-hoje').textContent = hoje;
   document.getElementById('stat-semana').textContent = semana;
 }
 
-// ═══════════ SERVIÇOS ═══════════
-function salvarNovoServico() {
-  const nome = document.getElementById('ns-nome').value.trim();
-  const duracao = parseInt(document.getElementById('ns-duracao').value);
-  const preco = document.getElementById('ns-preco').value.trim();
-  const cat = document.getElementById('ns-cat').value.trim() || 'Outros';
-  const profIds = [...document.querySelectorAll('.ns-prof-check:checked')].map(c => parseInt(c.value));
-
-  if (!nome || !duracao || profIds.length === 0) {
-    showToast('Preencha nome, duração e profissional'); return;
-  }
-
-  const novoId = Math.max(...SERVICOS.map(s => s.id), 0) + 1;
-  SERVICOS.push({ id: novoId, nome, duracao, preco: preco || 'A definir', profissionais: profIds, cat });
-  save('SERVICOS', SERVICOS);
-  closeModal('modal-novo-servico');
-  renderServicos();
-  showToast('✅ Serviço adicionado!');
-}
-
 function editarProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
-
-  // Serviços que essa profissional realiza
-  const svcsProf = SERVICOS.filter(s => s.profissionais.includes(id));
   const todosSvcs = SERVICOS.map(s =>
     `<label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;padding:2px 0">
-      <input type="checkbox" class="ep-svc-check" value="${s.id}" ${s.profissionais.includes(id) ? 'checked' : ''} style="width:15px;height:15px;accent-color:var(--rose)">
+      <input type="checkbox" class="ep-svc-check" value="${s.id}" ${s.profissionais.includes(id)?'checked':''} style="width:15px;height:15px;accent-color:var(--rose)">
       ${s.nome}
     </label>`
   ).join('');
-
   const coresOpts = [
-    {cls:'av-rose', bg:'#c97d7d', label:'Rosa'},
-    {cls:'av-gold', bg:'#c9a96e', label:'Dourado'},
-    {cls:'av-green', bg:'#66bb6a', label:'Verde'},
-    {cls:'av-blue', bg:'#7d9bc9', label:'Azul'},
+    {cls:'av-rose',bg:'#c97d7d',label:'Rosa'},
+    {cls:'av-gold',bg:'#c9a96e',label:'Dourado'},
+    {cls:'av-green',bg:'#66bb6a',label:'Verde'},
+    {cls:'av-blue',bg:'#7d9bc9',label:'Azul'},
   ];
   const coresHtml = coresOpts.map(c =>
     `<div onclick="document.getElementById('ep-cor-val').value='${c.cls}';document.querySelectorAll('.ep-cor-opt').forEach(x=>x.style.outline='none');this.style.outline='3px solid #333'"
       class="ep-cor-opt" title="${c.label}" style="width:28px;height:28px;border-radius:50%;background:${c.bg};cursor:pointer;display:inline-block;margin:3px;${prof.cor===c.cls?'outline:3px solid #333':''}"></div>`
   ).join('');
-
   document.getElementById('ep-titulo').textContent = '✏️ Editar ' + prof.nome;
   document.getElementById('ep-body').innerHTML = `
     <div style="display:grid;gap:12px">
       <div class="form-group" style="margin:0">
         <label>Nome</label>
-        <input type="text" id="ep-nome" value="${prof.nome}" style="width:100%;padding:10px;border:1px solid var(--rose-light);border-radius:10px;font-size:0.9rem">
+        <input type="text" id="ep-nome" value="${prof.nome}">
       </div>
       <div class="form-group" style="margin:0">
-        <label>Emoji / Foto</label>
-        <input type="text" id="ep-emoji" value="${prof.emoji || '💅'}" maxlength="4" style="width:80px;padding:10px;border:1px solid var(--rose-light);border-radius:10px;font-size:1.2rem;text-align:center">
+        <label>Emoji</label>
+        <input type="text" id="ep-emoji" value="${prof.emoji||'💅'}" maxlength="4" style="width:80px;text-align:center;font-size:1.2rem">
       </div>
       <div class="form-group" style="margin:0">
-        <label>Cor da coluna</label>
+        <label>Cor</label>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${coresHtml}</div>
-        <input type="hidden" id="ep-cor-val" value="${prof.cor || cores[0]}">
+        <input type="hidden" id="ep-cor-val" value="${prof.cor}">
       </div>
       <div class="form-group" style="margin:0">
         <label>Serviços realizados</label>
@@ -1567,75 +1485,131 @@ function editarProfissional(id) {
 function salvarProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
-
   const novoNome = document.getElementById('ep-nome').value.trim();
   const novoEmoji = document.getElementById('ep-emoji').value.trim();
   const novaCor = document.getElementById('ep-cor-val').value;
-  const svcsCheck = [...document.querySelectorAll('.ep-svc-check')];
-
   if (!novoNome) { showToast('Digite um nome'); return; }
-
-  prof.nome = novoNome;
-  prof.emoji = novoEmoji || '💅';
-  prof.cor = novaCor;
-
-  // Atualizar profissionais nos serviços
-  svcsCheck.forEach(c => {
+  prof.nome = novoNome; prof.emoji = novoEmoji||'💅'; prof.cor = novaCor;
+  document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
-    if (c.checked && !svc.profissionais.includes(id)) {
-      svc.profissionais.push(id);
-    } else if (!c.checked) {
-      svc.profissionais = svc.profissionais.filter(x => x !== id);
-    }
+    if (c.checked && !svc.profissionais.includes(id)) svc.profissionais.push(id);
+    else if (!c.checked) svc.profissionais = svc.profissionais.filter(x => x !== id);
   });
-
   closeModal('modal-editar-prof');
-  renderFuncionarios();
-  renderServicos();
-  renderTimeline();
+  renderFuncionarios(); renderServicos(); renderTimeline();
   showToast('✅ Profissional atualizada!');
 }
 
-// ═══════════ FORMATAÇÃO ═══════════
-function formatarMoeda(valor) {
-  if (!valor && valor !== 0) return 'A definir';
-  const num = parseFloat(valor);
-  if (isNaN(num)) return 'A definir';
-  return 'R$ ' + num.toFixed(2).replace('.', ',');
-}
-
+// ═══════════════════════════════════════
+// SERVIÇOS (com persistência correta)
+// ═══════════════════════════════════════
 function renderServicos() {
-  const cats = [...new Set(SERVICOS.map(s => s.cat))];
+  const el = document.getElementById('lista-servicos');
+  if (!el) return;
+  const q = (document.getElementById('search-servico')?.value||'').toLowerCase();
+  const filtrados = q ? SERVICOS.filter(s => s.nome.toLowerCase().includes(q) || (s.cat||'').toLowerCase().includes(q)) : SERVICOS;
+  const cats = [...new Set(filtrados.map(s => s.cat))].sort();
   let html = '';
+  if (filtrados.length === 0) {
+    html = `<div class="empty-state"><div class="es-icon">✨</div><p>Nenhum serviço encontrado</p></div>`;
+    el.innerHTML = html; return;
+  }
   cats.forEach(cat => {
-    const svcs = SERVICOS.filter(s => s.cat === cat).sort((a, b) => a.nome.localeCompare(b.nome));
-    html += `<div style="margin-bottom:4px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rose-dark);font-weight:600;padding:8px 0 4px">${cat}</div>`;
+    const svcs = filtrados.filter(s => s.cat===cat).sort((a,b)=>a.nome.localeCompare(b.nome));
+    html += `<div style="margin-bottom:4px">
+      <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rose-dark);font-weight:600;padding:8px 0 4px">${cat}</div>`;
     svcs.forEach(s => {
-      const profs = s.profissionais.map(id => FUNCIONARIOS.find(f=>f.id===id)?.nome).join(', ');
-      const precoFormatado = formatarMoeda(s.preco);
+      const profs = s.profissionais.map(id => FUNCIONARIOS.find(f=>f.id===id)?.nome).filter(Boolean).join(', ');
       html += `<div class="service-row">
-        <div>
+        <div style="flex:1;min-width:0">
           <div class="service-name">${s.nome}</div>
-          <div class="service-meta">⏱ ${s.duracao}min · ${profs}</div>
+          <div class="service-meta">⏱ ${s.duracao}min · ${profs||'—'}</div>
         </div>
-        <div class="service-price">
-          <span style="color:var(--mid);font-size:0.75rem">${precoFormatado}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="service-price">${formatarMoeda(s.preco)}</div>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="abrirEditarServico(${s.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="confirmarDeletarServico(${s.id})">🗑</button>
         </div>
       </div>`;
     });
     html += '</div>';
   });
-  document.getElementById('lista-servicos').innerHTML = html;
+  el.innerHTML = html;
 }
 
-// ═══════════ SELECTS ═══════════
+function abrirEditarServico(id) {
+  const s = SERVICOS.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('ns-titulo').textContent = '✏️ Editar Serviço';
+  document.getElementById('ns-nome').value = s.nome;
+  document.getElementById('ns-cat').value = s.cat || '';
+  document.getElementById('ns-duracao').value = s.duracao;
+  document.getElementById('ns-preco').value = (s.preco !== null && s.preco !== undefined && s.preco !== 'A definir') ? s.preco : '';
+  document.getElementById('ns-editando-id').value = id;
+  document.getElementById('ns-profs').innerHTML = FUNCIONARIOS.map(f =>
+    `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer">
+      <input type="checkbox" class="ns-prof-check" value="${f.id}" ${s.profissionais.includes(f.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--rose)">
+      ${f.nome}
+    </label>`
+  ).join('');
+  openModal('modal-novo-servico');
+}
+
+function confirmarDeletarServico(id) {
+  const s = SERVICOS.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm('Excluir o serviço "' + s.nome + '"?')) return;
+  SERVICOS = SERVICOS.filter(x => x.id !== id);
+  deletarServicoFirebase(id);
+  renderServicos();
+  showToast('✅ Serviço removido');
+}
+
+async function salvarServico() {
+  const nome = document.getElementById('ns-nome').value.trim();
+  const cat = document.getElementById('ns-cat').value.trim() || 'Outros';
+  const duracao = parseInt(document.getElementById('ns-duracao').value);
+  const precoStr = document.getElementById('ns-preco').value.trim();
+  const preco = precoStr ? parseFloat(precoStr) : null;
+  const profIds = [...document.querySelectorAll('.ns-prof-check:checked')].map(c => parseInt(c.value));
+  const editandoId = parseInt(document.getElementById('ns-editando-id').value) || null;
+
+  if (!nome || !duracao || profIds.length===0) {
+    showToast('Preencha nome, duração e ao menos um profissional'); return;
+  }
+
+  if (editandoId) {
+    const idx = SERVICOS.findIndex(s => s.id === editandoId);
+    if (idx >= 0) {
+      SERVICOS[idx] = { ...SERVICOS[idx], nome, cat, duracao, preco, profissionais:profIds };
+      await fetch(DB_URL + '/servicos/' + editandoId + '.json', {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(SERVICOS[idx])
+      });
+      showToast('✅ Serviço atualizado!');
+    }
+  } else {
+    const novoId = Math.max(...SERVICOS.map(s=>s.id), 0) + 1;
+    const novo = { id:novoId, nome, cat, duracao, preco, profissionais:profIds };
+    SERVICOS.push(novo);
+    await fetch(DB_URL + '/servicos/' + novoId + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo)
+    });
+    showToast('✅ Serviço adicionado!');
+  }
+  closeModal('modal-novo-servico');
+  renderServicos();
+}
+
+// ═══════════════════════════════════════
+// SELECTS / FILTROS
+// ═══════════════════════════════════════
 function populateClientesSelect() {
   const sel = document.getElementById('na-cliente-cadastrada');
   if (!sel) return;
   const atual = sel.value;
   sel.innerHTML = '<option value="">Agendar sem cadastro...</option>' +
-    clientes.map(c => `<option value="${c.id}">${c.nome}${c.fone ? ' — ' + c.fone : ''}</option>`).join('');
+    clientes.map(c => `<option value="${c.id}">${c.nome}${c.fone?' — '+c.fone:''}</option>`).join('');
   if (atual) sel.value = atual;
 }
 
@@ -1646,24 +1620,20 @@ function selecionarClienteCadastro() {
   if (!c) return;
   document.getElementById('na-cliente').value = c.nome || '';
   document.getElementById('na-fone').value = c.fone || '';
-  if (c.obs && !document.getElementById('na-obs').value) {
-    document.getElementById('na-obs').value = c.obs;
-  }
+  if (c.obs && !document.getElementById('na-obs').value) document.getElementById('na-obs').value = c.obs;
 }
 
 function populateSelects() {
   populateClientesSelect();
-  // Checkboxes de serviços
   const lista = document.getElementById('na-servicos-lista');
-  lista.innerHTML = SERVICOS.map(s =>
+  lista.innerHTML = SERVICOS.sort((a,b)=>a.nome.localeCompare(b.nome)).map(s =>
     `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;padding:3px 0">
       <input type="checkbox" class="svc-check" value="${s.id}" onchange="filtrarProfissional()" style="width:16px;height:16px;accent-color:var(--rose);cursor:pointer">
       <span>${s.nome} <span style="color:var(--mid);font-size:0.78rem">(${s.duracao}min)</span></span>
     </label>`
   ).join('');
-
   const selProf = document.getElementById('na-profissional');
-  selProf.innerHTML = '<option value="">Selecione a profissional...</option>' +
+  selProf.innerHTML = '<option value="">Selecione...</option>' +
     FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
 }
 
@@ -1671,92 +1641,84 @@ function filtrarProfissional() {
   const checks = [...document.querySelectorAll('.svc-check:checked')];
   const sel = document.getElementById('na-profissional');
   if (checks.length === 0) {
-    sel.innerHTML = '<option value="">Selecione a profissional...</option>' +
-      FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+    sel.innerHTML = '<option value="">Selecione...</option>' + FUNCIONARIOS.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
     return;
   }
-  // Encontrar profissionais que atendem TODOS os serviços selecionados
-  const svcsSelecionados = checks.map(c => SERVICOS.find(s => s.id === parseInt(c.value))).filter(Boolean);
-  const profIds = FUNCIONARIOS.map(f => f.id).filter(fid =>
-    svcsSelecionados.every(s => s.profissionais.includes(fid))
-  );
+  const svcsSel = checks.map(c => SERVICOS.find(s=>s.id===parseInt(c.value))).filter(Boolean);
+  const profIds = FUNCIONARIOS.map(f=>f.id).filter(fid => svcsSel.every(s=>s.profissionais.includes(fid)));
   if (profIds.length > 0) {
-    sel.innerHTML = '<option value="">Selecione a profissional...</option>' +
-      profIds.map(id => {
-        const f = FUNCIONARIOS.find(x => x.id === id);
-        return f ? `<option value="${f.id}">${f.nome}</option>` : '';
-      }).join('');
-    if (profIds.length === 1) sel.value = profIds[0];
+    sel.innerHTML = '<option value="">Selecione...</option>' + profIds.map(id=>{const f=FUNCIONARIOS.find(x=>x.id===id);return f?`<option value="${f.id}">${f.nome}`:''}).join('');
+    if (profIds.length===1) sel.value=profIds[0];
   } else {
-    sel.innerHTML = '<option value="">Qualquer profissional</option>' +
-      FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+    sel.innerHTML = '<option value="">Qualquer profissional</option>' + FUNCIONARIOS.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
   }
 }
 
-// ═══════════ UTILS ═══════════
-function showPage(id) {
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function formatarMoeda(valor) {
+  if (valor === null || valor === undefined || valor === 'A definir' || valor === '') return 'A definir';
+  const num = parseFloat(valor);
+  if (isNaN(num)) return 'A definir';
+  return 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function formatDate(ds) {
+  if (!ds) return '—';
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (id === 'agenda') { renderWeek(); renderTimeline(); }
-  if (id === 'clientes') { renderClientes(); }
-
-  if (id === 'funcionarios') {
-    renderFuncionarios();
-    updateStats();
-    const cardSenha = document.getElementById('card-trocar-senha');
-    if (cardSenha) cardSenha.style.display = (currentUser === 1) ? 'block' : 'none';
-  }
-  if (id === 'servicos') renderServicos();
-  if (id === 'faturamento') renderFaturamento();
+  if (btn) btn.classList.add('active');
+  if (id==='agenda') { renderWeek(); renderTimeline(); }
+  if (id==='clientes') renderClientes();
+  if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
+  if (id==='servicos') renderServicos();
+  if (id==='faturamento') renderFaturamento();
 }
 
 function openModal(id) {
   document.getElementById(id).classList.add('open');
-  if (id === 'modal-novo-agendamento') {
-    document.getElementById('na-cliente-cadastrada') && (document.getElementById('na-cliente-cadastrada').value = '');
-    document.getElementById('na-cliente').value = '';
-    document.getElementById('na-fone') && (document.getElementById('na-fone').value = '');
-    document.getElementById('na-data').value = selectedDate;
-    document.getElementById('na-obs').value = '';
-    document.getElementById('na-lembrete24').checked = false;
-    document.getElementById('na-lembrete2').checked = false;
+  if (id==='modal-novo-agendamento') {
+    if (!editingApptId) {
+      document.getElementById('na-modal-titulo').textContent = '📅 Novo Agendamento';
+      document.getElementById('na-btn-salvar').textContent = 'Confirmar Agendamento';
+      ['na-cliente-cadastrada','na-cliente','na-fone','na-obs'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
+      document.getElementById('na-data').value = selectedDate;
+    }
     populateSelects();
   }
-  if (id === 'modal-nova-cliente') {
-    document.getElementById('nc-nome').value = '';
-    document.getElementById('nc-fone').value = '';
-    document.getElementById('nc-obs').value = '';
+  if (id==='modal-nova-cliente') {
+    if (!editingClienteId) {
+      document.getElementById('nc-titulo').textContent = '👤 Nova Cliente';
+      document.getElementById('nc-btn-salvar').textContent = 'Salvar Cliente';
+      ['nc-nome','nc-fone','nc-aniversario','nc-obs'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
+    }
   }
-  if (id === 'modal-novo-servico') {
-    document.getElementById('ns-nome').value = '';
-    document.getElementById('ns-duracao').value = '';
-    document.getElementById('ns-preco').value = '';
-    document.getElementById('ns-cat').value = '';
-    document.getElementById('ns-profs').innerHTML = FUNCIONARIOS.map(f =>
-      `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer">
-        <input type="checkbox" class="ns-prof-check" value="${f.id}" style="width:16px;height:16px;accent-color:var(--rose)">
-        ${f.nome}
-      </label>`
-    ).join('');
+  if (id==='modal-novo-servico') {
+    if (!document.getElementById('ns-editando-id').value) {
+      document.getElementById('ns-titulo').textContent = '✨ Novo Serviço';
+      ['ns-nome','ns-cat','ns-duracao','ns-preco'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
+      document.getElementById('ns-profs').innerHTML = FUNCIONARIOS.map(f=>
+        `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer">
+          <input type="checkbox" class="ns-prof-check" value="${f.id}" style="width:16px;height:16px;accent-color:var(--rose)"> ${f.nome}
+        </label>`
+      ).join('');
+    }
   }
-
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   viewingApptId = null;
-}
-
-// close modal on bg click
-document.querySelectorAll('.modal-bg').forEach(bg => {
-  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
-});
-
-function formatDate(ds) {
-  const [y,m,d] = ds.split('-');
-  return `${d}/${m}/${y}`;
+  if (id==='modal-novo-agendamento') editingApptId = null;
+  if (id==='modal-nova-cliente') editingClienteId = null;
+  if (id==='modal-novo-servico') document.getElementById('ns-editando-id').value = '';
 }
 
 function showToast(msg) {
@@ -1766,9 +1728,15 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ═══════════ START ═══════════
+// Fechar modal clicando no fundo
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target===bg) bg.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════
+// START
+// ═══════════════════════════════════════
 initLogin();
 </script>
-
-
-</body></html>
+</body>
+</html>
