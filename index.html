@@ -326,7 +326,7 @@
 <div id="login-page">
   <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" 
        alt="Studio Elly Designer" 
-       style="width:85%;max-width:420px;margin-bottom:24px;display:block;object-fit:contain">
+       style="width:92%;max-width:500px;margin-bottom:32px;display:block;object-fit:contain">
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
     <div class="prof-select-grid" id="prof-grid">
@@ -1624,7 +1624,7 @@ function renderServicos() {
   const cats = [...new Set(SERVICOS.map(s => s.cat))];
   let html = '';
   cats.forEach(cat => {
-    const svcs = SERVICOS.filter(s => s.cat === cat);
+    const svcs = SERVICOS.filter(s => s.cat === cat).sort((a, b) => a.nome.localeCompare(b.nome));
     html += `<div style="margin-bottom:4px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rose-dark);font-weight:600;padding:8px 0 4px">${cat}</div>`;
     svcs.forEach(s => {
       const profs = s.profissionais.map(id => FUNCIONARIOS.find(f=>f.id===id)?.nome).join(', ');
