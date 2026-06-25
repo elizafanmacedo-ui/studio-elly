@@ -900,6 +900,7 @@ function renderFaturamento() {
   const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
+  cont.innerHTML = `<div style="padding:12px;font-size:0.8rem;color:var(--mid);background:#fff9e6;border-radius:10px;margin-bottom:10px">🔍 Debug: ${agendamentos.length} agend. no banco · usuário=${currentUser} · mês=${mes+1}/${ano}</div>`;
 
   // Todos do mês (exceto cancelado)
   const doMes = agendamentos.filter(a => {
@@ -951,7 +952,7 @@ function renderFaturamento() {
   let html = '';
 
   if (totalAtendimentos === 0) {
-    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum agendamento em ${mesLabel.toLowerCase()}</p><p style="font-size:0.75rem;margin-top:8px;color:var(--mid)">(${agendamentos.length} agendamento${agendamentos.length!==1?"s":""} no banco total)</p><button class="btn btn-primary btn-sm" style="margin-top:14px" onclick="loadFromFirebase().then(()=>renderFaturamento())">🔄 Recarregar dados</button></div>`;
+    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum agendamento em ${mesLabel.toLowerCase()}</p><p style="font-size:0.75rem;margin-top:8px;color:var(--mid)">(${agendamentos.length} agendamento${agendamentos.length!==1?"s":""} no banco total)</p></div>`;
     cont.innerHTML = html; return;
   }
 
