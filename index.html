@@ -900,7 +900,9 @@ function renderFaturamento() {
   const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
-  cont.innerHTML = `<div style="padding:12px;font-size:0.8rem;color:var(--mid);background:#fff9e6;border-radius:10px;margin-bottom:10px">🔍 Debug: ${agendamentos.length} agend. no banco · usuário=${currentUser} · mês=${mes+1}/${ano}</div>`;
+  const _amostra = agendamentos.slice(0,3).map(a => 'data='+a.data+' st='+a.status).join(' | ');
+  const _doMesDebug = agendamentos.filter(a => { if(a.status==='cancelado') return false; const p=a.data.split('-').map(Number); return p[0]===ano && (p[1]-1)===mes; });
+  cont.innerHTML = '<div style="padding:10px;font-size:0.75rem;background:#fff9e6;border-radius:10px;margin-bottom:10px">Total='+agendamentos.length+' doMes='+_doMesDebug.length+' mes='+(mes+1)+'/'+ano+'<br>'+_amostra+'</div>';
 
   // Todos do mês (exceto cancelado)
   const doMes = agendamentos.filter(a => {
