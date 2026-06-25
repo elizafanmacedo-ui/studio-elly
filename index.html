@@ -342,6 +342,11 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ CONFIG ═══════════ -->
 <div class="page" id="page-config">
+  <div class="card" id="card-firebase-status" style="border:2px solid var(--rose-light)">
+    <div class="card-title">🔥 Status do Banco Firebase</div>
+    <div id="firebase-diag" style="font-size:0.85rem;color:var(--mid)">Verificando...</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="testarFirebase()">🔄 Testar conexão</button>
+  </div>
   <div class="card">
     <div class="card-title">⚙️ Configurações do Studio</div>
     <div class="form-group">
@@ -604,10 +609,21 @@ async function loadFromFirebase() {
 }
 
 async function saveAgendamento(id, val) {
-  await fetch(DB_URL + '/agendamentos/' + id + '.json', {
-    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
-  });
-  await loadFromFirebase();
+  try {
+    const res = await fetch(DB_URL + '/agendamentos/' + id + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      console.error('Firebase erro:', res.status, err);
+      showToast('⚠️ Erro ao salvar (Firebase: ' + res.status + '). Verifique as regras do banco.');
+      return;
+    }
+    await loadFromFirebase();
+  } catch(e) {
+    console.error('saveAgendamento error', e);
+    showToast('❌ Sem conexão com o banco. Verifique a internet.');
+  }
 }
 
 // --- CLIENTES ---
@@ -626,10 +642,19 @@ async function loadClientesFromFirebase() {
 }
 
 async function saveClienteFirebase(cliente) {
-  await fetch(DB_URL + '/clientes/' + cliente.id + '.json', {
-    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cliente)
-  });
-  await loadClientesFromFirebase();
+  try {
+    const res = await fetch(DB_URL + '/clientes/' + cliente.id + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cliente)
+    });
+    if (!res.ok) {
+      showToast('⚠️ Erro ao salvar cliente (Firebase: ' + res.status + ')');
+      return;
+    }
+    await loadClientesFromFirebase();
+  } catch(e) {
+    console.error('saveClienteFirebase error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
 }
 
 // --- SERVIÇOS (nó próprio /servicos) ---
@@ -690,9 +715,17 @@ async function loadConfigFromFirebase() {
 }
 
 async function saveConfigFirebase(obj) {
-  await fetch(DB_URL + '/config.json', {
-    method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
-  });
+  try {
+    const res = await fetch(DB_URL + '/config.json', {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
+    });
+    if (!res.ok) {
+      showToast('⚠️ Erro ao salvar config (Firebase: ' + res.status + ')');
+    }
+  } catch(e) {
+    console.error('saveConfigFirebase error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
 }
 
 // --- SYNC ---
@@ -705,8 +738,27 @@ function startSync() {
 }
 
 // ═══════════════════════════════════════
-// CONFIGURAÇÃO DO STUDIO
+// DIAGNÓSTICO FIREBASE
 // ═══════════════════════════════════════
+async function testarFirebase() {
+  const el = document.getElementById('firebase-diag');
+  if (!el) return;
+  el.innerHTML = '⏳ Testando...';
+  try {
+    const res = await fetch(DB_URL + '/agendamentos.json?shallow=true', { method:'GET' });
+    if (res.ok) {
+      el.innerHTML = '<span style="color:#2e7d32;font-weight:700">✅ Conectado!</span> Firebase respondeu corretamente.<br><span style="font-size:0.76rem;color:var(--mid)">Se ainda assim não salva, verifique as Regras do banco no Firebase Console (devem permitir read/write).</span>';
+    } else if (res.status === 401 || res.status === 403) {
+      el.innerHTML = '<span style="color:#c0392b;font-weight:700">❌ Acesso negado (erro ' + res.status + ')</span><br><span style="font-size:0.76rem">As <strong>regras do Firebase</strong> estão bloqueando. Acesse o Firebase Console → Realtime Database → Regras → e altere para:<br><code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;font-size:0.78rem">{ "rules": { ".read": true, ".write": true } }</code><br>e publique. Isso resolve o problema de salvar.</span>';
+    } else {
+      el.innerHTML = '<span style="color:#e65100;font-weight:700">⚠️ Erro ' + res.status + '</span> — resposta inesperada do Firebase.';
+    }
+  } catch(e) {
+    el.innerHTML = '<span style="color:#c0392b;font-weight:700">❌ Sem conexão</span> — verifique a internet ou o nome do projeto Firebase.<br><span style="font-size:0.76rem">URL: ' + DB_URL + '</span>';
+  }
+}
+
+// CONFIGURAÇÃO DO STUDIO
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
 function getConfig(campo, fallback) {
@@ -778,6 +830,12 @@ function waLink(fone, msg) {
   return `https://wa.me/${prefixo}?text=${encodeURIComponent(msg)}`;
 }
 
+function abrirWAById(id, tipo) {
+  const a = agendamentos.find(x => x.id === id);
+  if (!a) { showToast('❌ Agendamento não encontrado'); return; }
+  abrirWA(a, tipo);
+}
+
 function abrirWA(a, tipo) {
   if (!a.fone) { showToast('❌ Telefone não cadastrado'); return; }
   let template;
@@ -793,6 +851,7 @@ function abrirWA(a, tipo) {
 // STATUS
 // ═══════════════════════════════════════
 const STATUS_LABELS = {
+  agendado:   { label:'Agendado',   cls:'status-agendado',   emoji:'🕐' },
   confirmado: { label:'Confirmado', cls:'status-confirmado', emoji:'✅' },
   atendido:   { label:'Atendido',   cls:'status-atendido',   emoji:'💅' },
   faltou:     { label:'Faltou',     cls:'status-faltou',     emoji:'⚠️' },
@@ -1239,9 +1298,9 @@ function verAgendamento(id) {
     <div style="background:var(--light);border-radius:12px;padding:12px;margin-top:8px">
       <div style="font-weight:700;font-size:0.8rem;color:var(--rose-dark);margin-bottom:10px">📱 WhatsApp</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button class="btn btn-green btn-sm" style="justify-content:center" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'confirmar')">✅ Confirmar</button>
-        <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'lembrete')">🔔 Lembrete</button>
-        <button class="btn btn-ghost btn-sm" style="justify-content:center;grid-column:1/-1" onclick="abrirWA(agendamentos.find(x=>x.id===viewingApptId),'reagendar')">🔄 Reagendar</button>
+        <button class="btn btn-green btn-sm" style="justify-content:center" onclick="abrirWAById(${a.id},'confirmar')">✅ Confirmar</button>
+        <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="abrirWAById(${a.id},'lembrete')">🔔 Lembrete</button>
+        <button class="btn btn-ghost btn-sm" style="justify-content:center;grid-column:1/-1" onclick="abrirWAById(${a.id},'reagendar')">🔄 Reagendar</button>
       </div>
     </div>` : '';
 
@@ -1583,19 +1642,25 @@ async function salvarServico() {
     const idx = SERVICOS.findIndex(s => s.id === editandoId);
     if (idx >= 0) {
       SERVICOS[idx] = { ...SERVICOS[idx], nome, cat, duracao, preco, profissionais:profIds };
-      await fetch(DB_URL + '/servicos/' + editandoId + '.json', {
-        method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(SERVICOS[idx])
-      });
-      showToast('✅ Serviço atualizado!');
+      try {
+        const res = await fetch(DB_URL + '/servicos/' + editandoId + '.json', {
+          method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(SERVICOS[idx])
+        });
+        if (!res.ok) { showToast('⚠️ Erro Firebase: ' + res.status); return; }
+        showToast('✅ Serviço atualizado!');
+      } catch(e) { showToast('❌ Sem conexão com o banco.'); return; }
     }
   } else {
     const novoId = Math.max(...SERVICOS.map(s=>s.id), 0) + 1;
     const novo = { id:novoId, nome, cat, duracao, preco, profissionais:profIds };
     SERVICOS.push(novo);
-    await fetch(DB_URL + '/servicos/' + novoId + '.json', {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo)
-    });
-    showToast('✅ Serviço adicionado!');
+    try {
+      const res = await fetch(DB_URL + '/servicos/' + novoId + '.json', {
+        method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo)
+      });
+      if (!res.ok) { SERVICOS.pop(); showToast('⚠️ Erro Firebase: ' + res.status); return; }
+      showToast('✅ Serviço adicionado!');
+    } catch(e) { SERVICOS.pop(); showToast('❌ Sem conexão com o banco.'); return; }
   }
   closeModal('modal-novo-servico');
   renderServicos();
@@ -1680,6 +1745,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
   if (id==='faturamento') renderFaturamento();
+  if (id==='config') { testarFirebase(); }
 }
 
 function openModal(id) {
