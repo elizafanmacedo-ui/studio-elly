@@ -326,7 +326,7 @@
 <div id="login-page">
   <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" 
        alt="Studio Elly Designer" 
-       style="width:92%;max-width:500px;margin-bottom:32px;display:block;object-fit:contain">
+       style="width:95%;max-width:100%;height:auto;margin-bottom:16px;display:block;object-fit:contain">
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
     <div class="prof-select-grid" id="prof-grid">
@@ -1367,7 +1367,7 @@ function enviarLembrete() {
   const mes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][dataObj.getMonth()];
   
   // Montar mensagem melhorada
-  const nome = (appt.cliente && appt.cliente.trim()) ? appt.cliente.trim() : 'Cliente';
+  const nome = (appt.nomeCliente && appt.nomeCliente.trim()) ? appt.nomeCliente.trim() : 'Cliente';
   const hora = appt.hora || '00:00';
   const profissional = FUNCIONARIOS.find(f => f.id === appt.profId)?.nome || '';
   
