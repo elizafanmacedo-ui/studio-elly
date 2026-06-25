@@ -1799,7 +1799,7 @@ function showPage(id, btn) {
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
-  if (id==='faturamento') { renderFaturamento(); loadFromFirebase().then(() => renderFaturamento()); }
+  if (id==='faturamento') { loadFromFirebase().then(() => renderFaturamento()); }
   if (id==='config') { testarFirebase(); }
 }
 
