@@ -604,7 +604,7 @@ async function loadFromFirebase() {
     const porId = {};
     novos.forEach(a => { porId[a.id] = a; });
     agendamentos = Object.values(porId);
-    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); }
+    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento(); }
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
@@ -951,7 +951,7 @@ function renderFaturamento() {
   let html = '';
 
   if (totalAtendimentos === 0) {
-    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum agendamento em ${mesLabel.toLowerCase()}</p></div>`;
+    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum agendamento em ${mesLabel.toLowerCase()}</p><p style="font-size:0.75rem;margin-top:8px;color:var(--mid)">(${agendamentos.length} agendamento${agendamentos.length!==1?"s":""} no banco total)</p></div>`;
     cont.innerHTML = html; return;
   }
 
@@ -1799,7 +1799,7 @@ function showPage(id, btn) {
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
-  if (id==='faturamento') renderFaturamento();
+  if (id==='faturamento') { renderFaturamento(); loadFromFirebase().then(() => renderFaturamento()); }
   if (id==='config') { testarFirebase(); }
 }
 
