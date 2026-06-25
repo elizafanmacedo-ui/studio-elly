@@ -888,9 +888,8 @@ let fatMesOffset = 0;
 function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
 
 function renderFaturamento() {
-  const base = new Date();
-  base.setDate(1);
-  base.setMonth(base.getMonth() + fatMesOffset);
+  const agora = new Date();
+  const base = new Date(agora.getFullYear(), agora.getMonth() + fatMesOffset, 1);
   const ano = base.getFullYear();
   const mes = base.getMonth();
   const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
@@ -900,9 +899,6 @@ function renderFaturamento() {
   const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
-  const _amostra = agendamentos.slice(0,3).map(a => 'data='+a.data+' st='+a.status).join(' | ');
-  const _doMesDebug = agendamentos.filter(a => { if(a.status==='cancelado') return false; const p=a.data.split('-').map(Number); return p[0]===ano && (p[1]-1)===mes; });
-  cont.innerHTML = '<div style="padding:10px;font-size:0.75rem;background:#fff9e6;border-radius:10px;margin-bottom:10px">Total='+agendamentos.length+' doMes='+_doMesDebug.length+' mes='+(mes+1)+'/'+ano+'<br>'+_amostra+'</div>';
 
   // Todos do mês (exceto cancelado)
   const doMes = agendamentos.filter(a => {
@@ -1802,7 +1798,7 @@ function showPage(id, btn) {
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
-  if (id==='faturamento') { if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
+  if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
   if (id==='config') { testarFirebase(); }
 }
 
