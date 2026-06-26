@@ -569,6 +569,7 @@ let SERVICOS = [...SERVICOS_PADRAO];
 // FIREBASE
 // ═══════════════════════════════════════
 const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
+let lancamentosAvulsos = {};
 let agendamentos = [];
 let clientes = [];
 let configStudio = {};
@@ -606,6 +607,31 @@ async function loadFromFirebase() {
     agendamentos = Object.values(porId);
     if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento(); }
   } catch(e) { console.log('Sync agendamentos error', e); }
+}
+
+async function loadLancamentosAvulsos() {
+  try {
+    const res = await fetch(DB_URL + '/lancamentos.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      lancamentosAvulsos = {};
+      Object.entries(data).forEach(([k, v]) => { lancamentosAvulsos[k] = v; });
+    }
+  } catch(e) { console.log('Erro lancamentos', e); }
+}
+
+async function salvarLancamentoAvulso(key, hora, valorStr) {
+  const valor = parseFloat(valorStr);
+  if (isNaN(valor) || valor <= 0) {
+    delete lancamentosAvulsos[key];
+    await fetch(DB_URL + '/lancamentos/' + key + '.json', { method:'DELETE' });
+  } else {
+    lancamentosAvulsos[key] = valor;
+    await fetch(DB_URL + '/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
+  }
+  renderTimeline();
+  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
 }
 
 async function saveAgendamento(id, val) {
@@ -734,6 +760,7 @@ function startSync() {
   loadClientesFromFirebase();
   loadServicosFromFirebase();
   loadConfigFromFirebase();
+  loadLancamentosAvulsos();
   syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
 }
 
@@ -901,154 +928,86 @@ function renderFaturamento() {
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
-  // Todos do mês (exceto cancelado)
+  // Agendamentos do mês com valor (exceto cancelado)
   const doMes = agendamentos.filter(a => {
     if (a.status === 'cancelado') return false;
-    const [y, m] = a.data.split('-').map(Number);
-    return y === ano && (m-1) === mes;
+    if (!a.data) return false;
+    const partes = a.data.split('-');
+    return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes && typeof a.valor === 'number' && a.valor > 0;
   }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
 
-  // Para não-dono: filtrar só os próprios
-  const lista = ehDono ? doMes : doMes.filter(a => a.profId === currentUser);
-
-  // Totais
-  const porProf = {};
-  FUNCIONARIOS.forEach(f => { porProf[f.id] = { total:0, qtd:0, semValor:0 }; });
-  let totalGeral = 0;
-  let semValorQtd = 0;
-  const contagemServicos = {};
-
-  lista.forEach(a => {
-    const temValor = typeof a.valor === 'number' && a.valor > 0;
-    const v = temValor ? a.valor : 0;
-    totalGeral += v;
-    if (!temValor) semValorQtd++;
-    if (porProf[a.profId]) {
-      porProf[a.profId].total += v;
-      porProf[a.profId].qtd++;
-      if (!temValor) porProf[a.profId].semValor++;
+  // Lançamentos avulsos do mês
+  const avulsosDoMes = [];
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    if (!valor || valor <= 0) return;
+    const partes = key.split('_');
+    if (partes.length < 3) return;
+    const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
+    const kp = data.split('-');
+    if (parseInt(kp[0]) === ano && (parseInt(kp[1]) - 1) === mes) {
+      avulsosDoMes.push({ data, hora, profId, valor, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true });
     }
-    const ids = a.servicoIds || [a.servicoId];
-    ids.forEach(sid => { contagemServicos[sid] = (contagemServicos[sid] || 0) + 1; });
   });
 
-  const totalAtendimentos = lista.length;
-  const atendidos = lista.filter(a => a.status === 'atendido').length;
-  const ticketMedio = atendidos > 0 ? (totalGeral / atendidos) : 0;
+  const listaAgend = ehDono ? doMes : doMes.filter(a => a.profId === currentUser);
+  const listaAvulsos = ehDono ? avulsosDoMes : avulsosDoMes.filter(a => a.profId === currentUser);
+  const lista = [...listaAgend, ...listaAvulsos].sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
 
-  // Serviço mais realizado
-  let svcMaisVendidoNome = '—'; let maxQtd = 0;
-  Object.entries(contagemServicos).forEach(([sid, qtd]) => {
-    if (qtd > maxQtd) { maxQtd = qtd; const s = SERVICOS.find(x => x.id === parseInt(sid)); svcMaisVendidoNome = s ? s.nome : '—'; }
-  });
-
-  // Profissional top
-  let profTopNome = '—'; let maxFat = 0;
-  Object.entries(porProf).forEach(([fid, d]) => {
-    if (d.total > maxFat) { maxFat = d.total; const f = FUNCIONARIOS.find(x => x.id === parseInt(fid)); profTopNome = f ? f.nome : '—'; }
+  const porProf = {};
+  FUNCIONARIOS.forEach(f => { porProf[f.id] = { total:0, qtd:0 }; });
+  let totalGeral = 0;
+  lista.forEach(a => {
+    totalGeral += a.valor;
+    if (porProf[a.profId]) { porProf[a.profId].total += a.valor; porProf[a.profId].qtd++; }
   });
 
   let html = '';
 
-  if (totalAtendimentos === 0) {
-    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum agendamento em ${mesLabel.toLowerCase()}</p><p style="font-size:0.75rem;margin-top:8px;color:var(--mid)">(${agendamentos.length} agendamento${agendamentos.length!==1?"s":""} no banco total)</p></div>`;
+  if (lista.length === 0) {
+    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum valor registrado em ${mesLabel.toLowerCase()}</p></div>`;
     cont.innerHTML = html; return;
   }
 
-  // ── CARDS RESUMO ──
-  html += `<div class="stats-grid">
-    <div class="stat-card rose">
-      <div class="stat-num" style="font-size:1.3rem">${formatarMoeda(totalGeral)}</div>
-      <div class="stat-label">💰 Recebido no Mês</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${totalAtendimentos}</div>
-      <div class="stat-label">📅 Agendamentos</div>
-    </div>
-  </div>`;
-
-  if (ehDono) {
-    html += `<div class="stats-grid" style="margin-bottom:14px">
-      <div class="stat-card gold">
-        <div class="stat-num sm">${atendidos > 0 ? formatarMoeda(ticketMedio) : '—'}</div>
-        <div class="stat-label">Ticket Médio</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num sm" style="font-size:0.85rem;padding-top:4px">${profTopNome !== '—' ? profTopNome : '—'}</div>
-        <div class="stat-label">Top Profissional</div>
-      </div>
+  html += `<div class="card" style="margin-bottom:14px">
+    <div class="card-title">💰 Faturamento do Mês</div>
+    <div style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(totalGeral)}</div>
+      <div style="font-size:0.72rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Total do Mês</div>
     </div>`;
-  }
-
-  // Aviso de sem valor
-  if (semValorQtd > 0) {
-    html += `<div style="background:#fff9e6;border:1px solid #f0d080;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:0.82rem;color:#7a5c00">
-      ⚠️ <strong>${semValorQtd} agendamento${semValorQtd>1?'s':''}</strong> sem valor registrado — preencha o R$ na agenda para incluir no total.
-    </div>`;
-  }
-
-  // ── POR PROFISSIONAL (só dono) ──
   if (ehDono) {
-    html += `<div class="card"><div class="card-title" style="margin-bottom:8px">📊 Por Profissional</div>`;
     FUNCIONARIOS.forEach(f => {
       const d = porProf[f.id];
-      if (d.qtd === 0) return;
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light)">
-        <div>
-          <span>${f.emoji} <strong>${f.nome}</strong></span>
-          <div style="font-size:0.74rem;color:var(--mid);margin-top:2px">${d.qtd} atend.${d.semValor>0?' · <span style="color:#b8860b">'+d.semValor+' sem valor</span>':''}</div>
-        </div>
+        <span>${f.emoji} ${f.nome}</span>
         <strong style="color:var(--rose-dark)">${formatarMoeda(d.total)}</strong>
       </div>`;
     });
-    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0">
-      <strong>Total Geral</strong>
-      <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalGeral)}</strong>
-    </div></div>`;
-
-    if (svcMaisVendidoNome !== '—') {
-      html += `<div class="card">
-        <div class="card-title" style="margin-bottom:4px">✨ Serviço Mais Realizado</div>
-        <div style="font-size:1rem;font-weight:600">${svcMaisVendidoNome}</div>
-        <div style="font-size:0.78rem;color:var(--mid)">${maxQtd} vez${maxQtd>1?'es':''} este mês</div>
-      </div>`;
-    }
   }
+  html += `</div>`;
 
-  // ── LISTA DETALHADA POR DIA ──
-  html += `<div class="card"><div class="card-title" style="margin-bottom:8px">📋 Todos os Atendimentos</div>`;
-
-  // Agrupar por data
+  html += `<div class="card"><div class="card-title" style="margin-bottom:8px">📋 Detalhes por Dia</div>`;
   const porData = {};
   lista.forEach(a => { if (!porData[a.data]) porData[a.data] = []; porData[a.data].push(a); });
-
   Object.keys(porData).sort().forEach(data => {
     const aDia = porData[data];
-    const totalDia = aDia.reduce((t,a) => t + (typeof a.valor==='number'&&a.valor>0 ? a.valor : 0), 0);
+    const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
     html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">
-      📅 ${formatDate(data)} <span style="float:right;color:var(--gold)">${totalDia>0?formatarMoeda(totalDia):''}</span>
+      📅 ${formatDate(data)} <span style="float:right;color:var(--gold)">${formatarMoeda(totalDia)}</span>
     </div>`;
     aDia.forEach(a => {
       const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
-      const svcs = (a.servicoIds||[a.servicoId]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ');
-      const temValor = typeof a.valor==='number' && a.valor>0;
-      const st = STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado;
+      const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ');
+      const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
       html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--light)">
         <div style="flex:1;min-width:0">
           <div style="font-size:0.88rem;font-weight:600">${a.nomeCliente}</div>
           <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'} · ${prof?prof.nome:'—'}</div>
-          <div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>
+          ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
         </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:8px">
-          ${temValor
-            ? `<strong style="color:var(--rose-dark);font-size:0.9rem">${formatarMoeda(a.valor)}</strong>`
-            : `<span style="font-size:0.75rem;color:#b8860b;background:#fff9e6;padding:2px 8px;border-radius:10px">sem valor</span>`
-          }
-        </div>
+        <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
       </div>`;
     });
   });
-
   html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
     <strong>Total do Mês</strong>
     <strong style="color:var(--rose-dark);font-size:1.1rem">${formatarMoeda(totalGeral)}</strong>
@@ -1270,7 +1229,17 @@ function renderTimeline() {
         </div>
       </td>`;
     } else {
-      rows += `<td class="slot-td" onclick="abrirSlot('${slot}')"></td>`;
+      const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
+      const lancAtual = (lancamentosAvulsos[lancKey] !== undefined && lancamentosAvulsos[lancKey] > 0) ? lancamentosAvulsos[lancKey] : '';
+      rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
+        <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
+        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
+          <span class="slot-valor-prefix">R$</span>
+          <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${lancAtual}"
+            onclick="event.stopPropagation()"
+            onchange="salvarLancamentoAvulso('${lancKey}','${slot}',this.value)">
+        </div>
+      </td>`;
     }
     rows += '</tr>';
   });
@@ -1809,7 +1778,7 @@ function showPage(id, btn) {
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
-  if (id==='faturamento') { renderFaturamento(); loadFromFirebase().then(() => renderFaturamento()); }
+  if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
   if (id==='config') { testarFirebase(); }
 }
 
