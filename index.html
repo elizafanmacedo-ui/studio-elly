@@ -985,35 +985,125 @@ function renderFaturamento() {
   }
   html += `</div>`;
 
-  html += `<div class="card"><div class="card-title" style="margin-bottom:8px">📋 Detalhes por Dia</div>`;
-  const porData = {};
-  lista.forEach(a => { if (!porData[a.data]) porData[a.data] = []; porData[a.data].push(a); });
-  Object.keys(porData).sort().forEach(data => {
-    const aDia = porData[data];
-    const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
-    html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">
-      📅 ${formatDate(data)} <span style="float:right;color:var(--gold)">${formatarMoeda(totalDia)}</span>
-    </div>`;
-    aDia.forEach(a => {
-      const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
-      const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ');
-      const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
-      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--light)">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:0.88rem;font-weight:600">${a.nomeCliente}</div>
-          <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'} · ${prof?prof.nome:'—'}</div>
-          ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
-        </div>
-        <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
-      </div>`;
+  if (ehDono) {
+    // Abas por profissional para o dono
+    const profIds = FUNCIONARIOS.map(f => f.id);
+    const primeiroComDados = FUNCIONARIOS.find(f => lista.some(a => a.profId === f.id));
+    const tabAtiva = primeiroComDados ? primeiroComDados.id : FUNCIONARIOS[0].id;
+    html += `<div class="card">
+      <div class="card-title" style="margin-bottom:10px">📋 Detalhes por Profissional</div>
+      <div id="fat-tabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">`;
+    FUNCIONARIOS.forEach(f => {
+      const total = lista.filter(a => a.profId === f.id).reduce((t,a) => t + a.valor, 0);
+      const ativo = f.id === tabAtiva;
+      html += `<button onclick="fatSelecionarProf(${f.id})" id="fat-tab-${f.id}"
+        style="padding:6px 14px;border-radius:20px;border:2px solid var(--rose-light);background:${ativo?'var(--rose-dark)':'transparent'};color:${ativo?'#fff':'var(--rose-dark)'};font-size:0.8rem;font-weight:600;cursor:pointer">
+        ${f.emoji} ${f.nome}
+      </button>`;
     });
-  });
-  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
-    <strong>Total do Mês</strong>
-    <strong style="color:var(--rose-dark);font-size:1.1rem">${formatarMoeda(totalGeral)}</strong>
-  </div></div>`;
+    html += `</div><div id="fat-detalhe">`;
+    // Renderizar o primeiro prof por padrão
+    const listaProf = lista.filter(a => a.profId === tabAtiva);
+    const porDataProf = {};
+    listaProf.forEach(a => { if (!porDataProf[a.data]) porDataProf[a.data] = []; porDataProf[a.data].push(a); });
+    if (listaProf.length === 0) {
+      html += `<div style="text-align:center;color:var(--mid);padding:20px;font-size:0.85rem">Nenhum registro neste mês</div>`;
+    } else {
+      Object.keys(porDataProf).sort().forEach(data => {
+        const aDia = porDataProf[data];
+        const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
+        html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">
+          📅 ${formatDate(data)} <span style="float:right;color:var(--gold)">${formatarMoeda(totalDia)}</span>
+        </div>`;
+        aDia.forEach(a => {
+          const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ');
+          const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
+          html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--light)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.88rem;font-weight:600">${a.nomeCliente}</div>
+              <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'}</div>
+              ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
+            </div>
+            <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
+          </div>`;
+        });
+      });
+      const totalProf = listaProf.reduce((t,a) => t + a.valor, 0);
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
+        <strong>Total</strong>
+        <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalProf)}</strong>
+      </div>`;
+    }
+    html += `</div></div>`;
+  } else {
+    // Não-dono: lista normal só com os próprios
+    html += `<div class="card"><div class="card-title" style="margin-bottom:8px">📋 Detalhes por Dia</div>`;
+    const porData = {};
+    lista.forEach(a => { if (!porData[a.data]) porData[a.data] = []; porData[a.data].push(a); });
+    Object.keys(porData).sort().forEach(data => {
+      const aDia = porData[data];
+      const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
+      html += `<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">
+        📅 ${formatDate(data)} <span style="float:right;color:var(--gold)">${formatarMoeda(totalDia)}</span>
+      </div>`;
+      aDia.forEach(a => {
+        const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ');
+        const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
+        html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--light)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.88rem;font-weight:600">${a.nomeCliente}</div>
+            <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'}</div>
+            ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
+          </div>
+          <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
+        </div>`;
+      });
+    });
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
+      <strong>Total do Mês</strong>
+      <strong style="color:var(--rose-dark);font-size:1.1rem">${formatarMoeda(totalGeral)}</strong>
+    </div></div>`;
+  }
 
+  window._fatLista = lista;
   cont.innerHTML = html;
+}
+
+function fatSelecionarProf(profId) {
+  const lista = window._fatLista || [];
+  FUNCIONARIOS.forEach(f => {
+    const btn = document.getElementById('fat-tab-' + f.id);
+    if (!btn) return;
+    if (f.id === profId) { btn.style.background = 'var(--rose-dark)'; btn.style.color = '#fff'; }
+    else { btn.style.background = 'transparent'; btn.style.color = 'var(--rose-dark)'; }
+  });
+  const detalhe = document.getElementById('fat-detalhe');
+  if (!detalhe) return;
+  const listaProf = lista.filter(a => a.profId === profId);
+  const porData = {};
+  listaProf.forEach(a => { if (!porData[a.data]) porData[a.data] = []; porData[a.data].push(a); });
+  let html = '';
+  if (listaProf.length === 0) {
+    html = '<div style="text-align:center;color:var(--mid);padding:20px;font-size:0.85rem">Nenhum registro neste mês</div>';
+  } else {
+    Object.keys(porData).sort().forEach(data => {
+      const aDia = porData[data];
+      const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
+      html += '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">📅 ' + formatDate(data) + ' <span style="float:right;color:var(--gold)">' + formatarMoeda(totalDia) + '</span></div>';
+      aDia.forEach(a => {
+        const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>{ const s=SERVICOS.find(s=>s.id===id); return s?s.nome:null; }).filter(Boolean).join(', ');
+        const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--light)">';
+        html += '<div style="flex:1;min-width:0"><div style="font-size:0.88rem;font-weight:600">' + a.nomeCliente + '</div>';
+        html += '<div style="font-size:0.75rem;color:var(--mid);margin-top:2px">' + a.hora + ' · ' + (svcs||'—') + '</div>';
+        if (st) html += '<div style="margin-top:3px"><span class="status-badge ' + st.cls + '" style="font-size:0.68rem">' + st.emoji + ' ' + st.label + '</span></div>';
+        html += '</div><strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">' + formatarMoeda(a.valor) + '</strong></div>';
+      });
+    });
+    const totalProf = listaProf.reduce((t,a) => t + a.valor, 0);
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px"><strong>Total</strong><strong style="color:var(--rose-dark);font-size:1.05rem">' + formatarMoeda(totalProf) + '</strong></div>';
+  }
+  detalhe.innerHTML = html;
 }
 
 // ═══════════════════════════════════════
