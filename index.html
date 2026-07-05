@@ -570,6 +570,7 @@ let SERVICOS = [...SERVICOS_PADRAO];
 // ═══════════════════════════════════════
 const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
 let lancamentosAvulsos = {};
+let fatProfSelecionado = null;
 let agendamentos = [];
 let clientes = [];
 let configStudio = {};
@@ -989,7 +990,7 @@ function renderFaturamento() {
     // Abas por profissional para o dono
     const profIds = FUNCIONARIOS.map(f => f.id);
     const primeiroComDados = FUNCIONARIOS.find(f => lista.some(a => a.profId === f.id));
-    const tabAtiva = primeiroComDados ? primeiroComDados.id : FUNCIONARIOS[0].id;
+    const tabAtiva = (fatProfSelecionado && FUNCIONARIOS.find(f => f.id === fatProfSelecionado)) ? fatProfSelecionado : (primeiroComDados ? primeiroComDados.id : FUNCIONARIOS[0].id);
     html += `<div class="card">
       <div class="card-title" style="margin-bottom:10px">📋 Detalhes por Profissional</div>
       <div id="fat-tabs" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">`;
@@ -1070,6 +1071,7 @@ function renderFaturamento() {
 }
 
 function fatSelecionarProf(profId) {
+  fatProfSelecionado = profId;
   const lista = window._fatLista || [];
   FUNCIONARIOS.forEach(f => {
     const btn = document.getElementById('fat-tab-' + f.id);
