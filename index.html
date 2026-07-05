@@ -206,6 +206,7 @@ textarea { resize:vertical; min-height:80px; }
 .config-label { font-size:0.82rem; font-weight:600; color:var(--mid); }
 .config-val { font-size:0.88rem; color:var(--dark); text-align:right; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -1066,6 +1067,11 @@ function renderFaturamento() {
     </div></div>`;
   }
 
+  if (ehDono) {
+    html += `<button onclick="enviarRelatorio()" style="width:100%;padding:12px;background:var(--rose-dark);color:#fff;border:none;border-radius:12px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:14px">
+      📧 Enviar Relatório por E-mail
+    </button>`;
+  }
   window._fatLista = lista;
   cont.innerHTML = html;
 }
@@ -1106,6 +1112,80 @@ function fatSelecionarProf(profId) {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px"><strong>Total</strong><strong style="color:var(--rose-dark);font-size:1.05rem">' + formatarMoeda(totalProf) + '</strong></div>';
   }
   detalhe.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// RELATÓRIO POR EMAIL
+// ═══════════════════════════════════════
+function enviarRelatorio() {
+  const lista = window._fatLista || [];
+  if (lista.length === 0) { alert('Nenhum dado para enviar.'); return; }
+
+  const agora = new Date();
+  const base = new Date(agora.getFullYear(), agora.getMonth() + fatMesOffset, 1);
+  const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const mesAtual = base.getMonth();
+  const anoAtual = base.getFullYear();
+
+  // Totais por profissional
+  const porProf = {};
+  FUNCIONARIOS.forEach(f => { porProf[f.id] = 0; });
+  let totalGeral = 0;
+  lista.forEach(a => { totalGeral += a.valor; if (porProf[a.profId] !== undefined) porProf[a.profId] += a.valor; });
+
+  // Dia com maior faturamento
+  const porDia = {};
+  lista.forEach(a => { porDia[a.data] = (porDia[a.data] || 0) + a.valor; });
+  let melhorDia = '—'; let maxDia = 0;
+  Object.entries(porDia).forEach(([d, v]) => { if (v > maxDia) { maxDia = v; melhorDia = formatDate(d) + ' (' + formatarMoeda(v) + ')'; } });
+
+  // Serviço mais realizado
+  const porSvc = {};
+  lista.filter(a => !a.isAvulso).forEach(a => {
+    (a.servicoIds||[a.servicoId]).forEach(id => { porSvc[id] = (porSvc[id] || 0) + 1; });
+  });
+  let svcTop = '—'; let maxSvc = 0;
+  Object.entries(porSvc).forEach(([id, q]) => { if (q > maxSvc) { maxSvc = q; const s = SERVICOS.find(x=>x.id===parseInt(id)); svcTop = s ? s.nome + ' (' + q + 'x)' : '—'; } });
+
+  // Comparativo mês anterior
+  const baseAnt = new Date(anoAtual, mesAtual - 1, 1);
+  const mesAnt = baseAnt.getMonth();
+  const anoAnt = baseAnt.getFullYear();
+  const listaAnt = agendamentos.filter(a => {
+    if (!a.data || a.status === 'cancelado') return false;
+    const p = a.data.split('-');
+    return parseInt(p[0]) === anoAnt && (parseInt(p[1])-1) === mesAnt && typeof a.valor === 'number' && a.valor > 0;
+  });
+  const totalAnt = listaAnt.reduce((t,a) => t + a.valor, 0);
+  let comparativo = '—';
+  if (totalAnt > 0) {
+    const diff = ((totalGeral - totalAnt) / totalAnt * 100).toFixed(1);
+    comparativo = (diff >= 0 ? '▲ +' : '▼ ') + diff + '% vs ' + baseAnt.toLocaleDateString('pt-BR', {month:'long'});
+  }
+
+  const btn = event.target;
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+
+  emailjs.init('QccBS0xlQ2rAGkRcC');
+  emailjs.send('service_n5d9af9', 'template_odx09mi', {
+    mes: mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1),
+    total_geral: formatarMoeda(totalGeral),
+    total_elly: formatarMoeda(porProf[1] || 0),
+    total_denny: formatarMoeda(porProf[2] || 0),
+    total_lanna: formatarMoeda(porProf[3] || 0),
+    melhor_dia: melhorDia,
+    servico_top: svcTop,
+    total_atendimentos: lista.length,
+    comparativo: comparativo
+  }).then(() => {
+    btn.textContent = '✅ Relatório enviado!';
+    setTimeout(() => { btn.textContent = '📧 Enviar Relatório por E-mail'; btn.disabled = false; }, 3000);
+  }).catch(err => {
+    console.error(err);
+    btn.textContent = '❌ Erro ao enviar';
+    btn.disabled = false;
+  });
 }
 
 // ═══════════════════════════════════════
