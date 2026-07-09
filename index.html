@@ -66,7 +66,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 
 /* ── BUTTONS ── */
 .btn { display:inline-flex; align-items:center; gap:6px; padding:12px 20px; border-radius:30px; font-size:0.85rem; font-weight:500; border:none; cursor:pointer; transition:all 0.2s; letter-spacing:0.02em; }
-.btn-primary { background:linear-gradient(135deg,#9a626b,var(--rose)); color:white; box-shadow:0 4px 14px rgba(155,98,107,0.35); }
+.btn-primary { background:linear-gradient(135deg,var(--rose-dark),var(--rose)); color:white; box-shadow:0 4px 14px rgba(155,98,107,0.35); }
 .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(155,98,107,0.45); }
 .btn-gold { background:linear-gradient(135deg,var(--gold),#e8c77a); color:var(--dark); }
 .btn-ghost { background:var(--light); color:var(--rose-dark); }
@@ -349,6 +349,10 @@ textarea { resize:vertical; min-height:80px; }
     <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="testarFirebase()">🔄 Testar conexão</button>
   </div>
   <div class="card">
+    <div class="card-title">🎨 Tema do App</div>
+    <div id="lista-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+  </div>
+  <div class="card">
     <div class="card-title">⚙️ Configurações do Studio</div>
     <div class="form-group">
       <label>Nome do Studio</label>
@@ -575,6 +579,69 @@ let fatProfSelecionado = null;
 let agendamentos = [];
 let clientes = [];
 let configStudio = {};
+
+// ═══════════════════════════════════════
+// TEMAS DE CORES (masculino / feminino / unissex)
+// ═══════════════════════════════════════
+const TEMAS = {
+  rose: {
+    label: 'Rosé Clássico', publico: 'Feminino',
+    swatch: '#c49a9e',
+    vars: { rose:'#d0b0b3', 'rose-light':'#f2e7e8', 'rose-dark':'#957175', cream:'#fbf9f7', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4446', mid:'#918587', light:'#f6f1ee', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  lavanda: {
+    label: 'Lavanda', publico: 'Feminino',
+    swatch: '#a99bc0',
+    vars: { rose:'#bbb1cd', 'rose-light':'#ece6f2', 'rose-dark':'#7c6f93', cream:'#faf9fc', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#463f51', mid:'#8b8598', light:'#f3f1fa', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  sage: {
+    label: 'Verde Sálvia', publico: 'Unissex',
+    swatch: '#8aa693',
+    vars: { rose:'#a4bcac', 'rose-light':'#e5eee7', 'rose-dark':'#738f7d', cream:'#f8faf8', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3d453f', mid:'#849087', light:'#f0f4f0', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  grafite: {
+    label: 'Grafite', publico: 'Masculino',
+    swatch: '#6b7078',
+    vars: { rose:'#8a8e94', 'rose-light':'#e3e4e6', 'rose-dark':'#5e6268', cream:'#f6f6f7', gold:'#c2b394', 'gold-light':'#ece3d0', dark:'#414449', mid:'#82858a', light:'#ebecee', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+  },
+  marinho: {
+    label: 'Azul Marinho', publico: 'Masculino',
+    swatch: '#546e82',
+    vars: { rose:'#7590a2', 'rose-light':'#e0e7ec', 'rose-dark':'#4c6373', cream:'#f6f8f9', gold:'#c4b088', 'gold-light':'#eee4cf', dark:'#3a444c', mid:'#77848e', light:'#e9edf0', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+  },
+  ambar: {
+    label: 'Âmbar', publico: 'Masculino',
+    swatch: '#a17d5c',
+    vars: { rose:'#b6987b', 'rose-light':'#eee2d3', 'rose-dark':'#8a6c50', cream:'#faf7f2', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4136', mid:'#93826f', light:'#f2ece1', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+  }
+};
+
+function aplicarTema(nomeTema) {
+  const t = TEMAS[nomeTema] || TEMAS.rose;
+  const root = document.documentElement.style;
+  Object.entries(t.vars).forEach(([k,v]) => root.setProperty('--'+k, v));
+}
+
+function renderSeletorTemas() {
+  const el = document.getElementById('lista-temas');
+  if (!el) return;
+  const temaAtual = getConfig('tema', 'rose');
+  el.innerHTML = Object.entries(TEMAS).map(([key, t]) => `
+    <div onclick="escolherTema('${key}')" style="cursor:pointer;text-align:center;padding:10px 6px;border-radius:12px;border:2px solid ${temaAtual===key ? 'var(--rose-dark)' : 'transparent'};background:${temaAtual===key ? 'var(--light)' : 'transparent'}">
+      <div style="width:38px;height:38px;border-radius:50%;background:${t.swatch};margin:0 auto 6px;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div>
+      <div style="font-size:0.75rem;font-weight:600;color:var(--dark)">${t.label}</div>
+      <div style="font-size:0.65rem;color:var(--mid)">${t.publico}</div>
+    </div>
+  `).join('');
+}
+
+async function escolherTema(key) {
+  Object.assign(configStudio, { tema: key });
+  aplicarTema(key);
+  await saveConfigFirebase({ tema: key });
+  renderSeletorTemas();
+  showToast('✅ Tema aplicado!');
+}
 let syncInterval = null;
 
 // --- AGENDAMENTOS ---
@@ -737,6 +804,7 @@ async function loadConfigFromFirebase() {
     const data = await res.json();
     if (data && typeof data === 'object') {
       configStudio = data;
+      aplicarTema(data.tema || 'rose');
       preencherConfig();
     }
   } catch(e) { console.log('Config load error', e); }
@@ -1951,7 +2019,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
-  if (id==='config') { testarFirebase(); }
+  if (id==='config') { testarFirebase(); renderSeletorTemas(); }
 }
 
 function openModal(id) {
