@@ -254,7 +254,7 @@ textarea { resize:vertical; min-height:80px; }
   <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
   <button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button>
   <button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button>
-  <button class="nav-btn" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button>
+  <button class="nav-btn" id="nav-temas" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button>
   <button class="nav-btn" id="nav-config" style="display:none" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button>
 </nav>
 
@@ -348,7 +348,7 @@ textarea { resize:vertical; min-height:80px; }
   <div class="card">
     <div class="card-title">🎨 Tema do App</div>
     <p style="font-size:0.85rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário. Cada pessoa pode ter uma cor diferente — a sua troca não muda a tela de ninguém mais.</p>
-    <div id="lista-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
   </div>
 </div>
 
@@ -357,6 +357,11 @@ textarea { resize:vertical; min-height:80px; }
     <div class="card-title">🔥 Status do Banco Firebase</div>
     <div id="firebase-diag" style="font-size:0.85rem;color:var(--mid)">Verificando...</div>
     <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="testarFirebase()">🔄 Testar conexão</button>
+  </div>
+  <div class="card">
+    <div class="card-title">🎨 Tema do App</div>
+    <p style="font-size:0.85rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário.</p>
+    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
   </div>
   <div class="card">
     <div class="card-title">⚙️ Configurações do Studio</div>
@@ -629,17 +634,18 @@ function aplicarTema(nomeTema) {
 }
 
 function renderSeletorTemas() {
-  const el = document.getElementById('lista-temas');
-  if (!el) return;
+  const elementos = document.querySelectorAll('.lista-temas-target');
+  if (elementos.length === 0) return;
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   const temaAtual = (f && f.tema) || 'rose';
-  el.innerHTML = Object.entries(TEMAS).map(([key, t]) => `
+  const html = Object.entries(TEMAS).map(([key, t]) => `
     <div onclick="escolherTema('${key}')" style="cursor:pointer;text-align:center;padding:10px 6px;border-radius:12px;border:2px solid ${temaAtual===key ? 'var(--rose-dark)' : 'transparent'};background:${temaAtual===key ? 'var(--light)' : 'transparent'}">
       <div style="width:38px;height:38px;border-radius:50%;background:${t.swatch};margin:0 auto 6px;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div>
       <div style="font-size:0.75rem;font-weight:600;color:var(--dark)">${t.label}</div>
       <div style="font-size:0.65rem;color:var(--mid)">${t.publico}</div>
     </div>
   `).join('');
+  elementos.forEach(el => el.innerHTML = html);
 }
 
 async function escolherTema(key) {
@@ -1338,7 +1344,10 @@ function finalizarLogin() {
   document.getElementById('user-label').textContent = f.emoji + ' ' + f.nome;
   aplicarTema(f.tema || 'rose');
   document.getElementById('sync-dot').style.display = 'block';
-  if (currentUser === 1) document.getElementById('nav-config').style.display = 'flex';
+  if (currentUser === 1) {
+    document.getElementById('nav-config').style.display = 'flex';
+    document.getElementById('nav-temas').style.display = 'none';
+  }
   initApp();
   startSync();
 }
@@ -1348,6 +1357,7 @@ function logout() {
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
   document.getElementById('nav-config').style.display = 'none';
+  document.getElementById('nav-temas').style.display = 'flex';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -2028,7 +2038,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
-  if (id==='config') { testarFirebase(); }
+  if (id==='config') { testarFirebase(); renderSeletorTemas(); }
   if (id==='temas') { renderSeletorTemas(); }
 }
 
