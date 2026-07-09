@@ -243,7 +243,11 @@ textarea { resize:vertical; min-height:80px; }
   <div class="header-logo">Studio Elly <span>Designer</span></div>
   <div style="display:flex;align-items:center;gap:8px">
     <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
-    <div class="header-user" onclick="logout()" id="user-label">👤 —</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div id="user-avatar" onclick="abrirTrocaFoto()" style="width:34px;height:34px;border-radius:50%;overflow:hidden;cursor:pointer;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid rgba(255,255,255,0.4)">👤</div>
+      <div class="header-user" onclick="logout()" id="user-label" style="background:none;padding:0">—</div>
+      <input type="file" accept="image/*" id="input-foto-perfil" style="display:none" onchange="processarFotoSelecionada(event)">
+    </div>
   </div>
 </div>
 
@@ -410,7 +414,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ FAB ═══════════ -->
-<button class="fab" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
+<button class="fab" id="fab-agendamento" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
@@ -419,13 +423,13 @@ textarea { resize:vertical; min-height:80px; }
     <div class="modal-title" id="na-modal-titulo">📅 Novo Agendamento</div>
     <div class="form-group">
       <label>Cliente cadastrada (opcional)</label>
-      <select id="na-cliente-cadastrada" onchange="selecionarClienteCadastro()">
+      <select id="na-cliente-cadastrada" onchange="selecionarClienteCadastro();renderHistoricoServico()">
         <option value="">Agendar sem cadastro...</option>
       </select>
     </div>
     <div class="form-group">
       <label>Nome da Cliente *</label>
-      <input type="text" id="na-cliente" placeholder="Nome completo...">
+      <input type="text" id="na-cliente" placeholder="Nome completo..." oninput="renderHistoricoServico()">
     </div>
     <div class="form-group">
       <label>WhatsApp (opcional)</label>
@@ -434,6 +438,7 @@ textarea { resize:vertical; min-height:80px; }
     <div class="form-group">
       <label>Serviço *</label>
       <div id="na-servicos-lista" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px"></div>
+      <div id="na-historico-servico" style="margin-top:8px"></div>
     </div>
     <div class="form-group">
       <label>Profissional *</label>
@@ -475,6 +480,16 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ MODAL: NOVA CLIENTE ═══════════ -->
+<!-- ═══════════ MODAL: HISTÓRICO DE SERVIÇO ═══════════ -->
+<div class="modal-bg" id="modal-historico-servico" style="z-index:700">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🕐 Histórico de Atendimentos</div>
+    <div id="hs-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeModal('modal-historico-servico')">Fechar</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-nova-cliente">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1338,10 +1353,79 @@ function cancelarSenha() {
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
 
+async function loadFotosEquipe() {
+  try {
+    const res = await fetch(DB_URL + '/equipe_fotos.json');
+    const data = await res.json();
+    if (data) {
+      FUNCIONARIOS.forEach(f => { if (data[f.id]) f.foto = data[f.id]; });
+    }
+  } catch(e) { console.log('Erro ao carregar fotos da equipe', e); }
+}
+
+function atualizarAvatarHeader() {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  const el = document.getElementById('user-avatar');
+  if (!f || !el) return;
+  if (f.foto) {
+    el.innerHTML = `<img src="${f.foto}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    el.innerHTML = f.emoji || '👤';
+  }
+}
+
+function abrirTrocaFoto() {
+  document.getElementById('input-foto-perfil').click();
+}
+
+function processarFotoSelecionada(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+  if (!arquivo.type.startsWith('image/')) { showToast('Selecione um arquivo de imagem'); return; }
+
+  const leitor = new FileReader();
+  leitor.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const tamanho = 150;
+      const canvas = document.createElement('canvas');
+      canvas.width = tamanho; canvas.height = tamanho;
+      const ctx = canvas.getContext('2d');
+      const lado = Math.min(img.width, img.height);
+      const offX = (img.width - lado) / 2;
+      const offY = (img.height - lado) / 2;
+      ctx.drawImage(img, offX, offY, lado, lado, 0, 0, tamanho, tamanho);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      salvarFotoPerfil(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  leitor.readAsDataURL(arquivo);
+  event.target.value = '';
+}
+
+async function salvarFotoPerfil(dataUrl) {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  if (!f) return;
+  try {
+    const res = await fetch(DB_URL + '/equipe_fotos/' + currentUser + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dataUrl)
+    });
+    if (!res.ok) { showToast('⚠️ Erro ao salvar foto (Firebase: ' + res.status + ')'); return; }
+    f.foto = dataUrl;
+    atualizarAvatarHeader();
+    showToast('✅ Foto atualizada!');
+  } catch(e) {
+    console.error('salvarFotoPerfil error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
+}
+
 function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
-  document.getElementById('user-label').textContent = f.emoji + ' ' + f.nome;
+  document.getElementById('user-label').textContent = f.nome;
+  atualizarAvatarHeader();
   aplicarTema(f.tema || 'rose');
   document.getElementById('sync-dot').style.display = 'block';
   if (currentUser === 1) {
@@ -1637,6 +1721,7 @@ function editarAgendamento() {
     const ids = a.servicoIds || [a.servicoId];
     document.querySelectorAll('.svc-check').forEach(c => { c.checked = ids.includes(parseInt(c.value)); });
     document.getElementById('na-profissional').value = a.profId;
+    renderHistoricoServico();
   }, 100);
   openModal('modal-novo-agendamento');
 }
@@ -1650,8 +1735,33 @@ function cancelarAgendamento() {
   showToast('Agendamento cancelado');
 }
 
+function normalizarTexto(t) {
+  return (t||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function resolverClienteAutomatico(nomeCliente, fone) {
+  const nomeNorm = normalizarTexto(nomeCliente);
+  const foneNorm = (fone||'').replace(/\D/g,'');
+
+  const matchExato = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
+  if (matchExato) return { clienteId: matchExato.id, precisaConfirmar: false };
+
+  const matchNome = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') !== foneNorm);
+  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome };
+
+  const matchFone = foneNorm !== '' && clientes.find(c => (c.fone||'').replace(/\D/g,'') === foneNorm && normalizarTexto(c.nome) !== nomeNorm);
+  if (matchFone) return { bloqueado: true, clienteConflito: matchFone };
+
+  const novoCliente = { id: Date.now(), nome: nomeCliente, fone: fone, aniversario:'', obs:'' };
+  clientes.push(novoCliente);
+  saveClienteFirebase(novoCliente);
+  renderClientes();
+  populateClientesSelect();
+  return { clienteId: novoCliente.id, precisaConfirmar: false };
+}
+
 function salvarAgendamento() {
-  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
+  let clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
   const fone = document.getElementById('na-fone').value.trim();
   const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
@@ -1662,6 +1772,34 @@ function salvarAgendamento() {
 
   if (!nomeCliente || servicoIds.length===0 || !profId || !data || !hora) {
     showToast('Preencha todos os campos obrigatórios'); return;
+  }
+
+  if (!clienteId) {
+    if (!fone) {
+      showToast('Telefone é obrigatório para cadastrar um novo cliente'); return;
+    }
+    const resultado = resolverClienteAutomatico(nomeCliente, fone);
+    if (resultado.bloqueado) {
+      alert(`Este telefone (${fone}) já pertence a outro cliente: "${resultado.clienteConflito.nome}".\n\nCorrija o telefone ou selecione "${resultado.clienteConflito.nome}" na lista de clientes cadastradas.`);
+      return;
+    }
+    if (resultado.precisaConfirmar) {
+      const usarExistente = confirm(
+        `Já existe "${resultado.clienteConflito.nome}" cadastrada com o telefone ${resultado.clienteConflito.fone || '(sem telefone)'}.\n\nOK = usar o cadastro existente\nCancelar = criar um novo cadastro com o telefone "${fone || '(sem telefone)'}"`
+      );
+      if (usarExistente) {
+        clienteId = resultado.clienteConflito.id;
+      } else {
+        const novoCliente = { id: Date.now(), nome: nomeCliente, fone: fone, aniversario:'', obs:'' };
+        clientes.push(novoCliente);
+        saveClienteFirebase(novoCliente);
+        renderClientes();
+        populateClientesSelect();
+        clienteId = novoCliente.id;
+      }
+    } else {
+      clienteId = resultado.clienteId;
+    }
   }
 
   if (editingApptId) {
@@ -1715,9 +1853,27 @@ function renderClientes() {
       </div>
       <div class="list-actions">
         ${foneLimpo?`<a href="https://wa.me/55${foneLimpo}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>`:''}
+        <button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerCliente(${c.id})">🗑️</button>
       </div>
     </div>`;
   }).join('');
+}
+
+async function removerCliente(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Remover "${c.nome}" do cadastro de clientes?\n\nOs agendamentos já feitos continuam no histórico, mas ela deixa de aparecer na lista de clientes.`)) return;
+  try {
+    const res = await fetch(DB_URL + '/clientes/' + id + '.json', { method:'DELETE' });
+    if (!res.ok) { showToast('⚠️ Erro ao remover cliente (Firebase: ' + res.status + ')'); return; }
+    clientes = clientes.filter(x => x.id !== id);
+    renderClientes();
+    populateClientesSelect();
+    showToast('✅ Cliente removida!');
+  } catch(e) {
+    console.error('removerCliente error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
 }
 
 function editarCliente(id) {
@@ -1739,6 +1895,15 @@ function salvarCliente() {
   const aniversario = document.getElementById('nc-aniversario').value;
   const obs = document.getElementById('nc-obs').value.trim();
   if (!nome) { showToast('Digite o nome da cliente'); return; }
+  if (!fone) { showToast('Telefone é obrigatório'); return; }
+
+  const foneNorm = fone.replace(/\D/g,'');
+  const conflito = clientes.find(c => c.id !== editingClienteId && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
+  if (conflito) {
+    alert(`Este telefone já pertence a outro cliente: "${conflito.nome}".\n\nCada cliente precisa ter um telefone diferente.`);
+    return;
+  }
+
   if (editingClienteId) {
     const c = clientes.find(x => x.id === editingClienteId);
     if (c) { Object.assign(c, { nome, fone, aniversario, obs }); saveClienteFirebase(c); }
@@ -1981,12 +2146,73 @@ function selecionarClienteCadastro() {
   if (c.obs && !document.getElementById('na-obs').value) document.getElementById('na-obs').value = c.obs;
 }
 
+function identificarClienteAtual() {
+  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
+  if (clienteId) return clienteId;
+  const nomeDigitado = document.getElementById('na-cliente')?.value.trim() || '';
+  if (!nomeDigitado) return null;
+  const nomeNorm = normalizarTexto(nomeDigitado);
+  const match = clientes.find(c => normalizarTexto(c.nome) === nomeNorm);
+  return match ? match.id : null;
+}
+
+function coletarHistoricoServicos() {
+  const clienteId = identificarClienteAtual();
+  const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
+  if (!clienteId || servicoIds.length === 0) return [];
+  const resultado = [];
+  servicoIds.forEach(sid => {
+    const servico = SERVICOS.find(s => s.id === sid);
+    if (!servico) return;
+    const ocorrencias = agendamentos
+      .filter(a => a.clienteId === clienteId && a.status !== 'cancelado' && a.id !== editingApptId && (a.servicoIds||[a.servicoId]).includes(sid))
+      .sort((a,b) => b.data.localeCompare(a.data))
+      .slice(0, 2);
+    if (ocorrencias.length > 0) resultado.push({ servico, ocorrencias });
+  });
+  return resultado;
+}
+
+function renderHistoricoServico() {
+  const el = document.getElementById('na-historico-servico');
+  if (!el) return;
+  const dados = coletarHistoricoServicos();
+  if (dados.length === 0) { el.innerHTML = ''; return; }
+  const totalOcorrencias = dados.reduce((t,d)=>t+d.ocorrencias.length,0);
+  el.innerHTML = `<button type="button" class="btn btn-ghost btn-sm" style="width:100%" onclick="abrirHistoricoServico()">🕐 Ver histórico desta cliente (${totalOcorrencias} registro${totalOcorrencias!==1?'s':''})</button>`;
+}
+
+function abrirHistoricoServico() {
+  const dados = coletarHistoricoServicos();
+  const body = document.getElementById('hs-body');
+  if (dados.length === 0) { body.innerHTML = '<p>Nenhum histórico encontrado.</p>'; openModal('modal-historico-servico'); return; }
+
+  body.innerHTML = dados.map(({servico, ocorrencias}) => {
+    const blocos = ocorrencias.map((a, i) => {
+      const prof = FUNCIONARIOS.find(f => f.id === a.profId);
+      const valorTxt = typeof a.valor === 'number' ? formatarMoeda(a.valor) : 'não registrado';
+      const rotulo = i === 0 ? 'Último atendimento' : 'Atendimento anterior';
+      return `<div style="padding:10px 0;${i>0?'border-top:1px solid var(--rose-light)':''}">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--rose-dark)">${rotulo} — ${formatDate(a.data)}</div>
+        <div style="font-size:0.85rem;margin-top:4px">👤 Profissional: <strong>${prof?prof.nome:'não informado'}</strong></div>
+        <div style="font-size:0.85rem">💰 Valor cobrado: <strong>${valorTxt}</strong></div>
+        ${a.obs?`<div style="font-size:0.85rem;margin-top:4px">📝 Observação: <em>"${a.obs}"</em></div>`:''}
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:0.95rem;font-weight:700;color:var(--dark);border-bottom:2px solid var(--rose-light);padding-bottom:6px;margin-bottom:4px">✨ ${servico.nome}</div>
+      ${blocos}
+    </div>`;
+  }).join('');
+  openModal('modal-historico-servico');
+}
+
 function populateSelects() {
   populateClientesSelect();
   const lista = document.getElementById('na-servicos-lista');
   lista.innerHTML = SERVICOS.sort((a,b)=>a.nome.localeCompare(b.nome)).map(s =>
     `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;padding:3px 0">
-      <input type="checkbox" class="svc-check" value="${s.id}" onchange="filtrarProfissional()" style="width:16px;height:16px;accent-color:var(--rose);cursor:pointer">
+      <input type="checkbox" class="svc-check" value="${s.id}" onchange="filtrarProfissional();renderHistoricoServico()" style="width:16px;height:16px;accent-color:var(--rose);cursor:pointer">
       <span>${s.nome} <span style="color:var(--mid);font-size:0.78rem">(${s.duracao}min)</span></span>
     </label>`
   ).join('');
@@ -2029,11 +2255,13 @@ function formatDate(ds) {
 }
 
 function showPage(id, btn) {
+  document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
   if (id==='agenda') { renderWeek(); renderTimeline(); }
+  document.getElementById('fab-agendamento').style.display = (id==='agenda' ? 'flex' : 'none');
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
@@ -2050,8 +2278,10 @@ function openModal(id) {
       document.getElementById('na-btn-salvar').textContent = 'Confirmar Agendamento';
       ['na-cliente-cadastrada','na-cliente','na-fone','na-obs'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
       document.getElementById('na-data').value = selectedDate;
+      const elHist = document.getElementById('na-historico-servico'); if (elHist) elHist.innerHTML = '';
     }
     populateSelects();
+    renderHistoricoServico();
   }
   if (id==='modal-nova-cliente') {
     if (!editingClienteId) {
@@ -2096,7 +2326,7 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 // ═══════════════════════════════════════
 // START
 // ═══════════════════════════════════════
-initLogin();
+loadFotosEquipe().then(() => initLogin());
 </script>
 </body>
 </html>
