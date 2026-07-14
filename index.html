@@ -41,9 +41,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .header-user:hover { background:rgba(255,255,255,0.2); }
 
 /* ── NAV ── */
-.nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; overflow-x:auto; }
-.nav::-webkit-scrollbar { display:none; }
-.nav-btn { flex:1; min-width:60px; padding:11px 4px 10px; font-size:0.63rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.04em; text-transform:uppercase; }
+.nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
+.nav-cell { flex:1 1 0; min-width:0; }
+.nav-btn { display:block; width:100%; min-width:0; padding:10px 2px 9px; font-size:0.58rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
 .nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; }
 
@@ -253,13 +253,13 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ NAV ═══════════ -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button>
-  <button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button>
-  <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
-  <button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button>
-  <button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button>
-  <button class="nav-btn" id="nav-temas" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button>
-  <button class="nav-btn" id="nav-config" style="display:none" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button>
+  <div class="nav-cell"><button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
+  <div class="nav-cell" id="nav-temas"><button class="nav-btn" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button></div>
+  <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
 <!-- ═══════════ AGENDA ═══════════ -->
@@ -294,14 +294,15 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ FUNCIONÁRIOS ═══════════ -->
 <div class="page" id="page-funcionarios">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-hoje">0</div>
-      <div class="stat-label">Agendamentos Hoje</div>
+  <div style="background:var(--white);border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:16px;display:flex;align-items:center;padding:14px 10px">
+    <div style="flex:1;text-align:center">
+      <div class="stat-num sm" id="stat-hoje">0</div>
+      <div class="stat-label">Agendamentos hoje</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-semana">0</div>
-      <div class="stat-label">Esta Semana</div>
+    <div style="width:1px;align-self:stretch;background:var(--rose-light)"></div>
+    <div style="flex:1;text-align:center">
+      <div class="stat-num sm" id="stat-semana">0</div>
+      <div class="stat-label">Esta semana</div>
     </div>
   </div>
   <div class="card">
@@ -566,11 +567,12 @@ textarea { resize:vertical; min-height:80px; }
 // ═══════════════════════════════════════
 // DADOS BASE
 // ═══════════════════════════════════════
-const FUNCIONARIOS = [
+const FUNCIONARIOS_PADRAO = [
   { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
   { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos' },
   { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza' },
 ];
+let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
 // Serviços padrão (fallback se Firebase estiver vazio)
 const SERVICOS_PADRAO = [
@@ -783,6 +785,43 @@ async function saveClienteFirebase(cliente) {
 }
 
 // --- SERVIÇOS (nó próprio /servicos) ---
+async function loadEquipeFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/equipe.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      let lista = [];
+      if (Array.isArray(data)) {
+        lista = data.filter(f => f && f.id);
+      } else {
+        Object.values(data).forEach(f => { if (f && f.id) lista.push(f); });
+      }
+      if (lista.length > 0) {
+        FUNCIONARIOS = lista;
+      } else {
+        FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
+        await salvarEquipeFirebase();
+      }
+    } else {
+      FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
+      await salvarEquipeFirebase();
+    }
+    if (currentUser) { renderFuncionarios(); renderTimeline(); }
+  } catch(e) {
+    console.log('Equipe sync error', e);
+    FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
+  }
+}
+
+async function salvarEquipeFirebase() {
+  const batch = FUNCIONARIOS.map(f =>
+    fetch(DB_URL + '/equipe/' + f.id + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f)
+    }).catch(()=>{})
+  );
+  await Promise.all(batch);
+}
+
 async function loadServicosFromFirebase() {
   try {
     const res = await fetch(DB_URL + '/servicos.json');
@@ -856,6 +895,7 @@ async function saveConfigFirebase(obj) {
 // --- SYNC ---
 function startSync() {
   loadFromFirebase();
+  loadEquipeFirebase();
   loadClientesFromFirebase();
   loadServicosFromFirebase();
   loadConfigFromFirebase();
@@ -1068,10 +1108,9 @@ function renderFaturamento() {
   }
 
   html += `<div class="card" style="margin-bottom:14px">
-    <div class="card-title">💰 Faturamento do Mês</div>
-    <div style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(totalGeral)}</div>
-      <div style="font-size:0.72rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Total do Mês</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div class="card-title" style="margin-bottom:0">💰 Faturamento do Mês</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--rose-dark);white-space:nowrap">${formatarMoeda(totalGeral)}</div>
     </div>`;
   if (ehDono) {
     FUNCIONARIOS.forEach(f => {
@@ -1429,7 +1468,7 @@ function finalizarLogin() {
   aplicarTema(f.tema || 'rose');
   document.getElementById('sync-dot').style.display = 'block';
   if (currentUser === 1) {
-    document.getElementById('nav-config').style.display = 'flex';
+    document.getElementById('nav-config').style.display = 'block';
     document.getElementById('nav-temas').style.display = 'none';
   }
   initApp();
@@ -1441,7 +1480,7 @@ function logout() {
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
   document.getElementById('nav-config').style.display = 'none';
-  document.getElementById('nav-temas').style.display = 'flex';
+  document.getElementById('nav-temas').style.display = 'block';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -1999,7 +2038,7 @@ function editarProfissional(id) {
   openModal('modal-editar-prof');
 }
 
-function salvarProfissional(id) {
+async function salvarProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
   const novoNome = document.getElementById('ep-nome').value.trim();
@@ -2013,6 +2052,8 @@ function salvarProfissional(id) {
     if (c.checked && !svc.profissionais.includes(id)) svc.profissionais.push(id);
     else if (!c.checked) svc.profissionais = svc.profissionais.filter(x => x !== id);
   });
+  await salvarEquipeFirebase();
+  await saveServicosFirebase();
   closeModal('modal-editar-prof');
   renderFuncionarios(); renderServicos(); renderTimeline();
   showToast('✅ Profissional atualizada!');
