@@ -98,6 +98,33 @@ textarea { resize:vertical; min-height:80px; }
 .day-chip.selected .dc-dot { background:white; }
 .day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
+/* ── DESPESAS ── */
+.expense-btn { background:linear-gradient(135deg,var(--gold),#e8c77a); color:var(--dark); }
+.qmsqm-wrap { display:flex; gap:8px; margin-bottom:6px; }
+.qmsqm-box { flex:1; border:2px solid var(--rose-light); border-radius:12px; padding:10px; text-align:center; background:var(--cream); }
+.qmsqm-box.filled-qm { border-color:#a14848; background:#f5e0e0; }
+.qmsqm-box.filled-sqm { border-color:var(--sage-dark); background:#e3efe6; }
+.qmsqm-label { display:block; font-size:0.68rem; font-weight:700; color:var(--mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
+.qmsqm-input { width:100%; border:none; background:transparent; text-align:center; font-size:0.95rem; font-weight:700; color:var(--dark); outline:none; padding:0; }
+.rateio-info { font-size:0.72rem; color:var(--mid); text-align:center; margin-bottom:14px; min-height:14px; }
+.despesa-row { padding:10px 0; border-bottom:1px solid var(--light); }
+.despesa-row:last-child { border-bottom:none; }
+.despesa-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.despesa-desc { font-size:0.86rem; font-weight:600; }
+.despesa-tag { display:inline-block; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:20px; margin-left:6px; text-transform:uppercase; letter-spacing:0.03em; }
+.despesa-tag.qm { background:#f5e0e0; color:#a14848; }
+.despesa-tag.sqm { background:#e3efe6; color:#4d7a4a; }
+.despesa-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.despesa-val { font-size:0.86rem; font-weight:700; color:var(--rose-dark); white-space:nowrap; }
+.despesa-icon-btn { width:22px; height:22px; border-radius:6px; background:var(--light); display:flex; align-items:center; justify-content:center; font-size:0.7rem; cursor:pointer; flex-shrink:0; }
+.despesa-split { font-size:0.68rem; color:var(--mid); margin-top:4px; }
+.despesa-total-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:2px solid var(--gold); }
+.despesa-total-row span:first-child { font-size:0.72rem; color:var(--mid); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+.despesa-total-row span:last-child { font-size:1.15rem; font-weight:700; color:var(--rose-dark); }
+.fin-subnav { display:flex; gap:8px; margin-bottom:14px; }
+.fin-subnav div { flex:1; text-align:center; padding:9px; border-radius:20px; font-size:0.74rem; font-weight:600; background:var(--light); color:var(--rose-dark); cursor:pointer; }
+.fin-subnav div.on { background:var(--rose-dark); color:#fff; }
+
 /* ── TIMELINE ── */
 .prof-tab-wrap { display:grid; grid-template-columns:repeat(3,1fr); position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
 .prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
@@ -268,7 +295,10 @@ textarea { resize:vertical; min-height:80px; }
     <div class="date-nav">
       <button class="date-nav-btn" onclick="moveWeek(-1)">‹</button>
       <div class="date-label" id="month-label"></div>
-      <button class="date-nav-btn" onclick="moveWeek(1)">›</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="date-nav-btn" onclick="moveWeek(1)">›</button>
+        <button class="date-nav-btn expense-btn" onclick="abrirModalDespesa()" title="Lançar despesa">🧾</button>
+      </div>
     </div>
     <div class="week-scroll" id="week-scroll"></div>
   </div>
@@ -339,6 +369,10 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ FINANCEIRO ═══════════ -->
 <div class="page" id="page-faturamento">
+  <div class="fin-subnav">
+    <div class="on" id="fin-tab-fat" onclick="trocarAbaFinanceiro('faturamento')">💰 Faturamento</div>
+    <div id="fin-tab-desp" onclick="trocarAbaFinanceiro('despesas')">🧾 Despesas</div>
+  </div>
   <div class="date-nav" style="margin-bottom:12px">
     <button class="date-nav-btn" onclick="moveMesFaturamento(-1)">‹</button>
     <div id="fat-mes-label" style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600"></div>
@@ -560,6 +594,42 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+<!-- ═══════════ MODAL: DESPESA ═══════════ -->
+<div class="modal-bg" id="modal-despesa">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🧾 Nova despesa</div>
+    <div style="font-size:0.78rem;color:var(--mid);margin-bottom:14px">Lançando como: <strong id="desp-lancer-nome">—</strong></div>
+    <div class="form-group">
+      <label>Descrição</label>
+      <input type="text" id="desp-descricao" placeholder="Ex: Compra de toalhas">
+    </div>
+    <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">Valor — preencha só a caixinha certa</label>
+    <div class="qmsqm-wrap">
+      <div class="qmsqm-box" id="desp-box-qm">
+        <span class="qmsqm-label">Com química</span>
+        <input type="text" class="qmsqm-input" id="desp-valor-qm" placeholder="R$ 0,00" oninput="onDespesaValorInput('qm')">
+      </div>
+      <div class="qmsqm-box" id="desp-box-sqm">
+        <span class="qmsqm-label">Sem química</span>
+        <input type="text" class="qmsqm-input" id="desp-valor-sqm" placeholder="R$ 0,00" oninput="onDespesaValorInput('sqm')">
+      </div>
+    </div>
+    <div class="rateio-info" id="desp-rateio-info">&nbsp;</div>
+    <input type="hidden" id="desp-editando-id" value="">
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button class="btn btn-ghost btn-sm" id="desp-btn-cancelar-edicao" style="display:none" onclick="cancelarEdicaoDespesa()">Cancelar edição</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarDespesa()">Salvar despesa</button>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0" id="desp-lista-titulo">Despesas do mês</div>
+    </div>
+    <div id="desp-lista-modal"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeModal('modal-despesa')">Fechar</button>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -607,6 +677,24 @@ let fatProfSelecionado = null;
 let agendamentos = [];
 let clientes = [];
 let configStudio = {};
+let DESPESAS = [];
+let finAbaAtiva = 'faturamento';
+
+async function loadDespesasFromFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/despesas.json');
+    const data = await res.json();
+    const novas = [];
+    if (data && typeof data === 'object') {
+      Object.entries(data).forEach(([k, v]) => { if (v && typeof v === 'object') { if (!v.id) v.id = k; novas.push(v); } });
+    }
+    DESPESAS = novas;
+    const modalDesp = document.getElementById('modal-despesa');
+    if (modalDesp && modalDesp.classList.contains('open')) renderListaDespesasModal();
+    const pagFin = document.getElementById('page-faturamento');
+    if (pagFin && pagFin.classList.contains('active') && finAbaAtiva === 'despesas') renderDespesasFinanceiro();
+  } catch(e) { console.log('Erro despesas', e); }
+}
 
 // ═══════════════════════════════════════
 // TEMAS DE CORES (masculino / feminino / unissex)
@@ -751,6 +839,219 @@ async function saveAgendamento(id, val) {
     console.error('saveAgendamento error', e);
     showToast('❌ Sem conexão com o banco. Verifique a internet.');
   }
+}
+
+// --- DESPESAS ---
+function calcularRateioDespesa(tipo, valor) {
+  const centavos = Math.round(valor * 100);
+  if (tipo === 'qm') {
+    const metadeDenny = Math.floor(centavos / 2);
+    const metadeLanna = centavos - metadeDenny;
+    return { 2: metadeDenny / 100, 3: metadeLanna / 100 };
+  } else {
+    const base = Math.floor(centavos / 3);
+    const resto = centavos - (base * 3);
+    return { 1: (base + resto) / 100, 2: base / 100, 3: base / 100 };
+  }
+}
+
+function parseValorDespesa(str) {
+  if (!str) return NaN;
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.'));
+}
+
+function onDespesaValorInput(tipo) {
+  const boxQm = document.getElementById('desp-box-qm');
+  const boxSqm = document.getElementById('desp-box-sqm');
+  const inputQm = document.getElementById('desp-valor-qm');
+  const inputSqm = document.getElementById('desp-valor-sqm');
+  const info = document.getElementById('desp-rateio-info');
+  if (tipo === 'qm' && inputQm.value) {
+    inputSqm.value = ''; boxSqm.classList.remove('filled-sqm');
+    boxQm.classList.add('filled-qm');
+    info.textContent = 'Rateio: Denny + Lanna (50/50)';
+  } else if (tipo === 'sqm' && inputSqm.value) {
+    inputQm.value = ''; boxQm.classList.remove('filled-qm');
+    boxSqm.classList.add('filled-sqm');
+    info.textContent = 'Rateio: Elly + Denny + Lanna (1/3 cada)';
+  } else {
+    boxQm.classList.remove('filled-qm'); boxSqm.classList.remove('filled-sqm');
+    info.innerHTML = '&nbsp;';
+  }
+}
+
+function abrirModalDespesa() {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  document.getElementById('desp-lancer-nome').textContent = f ? f.nome : '—';
+  cancelarEdicaoDespesa();
+  renderListaDespesasModal();
+  openModal('modal-despesa');
+}
+
+async function salvarDespesa() {
+  const descricao = document.getElementById('desp-descricao').value.trim();
+  const valorQm = parseValorDespesa(document.getElementById('desp-valor-qm').value);
+  const valorSqm = parseValorDespesa(document.getElementById('desp-valor-sqm').value);
+  if (!descricao) { showToast('⚠️ Escreva a descrição da despesa'); return; }
+  let tipo, valor;
+  if (!isNaN(valorQm) && valorQm > 0) { tipo = 'qm'; valor = valorQm; }
+  else if (!isNaN(valorSqm) && valorSqm > 0) { tipo = 'sqm'; valor = valorSqm; }
+  else { showToast('⚠️ Preencha o valor em uma das duas caixinhas'); return; }
+
+  const editandoId = document.getElementById('desp-editando-id').value;
+  const existente = editandoId ? DESPESAS.find(d => d.id === editandoId) : null;
+  const id = editandoId || Date.now().toString();
+  const obj = {
+    id,
+    descricao,
+    tipo,
+    valor,
+    data: existente ? existente.data : new Date().toISOString().slice(0,10),
+    lancadoPor: existente ? existente.lancadoPor : currentUser,
+    rateio: calcularRateioDespesa(tipo, valor)
+  };
+
+  try {
+    const res = await fetch(DB_URL + '/despesas/' + id + '.json', {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(obj)
+    });
+    if (!res.ok) { showToast('⚠️ Erro ao salvar despesa (Firebase: ' + res.status + ')'); return; }
+    await loadDespesasFromFirebase();
+    cancelarEdicaoDespesa();
+    renderListaDespesasModal();
+    showToast(editandoId ? '✅ Despesa atualizada!' : '✅ Despesa lançada!');
+  } catch(e) {
+    console.error('salvarDespesa error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
+}
+
+function editarDespesa(id) {
+  const d = DESPESAS.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('desp-descricao').value = d.descricao;
+  document.getElementById('desp-valor-qm').value = '';
+  document.getElementById('desp-valor-sqm').value = '';
+  document.getElementById('desp-box-qm').classList.remove('filled-qm');
+  document.getElementById('desp-box-sqm').classList.remove('filled-sqm');
+  if (d.tipo === 'qm') {
+    document.getElementById('desp-valor-qm').value = d.valor.toFixed(2).replace('.', ',');
+    document.getElementById('desp-box-qm').classList.add('filled-qm');
+    document.getElementById('desp-rateio-info').textContent = 'Rateio: Denny + Lanna (50/50)';
+  } else {
+    document.getElementById('desp-valor-sqm').value = d.valor.toFixed(2).replace('.', ',');
+    document.getElementById('desp-box-sqm').classList.add('filled-sqm');
+    document.getElementById('desp-rateio-info').textContent = 'Rateio: Elly + Denny + Lanna (1/3 cada)';
+  }
+  document.getElementById('desp-editando-id').value = id;
+  document.getElementById('desp-btn-cancelar-edicao').style.display = 'inline-flex';
+  openModal('modal-despesa');
+}
+
+function cancelarEdicaoDespesa() {
+  document.getElementById('desp-descricao').value = '';
+  document.getElementById('desp-valor-qm').value = '';
+  document.getElementById('desp-valor-sqm').value = '';
+  document.getElementById('desp-box-qm').classList.remove('filled-qm');
+  document.getElementById('desp-box-sqm').classList.remove('filled-sqm');
+  document.getElementById('desp-rateio-info').innerHTML = '&nbsp;';
+  document.getElementById('desp-editando-id').value = '';
+  document.getElementById('desp-btn-cancelar-edicao').style.display = 'none';
+}
+
+async function excluirDespesa(id) {
+  if (!confirm('Apagar esta despesa? Essa ação não pode ser desfeita.')) return;
+  try {
+    await fetch(DB_URL + '/despesas/' + id + '.json', { method: 'DELETE' });
+    await loadDespesasFromFirebase();
+    renderListaDespesasModal();
+    showToast('🗑 Despesa removida');
+  } catch(e) {
+    showToast('❌ Erro ao remover despesa');
+  }
+}
+
+function linhaDespesaHtml(d, comEditar) {
+  const tagClass = d.tipo === 'qm' ? 'qm' : 'sqm';
+  const tagLabel = d.tipo === 'qm' ? 'COM QUÍMICA' : 'SEM QUÍMICA';
+  const lancador = (FUNCIONARIOS.find(f => f.id === d.lancadoPor) || {}).nome || '—';
+  const splitTxt = Object.entries(d.rateio || {}).map(([pid, val]) => {
+    const f = FUNCIONARIOS.find(x => x.id === parseInt(pid));
+    return (f ? f.nome : pid) + ' ' + formatarMoeda(val);
+  }).join(' · ');
+  const editarAttr = comEditar ? `editarDespesa('${d.id}')` : `editarDespesa('${d.id}')`;
+  return `<div class="despesa-row">
+    <div class="despesa-top">
+      <span class="despesa-desc">${d.descricao}<span class="despesa-tag ${tagClass}">${tagLabel}</span></span>
+      <div class="despesa-right">
+        <span class="despesa-val">${formatarMoeda(d.valor)}</span>
+        <div class="despesa-icon-btn" onclick="${editarAttr}">✎</div>
+        <div class="despesa-icon-btn" onclick="excluirDespesa('${d.id}')">🗑</div>
+      </div>
+    </div>
+    <div class="despesa-split">Lançado por ${lancador} · Rateio: ${splitTxt}</div>
+  </div>`;
+}
+
+function renderListaDespesasModal() {
+  const cont = document.getElementById('desp-lista-modal');
+  if (!cont) return;
+  const hoje = new Date();
+  const ano = hoje.getFullYear(), mes = hoje.getMonth();
+  const lista = DESPESAS.filter(d => {
+    if (!d.data) return false;
+    const p = d.data.split('-');
+    return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
+  }).sort((a,b) => b.data.localeCompare(a.data) || (b.id||'').localeCompare(a.id||''));
+
+  if (lista.length === 0) {
+    cont.innerHTML = '<div class="empty-state" style="padding:20px 10px"><p>Nenhuma despesa lançada este mês</p></div>';
+    return;
+  }
+  let total = 0;
+  const html = lista.map(d => { total += d.valor; return linhaDespesaHtml(d, true); }).join('');
+  cont.innerHTML = html + `<div class="despesa-total-row"><span>Total do mês</span><span>${formatarMoeda(total)}</span></div>`;
+}
+
+function renderDespesasFinanceiro() {
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + fatMesOffset);
+  const ano = base.getFullYear();
+  const mes = base.getMonth();
+  const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const lbl = document.getElementById('fat-mes-label');
+  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
+
+  const cont = document.getElementById('fat-conteudo');
+  if (!cont) return;
+
+  const lista = DESPESAS.filter(d => {
+    if (!d.data) return false;
+    const p = d.data.split('-');
+    return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
+  }).sort((a,b) => a.data.localeCompare(b.data));
+
+  if (lista.length === 0) {
+    cont.innerHTML = `<div class="empty-state"><div class="es-icon">🧾</div><p>Nenhuma despesa lançada em ${mesLabel.toLowerCase()}</p></div>`;
+    return;
+  }
+  let total = 0;
+  const linhas = lista.map(d => { total += d.valor; return linhaDespesaHtml(d, true); }).join('');
+  cont.innerHTML = `<div class="card">
+    <div class="card-title">🧾 Despesas do Mês</div>
+    ${linhas}
+    <div class="despesa-total-row"><span>Total do mês</span><span>${formatarMoeda(total)}</span></div>
+  </div>`;
+}
+
+function trocarAbaFinanceiro(aba) {
+  finAbaAtiva = aba;
+  const tabFat = document.getElementById('fin-tab-fat');
+  const tabDesp = document.getElementById('fin-tab-desp');
+  if (tabFat) tabFat.classList.toggle('on', aba === 'faturamento');
+  if (tabDesp) tabDesp.classList.toggle('on', aba === 'despesas');
+  if (aba === 'despesas') renderDespesasFinanceiro(); else renderFaturamento();
 }
 
 // --- CLIENTES ---
@@ -900,7 +1201,8 @@ function startSync() {
   loadServicosFromFirebase();
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
-  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
+  loadDespesasFromFirebase();
+  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); loadDespesasFromFirebase(); }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -1051,7 +1353,7 @@ function salvarValorAgendamento(id, valor) {
 // ═══════════════════════════════════════
 let fatMesOffset = 0;
 
-function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
+function moveMesFaturamento(delta) { fatMesOffset += delta; if (finAbaAtiva === 'despesas') renderDespesasFinanceiro(); else renderFaturamento(); }
 
 function renderFaturamento() {
   const base = new Date();
@@ -2306,7 +2608,11 @@ function showPage(id, btn) {
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
-  if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
+  if (id==='faturamento') {
+    fatMesOffset = 0;
+    const renderAtivo = () => { if (finAbaAtiva === 'despesas') renderDespesasFinanceiro(); else renderFaturamento(); };
+    if (agendamentos.length > 0) { renderAtivo(); } else { loadFromFirebase().then(renderAtivo); }
+  }
   if (id==='config') { testarFirebase(); renderSeletorTemas(); }
   if (id==='temas') { renderSeletorTemas(); }
 }
