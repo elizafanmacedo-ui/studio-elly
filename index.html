@@ -1409,8 +1409,27 @@ function renderFaturamento() {
 
   let html = '';
 
+  // Resumo do mês (bruta - despesas = líquida), só pro admin
+  if (ehDono) {
+    const despesasMes = DESPESAS.filter(d => {
+      if (!d.data) return false;
+      const p = d.data.split('-');
+      return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
+    }).reduce((t, d) => t + d.valor, 0);
+    const liquido = totalGeral - despesasMes;
+    html += `<div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--light),var(--white));border:1px solid var(--gold-light)">
+      <div class="card-title">📊 Resumo do Mês</div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Receita bruta</span><strong style="color:var(--dark)">${formatarMoeda(totalGeral)}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Despesas do mês</span><strong style="color:#a14848">− ${formatarMoeda(despesasMes)}</strong></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:2px solid var(--gold)">
+        <span style="font-size:0.78rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em">Receita líquida</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(liquido)}</span>
+      </div>
+    </div>`;
+  }
+
   if (lista.length === 0) {
-    html = `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum valor registrado em ${mesLabel.toLowerCase()}</p></div>`;
+    html += `<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum valor registrado em ${mesLabel.toLowerCase()}</p></div>`;
     cont.innerHTML = html; return;
   }
 
