@@ -1545,7 +1545,7 @@ function renderFaturamento() {
   html += `<div class="card" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div class="card-title" style="margin-bottom:0">💰 Faturamento do Mês</div>
-      <div style="font-family:'Times New Roman',Times,serif;font-size:1.55rem;font-weight:700;color:var(--rose-dark);white-space:nowrap">${formatarMoeda(totalGeral)}</div>
+      <div style="font-family:'Times New Roman',Times,serif;font-size:1.55rem;font-weight:700;color:var(--valor-entrada);white-space:nowrap">${formatarMoeda(totalGeral)}</div>
     </div>`;
   if (ehDono) {
     FUNCIONARIOS.forEach(f => {
@@ -1668,7 +1668,7 @@ function fatSelecionarProf(profId) {
     Object.keys(porData).sort().forEach(data => {
       const aDia = porData[data];
       const totalDia = aDia.reduce((t,a) => t + a.valor, 0);
-      html += '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">📅 ' + formatDate(data) + ' <span style="float:right;color:var(--gold)">' + formatarMoeda(totalDia) + '</span></div>';
+      html += '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--rose-dark);padding:10px 0 4px;border-top:1px solid var(--rose-light);margin-top:4px">📅 ' + formatDate(data) + ' <span style="float:right;color:var(--valor-entrada)">' + formatarMoeda(totalDia) + '</span></div>';
       aDia.forEach(a => {
         const svcs = a.isAvulso ? 'Avulso' : (a.servicoIds||[a.servicoId]).map(id=>{ const s=SERVICOS.find(s=>s.id===id); return s?s.nome:null; }).filter(Boolean).join(', ');
         const st = a.isAvulso ? null : (STATUS_LABELS[a.status||'confirmado'] || STATUS_LABELS.confirmado);
@@ -1676,11 +1676,11 @@ function fatSelecionarProf(profId) {
         html += '<div style="flex:1;min-width:0"><div style="font-size:0.88rem;font-weight:600">' + a.nomeCliente + '</div>';
         html += '<div style="font-size:0.75rem;color:var(--mid);margin-top:2px">' + a.hora + ' · ' + (svcs||'—') + '</div>';
         if (st) html += '<div style="margin-top:3px"><span class="status-badge ' + st.cls + '" style="font-size:0.68rem">' + st.emoji + ' ' + st.label + '</span></div>';
-        html += '</div><strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">' + formatarMoeda(a.valor) + '</strong></div>';
+        html += '</div><strong style="color:var(--valor-entrada);font-size:0.9rem;flex-shrink:0;margin-left:8px">' + formatarMoeda(a.valor) + '</strong></div>';
       });
     });
     const totalProf = listaProf.reduce((t,a) => t + a.valor, 0);
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px"><strong>Total</strong><strong style="color:var(--rose-dark);font-size:1.05rem">' + formatarMoeda(totalProf) + '</strong></div>';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px"><strong>Total</strong><strong style="color:var(--valor-entrada);font-size:1.05rem">' + formatarMoeda(totalProf) + '</strong></div>';
   }
   detalhe.innerHTML = html;
 }
