@@ -680,6 +680,11 @@ let configStudio = {};
 let DESPESAS = [];
 let finAbaAtiva = 'faturamento';
 
+function renderFinanceiroSeAberto() {
+  if (!document.getElementById('page-faturamento').classList.contains('active')) return;
+  if (finAbaAtiva === 'despesas') renderDespesasFinanceiro(); else renderFaturamento();
+}
+
 async function loadDespesasFromFirebase() {
   try {
     const res = await fetch(DB_URL + '/despesas.json');
@@ -794,7 +799,7 @@ async function loadFromFirebase() {
     const porId = {};
     novos.forEach(a => { porId[a.id] = a; });
     agendamentos = Object.values(porId);
-    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento(); }
+    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); renderFinanceiroSeAberto(); }
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
@@ -820,7 +825,7 @@ async function salvarLancamentoAvulso(key, hora, valorStr) {
     await fetch(DB_URL + '/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
   }
   renderTimeline();
-  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
+  renderFinanceiroSeAberto();
 }
 
 async function saveAgendamento(id, val) {
@@ -847,11 +852,11 @@ function calcularRateioDespesa(tipo, valor) {
   if (tipo === 'qm') {
     const metadeDenny = Math.floor(centavos / 2);
     const metadeLanna = centavos - metadeDenny;
-    return { 2: metadeDenny / 100, 3: metadeLanna / 100 };
+    return { p2: metadeDenny / 100, p3: metadeLanna / 100 };
   } else {
     const base = Math.floor(centavos / 3);
     const resto = centavos - (base * 3);
-    return { 1: (base + resto) / 100, 2: base / 100, 3: base / 100 };
+    return { p1: (base + resto) / 100, p2: base / 100, p3: base / 100 };
   }
 }
 
@@ -975,8 +980,8 @@ function linhaDespesaHtml(d, comEditar) {
   const tagClass = d.tipo === 'qm' ? 'qm' : 'sqm';
   const tagLabel = d.tipo === 'qm' ? 'COM QUÍMICA' : 'SEM QUÍMICA';
   const lancador = (FUNCIONARIOS.find(f => f.id === d.lancadoPor) || {}).nome || '—';
-  const splitTxt = Object.entries(d.rateio || {}).map(([pid, val]) => {
-    const f = FUNCIONARIOS.find(x => x.id === parseInt(pid));
+  const splitTxt = Object.entries(d.rateio || {}).filter(([, val]) => val !== null && val !== undefined).map(([pid, val]) => {
+    const f = FUNCIONARIOS.find(x => x.id === parseInt(String(pid).replace('p', '')));
     return (f ? f.nome : pid) + ' ' + formatarMoeda(val);
   }).join(' · ');
   const editarAttr = comEditar ? `editarDespesa('${d.id}')` : `editarDespesa('${d.id}')`;
@@ -1345,7 +1350,7 @@ function salvarValorAgendamento(id, valor) {
   const num = parseFloat(valor);
   a.valor = (valor === '' || isNaN(num)) ? null : num;
   saveAgendamento(a.id, a);
-  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
+  renderFinanceiroSeAberto();
 }
 
 // ═══════════════════════════════════════
