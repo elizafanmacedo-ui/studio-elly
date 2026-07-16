@@ -22,6 +22,8 @@
   --shadow: 0 10px 32px rgba(58,34,39,0.16);
   --shadow-sm: 0 4px 14px rgba(58,34,39,0.10);
   --radius: 20px;
+  --valor-entrada: #1a6b2a;
+  --valor-saida: #c0000a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Times New Roman', Times, serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
@@ -120,7 +122,7 @@ textarea { resize:vertical; min-height:80px; }
 .expense-btn { background:linear-gradient(135deg,var(--gold),#e8c77a); color:var(--dark); }
 .qmsqm-wrap { display:flex; gap:8px; margin-bottom:6px; }
 .qmsqm-box { flex:1; border:2px solid var(--rose-light); border-radius:12px; padding:10px; text-align:center; background:var(--cream); }
-.qmsqm-box.filled-qm { border-color:#a14848; background:#f5e0e0; }
+.qmsqm-box.filled-qm { border-color:var(--valor-saida); background:#f5e0e0; }
 .qmsqm-box.filled-sqm { border-color:var(--sage-dark); background:#e3efe6; }
 .qmsqm-label { display:block; font-size:0.68rem; font-weight:700; color:var(--mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
 .qmsqm-input { width:100%; border:none; background:transparent; text-align:center; font-size:0.95rem; font-weight:700; color:var(--dark); outline:none; padding:0; }
@@ -130,15 +132,15 @@ textarea { resize:vertical; min-height:80px; }
 .despesa-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .despesa-desc { font-size:0.86rem; font-weight:600; }
 .despesa-tag { display:inline-block; font-size:0.6rem; font-weight:700; padding:2px 7px; border-radius:20px; margin-left:6px; text-transform:uppercase; letter-spacing:0.03em; }
-.despesa-tag.qm { background:#f5e0e0; color:#a14848; }
+.despesa-tag.qm { background:#f5e0e0; color:var(--valor-saida); }
 .despesa-tag.sqm { background:#e3efe6; color:#4d7a4a; }
 .despesa-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-.despesa-val { font-size:0.86rem; font-weight:700; color:var(--rose-dark); white-space:nowrap; }
+.despesa-val { font-size:0.86rem; font-weight:700; color:var(--valor-saida); white-space:nowrap; }
 .despesa-icon-btn { width:22px; height:22px; border-radius:6px; background:var(--light); display:flex; align-items:center; justify-content:center; font-size:0.7rem; cursor:pointer; flex-shrink:0; }
 .despesa-split { font-size:0.68rem; color:var(--mid); margin-top:4px; }
 .despesa-total-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:2px solid var(--gold); }
 .despesa-total-row span:first-child { font-size:0.72rem; color:var(--mid); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
-.despesa-total-row span:last-child { font-size:1.15rem; font-weight:700; color:var(--rose-dark); }
+.despesa-total-row span:last-child { font-size:1.15rem; font-weight:700; color:var(--valor-saida); }
 .fin-subnav { display:flex; gap:8px; margin-bottom:14px; }
 .fin-subnav div { flex:1; text-align:center; padding:9px; border-radius:20px; font-size:0.74rem; font-weight:600; background:var(--light); color:var(--rose-dark); cursor:pointer; }
 .fin-subnav div.on { background:var(--rose-dark); color:#fff; }
@@ -1507,11 +1509,11 @@ function renderFaturamento() {
 
     html += `<div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,var(--light),var(--white));border:1px solid var(--gold-light)">
       <div class="card-title">📊 Resumo do Mês</div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Receita bruta</span><strong style="color:var(--dark)">${formatarMoeda(totalGeral)}</strong></div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Despesas do mês</span><strong style="color:#a14848">− ${formatarMoeda(despesasMes)}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Receita bruta</span><strong style="color:var(--valor-entrada)">${formatarMoeda(totalGeral)}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.85rem;color:var(--mid)"><span>Despesas do mês</span><strong style="color:var(--valor-saida)">− ${formatarMoeda(despesasMes)}</strong></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:10px;border-top:2px solid var(--gold)">
         <span style="font-size:0.78rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em">Receita líquida</span>
-        <span style="font-family:'Times New Roman',Times,serif;font-size:1.5rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(liquido)}</span>
+        <span style="font-family:'Times New Roman',Times,serif;font-size:1.5rem;font-weight:700;color:var(--valor-entrada)">${formatarMoeda(liquido)}</span>
       </div>
     </div>`;
 
@@ -1524,11 +1526,11 @@ function renderFaturamento() {
       html += `<div style="padding:10px 0;border-bottom:1px solid var(--light)">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-weight:600">${f.emoji} ${f.nome}</span>
-          <span style="font-size:0.7rem;color:#a14848;font-weight:600">− ${formatarMoeda(desp)}</span>
+          <span style="font-size:0.7rem;color:var(--valor-saida);font-weight:600">− ${formatarMoeda(desp)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:2px">
           <span style="font-size:0.7rem;color:var(--mid)">Líquido</span>
-          <strong style="color:var(--rose-dark)">${formatarMoeda(liq)}</strong>
+          <strong style="color:var(--valor-entrada)">${formatarMoeda(liq)}</strong>
         </div>
       </div>`;
     });
@@ -1550,7 +1552,7 @@ function renderFaturamento() {
       const d = porProf[f.id];
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light)">
         <span>${f.emoji} ${f.nome}</span>
-        <strong style="color:var(--rose-dark)">${formatarMoeda(d.total)}</strong>
+        <strong style="color:var(--valor-entrada)">${formatarMoeda(d.total)}</strong>
       </div>`;
     });
   }
@@ -1595,14 +1597,14 @@ function renderFaturamento() {
               <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'}</div>
               ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
             </div>
-            <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
+            <strong style="color:var(--valor-entrada);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
           </div>`;
         });
       });
       const totalProf = listaProf.reduce((t,a) => t + a.valor, 0);
       html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
         <strong>Total</strong>
-        <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalProf)}</strong>
+        <strong style="color:var(--valor-entrada);font-size:1.05rem">${formatarMoeda(totalProf)}</strong>
       </div>`;
     }
     html += `</div></div>`;
@@ -1626,13 +1628,13 @@ function renderFaturamento() {
             <div style="font-size:0.75rem;color:var(--mid);margin-top:2px">${a.hora} · ${svcs||'—'}</div>
             ${st ? `<div style="margin-top:3px"><span class="status-badge ${st.cls}" style="font-size:0.68rem">${st.emoji} ${st.label}</span></div>` : ''}
           </div>
-          <strong style="color:var(--rose-dark);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
+          <strong style="color:var(--valor-entrada);font-size:0.9rem;flex-shrink:0;margin-left:8px">${formatarMoeda(a.valor)}</strong>
         </div>`;
       });
     });
     html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px">
       <strong>Total do Mês</strong>
-      <strong style="color:var(--rose-dark);font-size:1.1rem">${formatarMoeda(totalGeral)}</strong>
+      <strong style="color:var(--valor-entrada);font-size:1.1rem">${formatarMoeda(totalGeral)}</strong>
     </div></div>`;
   }
 
@@ -2094,7 +2096,7 @@ function renderTimeline() {
         ${linhas}
         <div style="display:flex;justify-content:space-between;padding:8px 0 0;margin-top:4px">
           <strong>Total Geral</strong>
-          <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(totalGeral)}</strong>
+          <strong style="color:var(--valor-entrada);font-size:1.05rem">${formatarMoeda(totalGeral)}</strong>
         </div>
       </div>
     </td></tr>`;
@@ -2105,7 +2107,7 @@ function renderTimeline() {
     rows += `<tr><td colspan="2" style="padding:0">
       <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>
-        <strong style="color:var(--rose-dark);font-size:1.05rem">${formatarMoeda(meuTotal)}</strong>
+        <strong style="color:var(--valor-entrada);font-size:1.05rem">${formatarMoeda(meuTotal)}</strong>
       </div>
     </td></tr>`;
   }
