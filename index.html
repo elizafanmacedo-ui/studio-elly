@@ -1609,18 +1609,16 @@ function gerarImagemConfirmacao(a, ehMicro) {
 
   centerText('Te esperamos! 💕', y + 30, 50, ROSE_DARK, true, true);
 
-  // Salvar
-  canvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `confirmacao_${nome.replace(/\s+/g,'_')}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    showToast('🖼️ Imagem salva! Cole no WhatsApp.');
-  }, 'image/png');
+  // Salvar — no iOS Safari usa nova aba em vez de download direto
+  var dataUrl = canvas.toDataURL('image/png');
+  var w = window.open('');
+  if (w) {
+    w.document.write('<html><head><title>Imagem de Confirmação</title><meta name="viewport" content="width=device-width"><style>body{margin:0;background:#fdf0eb;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px}img{max-width:100%;border-radius:8px}p{font-family:sans-serif;color:#6a1f2e;font-size:14px;text-align:center}</style></head><body><p>📥 Pressione e segure na imagem para salvar, depois cole no WhatsApp</p><img src="'+dataUrl+'"><p>Feche esta aba quando terminar</p></body></html>');
+    w.document.close();
+    showToast('🖼️ Imagem aberta! Salve e cole no WhatsApp.');
+  } else {
+    showToast('⚠️ Permita popups para ver a imagem.');
+  }
 }
 const STATUS_LABELS = {
   agendado:   { label:'Agendado',   cls:'status-agendado',   emoji:'🕐' },
