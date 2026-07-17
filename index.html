@@ -875,7 +875,13 @@ async function loadFromFirebase() {
       }
     }
     const porId = {};
-    novos.forEach(a => { porId[a.id] = a; });
+    agendamentos.forEach(a => { porId[a.id] = a; }); // preserva versão local primeiro
+    novos.forEach(a => {
+      if (porId[a.id] && typeof porId[a.id].valor === 'number' && a.valor === undefined) {
+        a.valor = porId[a.id].valor; // mantém valor local se o Firebase vier sem ele
+      }
+      porId[a.id] = a;
+    });
     agendamentos = Object.values(porId);
     if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); renderFinanceiroSeAberto(); }
   } catch(e) { console.log('Sync agendamentos error', e); }
@@ -989,7 +995,7 @@ async function salvarDespesa() {
     descricao,
     tipo,
     valor,
-    data: existente ? existente.data : new Date().toISOString().slice(0,10),
+    data: existente ? existente.data : today(),
     lancadoPor: existente ? existente.lancadoPor : currentUser,
     rateio: calcularRateioDespesa(tipo, valor)
   };
@@ -1285,7 +1291,7 @@ function startSync() {
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
   loadDespesasFromFirebase();
-  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); loadDespesasFromFirebase(); }, 5000);
+  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); loadDespesasFromFirebase(); loadLancamentosAvulsos(); }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -1393,8 +1399,24 @@ function abrirWA(a, tipo) {
   if (tipo === 'confirmar')  template = getConfig('msgConfirmar', MSG_CONFIRMAR_PADRAO);
   if (tipo === 'lembrete')   template = getConfig('msgLembrete',  MSG_LEMBRETE_PADRAO);
   if (tipo === 'reagendar')  template = getConfig('msgReagendar', MSG_REAGENDAR_PADRAO);
-  const msg = buildMsg(template, a);
+  let msg = buildMsg(template, a);
   if (!msg) return;
+
+  // Bloco extra de triagem para micropigmentação
+  if (tipo === 'confirmar') {
+    const svcsNomes = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome.toLowerCase());
+    const ehMicro = svcsNomes.some(n => n.includes('micro') || n.includes('fio a fio') || n.includes('micropigment'));
+    if (ehMicro) {
+      const bloco = `\n\n⚠️ *Atenção — antes do seu procedimento, responda:*\n\n1. Está grávida ou amamentando?\n2. Tem diabetes?\n3. Usa algum medicamento para afinar o sangue? _(como AAS, Warfarina, Clopidogrel ou similar)_\n4. Tem alergia a tinta, anestésico ou látex?\n5. Usou Roacutan ou qualquer remédio para acne nos últimos 6 meses? _(esse medicamento prejudica a cicatrização)_\n6. Tem tendência a formar cicatriz elevada ou queloides? _(aquela cicatriz que cresce e endurece)_\n7. Tem ou já teve herpes no rosto ou na região das sobrancelhas?\n\n📋 *Traga um documento com foto no dia para assinar a ficha de anamnese.*`;
+      // Inserir antes do "Te esperamos" ou no final
+      if (msg.includes('Te esperamos')) {
+        msg = msg.replace('Te esperamos', bloco + '\n\nTe esperamos');
+      } else {
+        msg += bloco;
+      }
+    }
+  }
+
   window.open(waLink(a.fone, msg), '_blank');
 }
 
@@ -1772,7 +1794,10 @@ let activeProfId = 1;
 let editingApptId = null;
 let editingClienteId = null;
 
-function today() { return new Date().toISOString().split('T')[0]; }
+function today() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 
 async function carregarSenhaElly() {
   try {
@@ -1965,7 +1990,7 @@ function renderWeek() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const ds = d.toISOString().split('T')[0];
+    const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     const hasEvent = agendamentos.some(a => a.data === ds && a.status !== 'cancelado');
     html += `<div class="day-chip ${ds===selectedDate?'selected':''} ${hasEvent?'has-event':''}" onclick="selectDay('${ds}')">
       <div class="dc-name">${days[d.getDay()]}</div>
