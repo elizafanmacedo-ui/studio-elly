@@ -284,7 +284,6 @@ textarea { resize:vertical; min-height:80px; }
 .config-chevron { margin-left:auto; color:var(--mid); font-size:0.9rem; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -1431,7 +1430,198 @@ function abrirWA(a, tipo) {
 // IMAGEM DE CONFIRMAÇÃO
 // ═══════════════════════════════════════
 function gerarImagemConfirmacao(a, ehMicro) {
-  if (typeof html2canvas === 'undefined') { showToast('⚠️ Gerador de imagem não carregou.'); return; }
+  const svcsNomes = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
+  const profNome = FUNCIONARIOS.find(f=>f.id===a.profId)?.nome || '—';
+  const maps = getConfig('maps','');
+  const data = formatDate(a.data);
+  const hora = a.hora;
+  const nome = a.nome || '—';
+
+  const W = 800;
+  const ROSE_DARK = '#6a1f2e';
+  const ROSE = '#a03050';
+  const GOLD = '#c8a068';
+  const DARK = '#1a0808';
+  const MID = '#6a4040';
+  const BG = '#fdf0eb';
+
+  // Calcular altura necessária
+  const pergs = ehMicro ? [
+    ['Está grávida ou amamentando?', ''],
+    ['Tem diabetes?', ''],
+    ['Usa medicamento para afinar o sangue?', 'como AAS, Warfarina, Clopidogrel ou similar'],
+    ['Tem alergia a tinta, anestésico ou látex?', ''],
+    ['Usou Roacutan nos últimos 6 meses?', 'esse medicamento prejudica a cicatrização'],
+    ['Tem tendência a queloides?', 'aquela cicatriz que cresce e endurece'],
+    ['Tem ou já teve herpes no rosto ou sobrancelhas?', ''],
+  ] : [];
+
+  const H = ehMicro ? 1500 : 800;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * 2; canvas.height = H * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+
+  // Fundo
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  const MG = 44;
+
+  function goldLine(y) {
+    const g = ctx.createLinearGradient(MG, y, W-MG, y);
+    g.addColorStop(0, 'transparent');
+    g.addColorStop(0.5, GOLD);
+    g.addColorStop(1, 'transparent');
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(MG, y); ctx.lineTo(W-MG, y); ctx.stroke();
+    return y + 14;
+  }
+
+  function centerText(text, y, size, color, bold, italic) {
+    ctx.font = `${italic?'italic ':''}${bold?'bold ':''}${size}px 'Times New Roman', serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.fillText(text, W/2, y);
+    return y + size * 1.3;
+  }
+
+  function leftText(text, x, y, size, color, bold, italic) {
+    ctx.font = `${italic?'italic ':''}${bold?'bold ':''}${size}px 'Times New Roman', serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.fillText(text, x, y);
+    return y + size * 1.3;
+  }
+
+  function wrapText(text, x, y, maxW, size, color, bold, italic, lineH) {
+    ctx.font = `${italic?'italic ':''}${bold?'bold ':''}${size}px 'Times New Roman', serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    const words = text.split(' ');
+    let line = '';
+    let cy = y;
+    for (let w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width < maxW) { line = test; }
+      else { ctx.fillText(line, x, cy); cy += lineH; line = w; }
+    }
+    if (line) { ctx.fillText(line, x, cy); cy += lineH; }
+    return cy;
+  }
+
+  let y = 24;
+
+  y = goldLine(y);
+  y = centerText('Olá,', y + 6, 28, DARK, false, false);
+  y = centerText(nome + '! 😊', y, 46, ROSE_DARK, true, false);
+  y = centerText('Seu agendamento está', y, 30, DARK, false, false);
+  y = centerText('confirmado', y, 52, ROSE, true, true);
+  y = centerText('no Studio Elly Designer!', y, 38, ROSE_DARK, true, false);
+  y += 6;
+  y = goldLine(y);
+  y += 4;
+
+  // Infos
+  function infoRow(icon, txt1, txt2, y) {
+    const sz = 27;
+    ctx.font = `bold ${sz}px 'Times New Roman', serif`;
+    ctx.fillStyle = ROSE; ctx.textAlign = 'left';
+    ctx.fillText(icon, MG, y);
+    const iw = ctx.measureText(icon).width + 12;
+    ctx.strokeStyle = GOLD + '99'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(MG+iw, y-sz+4); ctx.lineTo(MG+iw, y+4); ctx.stroke();
+    ctx.fillStyle = DARK;
+    ctx.fillText(txt1, MG+iw+12, y);
+    if (txt2) {
+      const w1 = ctx.measureText(txt1).width;
+      ctx.fillStyle = ROSE;
+      ctx.fillText(txt2, MG+iw+12+w1, y);
+    }
+    return y + sz * 1.4;
+  }
+
+  function infoRowSmall(icon, txt, y) {
+    const sz = 18;
+    ctx.font = `${sz}px 'Times New Roman', serif`;
+    ctx.fillStyle = ROSE; ctx.textAlign = 'left';
+    ctx.fillText(icon, MG, y);
+    const iw = ctx.measureText(icon).width + 12;
+    ctx.strokeStyle = GOLD + '99'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(MG+iw, y-sz+4); ctx.lineTo(MG+iw, y+4); ctx.stroke();
+    ctx.fillStyle = MID;
+    ctx.fillText(txt, MG+iw+12, y);
+    return y + sz * 1.6;
+  }
+
+  y = infoRow('📅', data + '  às  ', hora, y);
+  y = infoRow('✨', svcsNomes, '', y);
+  y = infoRow('👤', 'Profissional: ', profNome, y);
+  y = infoRowSmall('📍', maps, y);
+  y += 4;
+  y = goldLine(y);
+  y += 4;
+
+  if (ehMicro) {
+    // Atenção
+    ctx.font = `bold 27px 'Times New Roman', serif`;
+    ctx.fillStyle = ROSE; ctx.textAlign = 'left';
+    ctx.fillText('⚠️ ', MG, y);
+    const aw = ctx.measureText('⚠️ ').width;
+    ctx.fillStyle = ROSE_DARK;
+    ctx.fillText('Atenção', MG+aw, y);
+    const bw = ctx.measureText('Atenção').width;
+    ctx.font = `24px 'Times New Roman', serif`;
+    ctx.fillStyle = DARK;
+    ctx.fillText(' — antes do procedimento, responda:', MG+aw+bw, y);
+    y += 27 * 1.5;
+
+    for (let i = 0; i < pergs.length; i++) {
+      const [txt, sub] = pergs[i];
+      // Círculo numerado
+      ctx.fillStyle = ROSE;
+      ctx.beginPath(); ctx.arc(MG+14, y-10, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = `bold 14px 'Times New Roman', serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(String(i+1), MG+14, y-6);
+      ctx.textAlign = 'left';
+
+      // Texto principal
+      const tx = MG + 36;
+      y = wrapText(txt, tx, y, W-tx-MG, 24, DARK, true, false, 28);
+      if (sub) {
+        y = wrapText(sub, tx, y-4, W-tx-MG, 19, ROSE, false, true, 22);
+      }
+      y += 6;
+    }
+
+    y += 4;
+    y = goldLine(y);
+    y += 4;
+    y = wrapText('📋  Traga um documento com foto no dia para assinar a ficha de anamnese.', MG, y, W-MG*2, 22, DARK, true, false, 26);
+    y += 6;
+    y = wrapText('💬  Confirme essas informações pelo WhatsApp. Aguardamos seu retorno! 🙏', MG, y, W-MG*2, 22, ROSE_DARK, true, false, 26);
+    y += 10;
+    y = goldLine(y);
+    y += 10;
+  }
+
+  centerText('Te esperamos! 💕', y + 30, 50, ROSE_DARK, true, true);
+
+  // Salvar
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `confirmacao_${nome.replace(/\s+/g,'_')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('🖼️ Imagem salva! Cole no WhatsApp.');
+  }, 'image/png');
+}
 
   const svcsNomes = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
   const profNome = FUNCIONARIOS.find(f=>f.id===a.profId)?.nome || '—';
