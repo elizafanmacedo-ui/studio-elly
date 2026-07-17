@@ -1418,18 +1418,21 @@ function abrirWA(a, tipo) {
     }
   }
 
-  // Gerar imagem + abrir WhatsApp juntos
-  if (tipo === 'confirmar') {
-    gerarImagemConfirmacao(a, ehMicro);
-  }
-
+  // Abre WhatsApp primeiro
   window.open(waLink(a.fone, msg), '_blank');
+
+  // Depois gera imagem em background (só na confirmação)
+  if (tipo === 'confirmar') {
+    setTimeout(() => gerarImagemConfirmacao(a, ehMicro), 500);
+  }
 }
 
 // ═══════════════════════════════════════
 // IMAGEM DE CONFIRMAÇÃO
 // ═══════════════════════════════════════
 function gerarImagemConfirmacao(a, ehMicro) {
+  if (typeof html2canvas === 'undefined') { showToast('⚠️ Gerador de imagem não carregou.'); return; }
+
   const svcsNomes = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
   const profNome = FUNCIONARIOS.find(f=>f.id===a.profId)?.nome || '—';
   const maps = getConfig('maps','');
@@ -1451,38 +1454,31 @@ function gerarImagemConfirmacao(a, ehMicro) {
     <div class="ci-wa">💬 Confirme essas informações pelo WhatsApp. Aguardamos seu retorno! 🙏</div>
   ` : '';
 
-  const html = `
-  <div id="ci-card" style="
-    width:800px; background:#fdf0eb; font-family:'Times New Roman',Times,serif;
-    position:relative; overflow:hidden; padding:0;
-  ">
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1;width:800px';
+  wrapper.innerHTML = `<div id="ci-card" style="width:800px;background:#fdf0eb;font-family:'Times New Roman',Times,serif;padding:0;overflow:hidden">
     <style>
-      #ci-card * { box-sizing:border-box; }
-      .ci-overlay { position:absolute; inset:0; background:rgba(253,240,235,0.45); }
-      .ci-content { position:relative; z-index:2; padding:20px 44px 28px; }
-      .ci-gold-line { height:1px; background:linear-gradient(90deg,transparent,#c8a068,transparent); margin:10px 0; }
-      .ci-logo { text-align:center; margin-bottom:8px; }
-      .ci-ola { font-size:26px; color:#1a0808; text-align:center; }
-      .ci-nome { font-size:44px; font-weight:bold; color:#6a1f2e; text-align:center; }
-      .ci-conf-txt { font-size:28px; color:#1a0808; text-align:center; }
-      .ci-conf { font-size:50px; font-weight:bold; font-style:italic; color:#a03050; text-align:center; }
-      .ci-studio { font-size:36px; font-weight:bold; color:#6a1f2e; text-align:center; }
-      .ci-info { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:26px; font-weight:bold; color:#1a0808; }
-      .ci-info span.rose { color:#a03050; }
-      .ci-sep { width:2px; height:30px; background:#c8a06880; flex-shrink:0; }
-      .ci-maps { font-size:18px; color:#6a4040; }
-      .ci-atenc { font-size:26px; color:#6a1f2e; margin:10px 0 6px; }
-      .ci-perg { display:flex; align-items:flex-start; gap:10px; font-size:24px; font-weight:bold; color:#1a0808; margin-bottom:10px; }
-      .ci-num { min-width:32px; height:32px; border-radius:50%; background:#a03050; color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; margin-top:2px; }
-      .ci-sub { display:block; font-size:19px; font-weight:normal; font-style:italic; color:#a03050; margin-top:2px; }
-      .ci-doc { font-size:23px; color:#1a0808; margin-bottom:8px; }
-      .ci-wa { font-size:23px; font-weight:bold; color:#6a1f2e; }
-      .ci-espera { font-size:48px; font-weight:bold; font-style:italic; color:#6a1f2e; text-align:center; margin-top:10px; }
+      #ci-card *{box-sizing:border-box}
+      .ci-content{padding:18px 44px 24px}
+      .ci-gold-line{height:1px;background:linear-gradient(90deg,transparent,#c8a068,transparent);margin:8px 0}
+      .ci-ola{font-size:26px;color:#1a0808;text-align:center}
+      .ci-nome{font-size:44px;font-weight:bold;color:#6a1f2e;text-align:center}
+      .ci-conf-txt{font-size:28px;color:#1a0808;text-align:center}
+      .ci-conf{font-size:50px;font-weight:bold;font-style:italic;color:#a03050;text-align:center}
+      .ci-studio{font-size:36px;font-weight:bold;color:#6a1f2e;text-align:center}
+      .ci-info{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:26px;font-weight:bold;color:#1a0808}
+      .ci-rose{color:#a03050}
+      .ci-sep{width:2px;height:28px;background:#c8a06880;flex-shrink:0}
+      .ci-maps{font-size:17px;color:#6a4040}
+      .ci-atenc{font-size:26px;color:#6a1f2e;margin:10px 0 8px}
+      .ci-perg{display:flex;align-items:flex-start;gap:10px;font-size:23px;font-weight:bold;color:#1a0808;margin-bottom:10px}
+      .ci-num{min-width:30px;height:30px;border-radius:50%;background:#a03050;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:2px}
+      .ci-sub{display:block;font-size:18px;font-weight:normal;font-style:italic;color:#a03050;margin-top:2px}
+      .ci-doc{font-size:22px;color:#1a0808;margin-bottom:8px}
+      .ci-wa{font-size:22px;font-weight:bold;color:#6a1f2e}
+      .ci-espera{font-size:46px;font-weight:bold;font-style:italic;color:#6a1f2e;text-align:center;margin-top:12px}
     </style>
     <div class="ci-content">
-      <div class="ci-logo">
-        <img src="${document.querySelector('.header-logo img')?.src || ''}" style="height:56px" crossorigin="anonymous">
-      </div>
       <div class="ci-gold-line"></div>
       <div class="ci-ola">Olá,</div>
       <div class="ci-nome">${nome}! 😊</div>
@@ -1490,40 +1486,34 @@ function gerarImagemConfirmacao(a, ehMicro) {
       <div class="ci-conf">confirmado</div>
       <div class="ci-studio">no Studio Elly Designer!</div>
       <div class="ci-gold-line"></div>
-      <div class="ci-info"><span>📅</span><div class="ci-sep"></div><span>${data} às <span class="rose">${hora}</span></span></div>
+      <div class="ci-info"><span>📅</span><div class="ci-sep"></div><span>${data} às <span class="ci-rose">${hora}</span></span></div>
       <div class="ci-info"><span>✨</span><div class="ci-sep"></div><span>${svcsNomes}</span></div>
-      <div class="ci-info"><span>👤</span><div class="ci-sep"></div><span>Profissional: <span class="rose">${profNome}</span></span></div>
+      <div class="ci-info"><span>👤</span><div class="ci-sep"></div><span>Profissional: <span class="ci-rose">${profNome}</span></span></div>
       <div class="ci-info ci-maps"><span>📍</span><div class="ci-sep"></div><span>${maps}</span></div>
       <div class="ci-gold-line"></div>
       ${perguntas}
       <div class="ci-espera">Te esperamos! 💕</div>
     </div>
   </div>`;
-
-  // Criar elemento temporário, renderizar com html2canvas e salvar
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1';
-  wrapper.innerHTML = html;
   document.body.appendChild(wrapper);
 
-  const card = wrapper.querySelector('#ci-card');
-
-  import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(() => {
-    html2canvas(card, { scale:2, useCORS:true, backgroundColor:'#fdf0eb' }).then(canvas => {
-      document.body.removeChild(wrapper);
-      canvas.toBlob(blob => {
-        const url = URL.createObjectURL(blob);
-        const a_el = document.createElement('a');
-        a_el.href = url;
-        a_el.download = `confirmacao-${nome.replace(/\s/g,'_')}.png`;
-        a_el.click();
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
-        showToast('✅ Imagem salva! Agora cole no WhatsApp.');
-      }, 'image/png');
-    });
-  }).catch(() => {
+  html2canvas(wrapper.querySelector('#ci-card'), { scale:2, useCORS:true, backgroundColor:'#fdf0eb', logging:false }).then(canvas => {
     document.body.removeChild(wrapper);
-    showToast('⚠️ Erro ao gerar imagem. Use a mensagem de texto.');
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `confirmacao_${nome.replace(/\s+/g,'_')}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast('🖼️ Imagem salva! Cole no WhatsApp.');
+    }, 'image/png');
+  }).catch(err => {
+    if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+    console.error('html2canvas error:', err);
+    showToast('⚠️ Não foi possível gerar a imagem.');
   });
 }
 const STATUS_LABELS = {
