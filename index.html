@@ -1423,8 +1423,7 @@ function abrirWA(a, tipo) {
   // Depois gera imagem em background (só na confirmação)
   if (tipo === 'confirmar') {
     setTimeout(() => gerarImagemConfirmacao(a, ehMicro), 500);
-  }
-}
+  }}
 
 // ═══════════════════════════════════════
 // IMAGEM DE CONFIRMAÇÃO
@@ -1609,16 +1608,24 @@ function gerarImagemConfirmacao(a, ehMicro) {
 
   centerText('Te esperamos! 💕', y + 30, 50, ROSE_DARK, true, true);
 
-  // Salvar — no iOS Safari usa nova aba em vez de download direto
+  // Salvar — mostra imagem em modal dentro do app (funciona no Safari iOS)
   var dataUrl = canvas.toDataURL('image/png');
-  var w = window.open('');
-  if (w) {
-    w.document.write('<html><head><title>Imagem de Confirmação</title><meta name="viewport" content="width=device-width"><style>body{margin:0;background:#fdf0eb;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px}img{max-width:100%;border-radius:8px}p{font-family:sans-serif;color:#6a1f2e;font-size:14px;text-align:center}</style></head><body><p>📥 Pressione e segure na imagem para salvar, depois cole no WhatsApp</p><img src="'+dataUrl+'"><p>Feche esta aba quando terminar</p></body></html>');
-    w.document.close();
-    showToast('🖼️ Imagem aberta! Salve e cole no WhatsApp.');
-  } else {
-    showToast('⚠️ Permita popups para ver a imagem.');
-  }
+  
+  // Criar modal com a imagem
+  var modalId = 'modal-img-confirmacao';
+  var existente = document.getElementById(modalId);
+  if (existente) existente.remove();
+  
+  var modal = document.createElement('div');
+  modal.id = modalId;
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px;overflow-y:auto;';
+  modal.innerHTML = '<div style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:12px">'
+    + '<p style="color:#fff;font-family:Times New Roman,serif;font-size:15px;text-align:center;margin:0">📥 <strong>Pressione e segure</strong> na imagem para salvar na galeria.<br>Depois cole no WhatsApp da cliente.</p>'
+    + '<img src="'+dataUrl+'" style="width:100%;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4)">'
+    + '<button onclick="document.getElementById(\''+modalId+'\').remove()" style="width:100%;padding:14px;border:none;border-radius:12px;background:#8a3f4d;color:#fff;font-family:Times New Roman,serif;font-size:16px;font-weight:bold;cursor:pointer">✕ Fechar</button>'
+    + '</div>';
+  document.body.appendChild(modal);
+  showToast('🖼️ Segure na imagem pra salvar!');
 }
 const STATUS_LABELS = {
   agendado:   { label:'Agendado',   cls:'status-agendado',   emoji:'🕐' },
