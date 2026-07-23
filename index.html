@@ -118,6 +118,12 @@ textarea { resize:vertical; min-height:80px; }
 .day-chip.selected .dc-dot { background:white; }
 .day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
+.cliente-dropdown-item { padding:10px 14px; cursor:pointer; font-size:0.88rem; color:var(--dark); border-bottom:1px solid var(--light); }
+.cliente-dropdown-item:last-child { border-bottom:none; }
+.cliente-dropdown-item:hover, .cliente-dropdown-item.selected { background:var(--rose-light); }
+.cliente-dropdown-item .ci-nome { font-weight:600; }
+.cliente-dropdown-item .ci-fone { font-size:0.75rem; color:var(--mid); }
+
 /* ── DESPESAS ── */
 .expense-btn { background:linear-gradient(135deg,var(--gold),#e8c77a); color:var(--dark); }
 .qmsqm-wrap { display:flex; gap:8px; margin-bottom:6px; }
@@ -534,11 +540,14 @@ textarea { resize:vertical; min-height:80px; }
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="na-modal-titulo">📅 Novo Agendamento</div>
-    <div class="form-group">
+    <div class="form-group" style="position:relative">
       <label>Cliente cadastrada (opcional)</label>
-      <select id="na-cliente-cadastrada" onchange="selecionarClienteCadastro();renderHistoricoServico()">
-        <option value="">Agendar sem cadastro...</option>
-      </select>
+      <input type="text" id="na-busca-cliente" placeholder="Buscar cliente..." autocomplete="off"
+        oninput="filtrarClientesDropdown()" onfocus="filtrarClientesDropdown()"
+        style="padding-right:36px">
+      <span style="position:absolute;right:12px;top:34px;color:var(--mid);pointer-events:none">🔍</span>
+      <div id="na-clientes-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--rose-light);border-radius:10px;max-height:200px;overflow-y:auto;z-index:9999;box-shadow:0 8px 20px rgba(58,34,39,.15);margin-top:2px"></div>
+      <input type="hidden" id="na-cliente-cadastrada" value="">
     </div>
     <div class="form-group">
       <label>Nome da Cliente *</label>
@@ -2845,12 +2854,49 @@ async function salvarServico() {
 // SELECTS / FILTROS
 // ═══════════════════════════════════════
 function populateClientesSelect() {
-  const sel = document.getElementById('na-cliente-cadastrada');
-  if (!sel) return;
-  const atual = sel.value;
-  sel.innerHTML = '<option value="">Agendar sem cadastro...</option>' +
-    clientes.map(c => `<option value="${c.id}">${c.nome}${c.fone?' — '+c.fone:''}</option>`).join('');
-  if (atual) sel.value = atual;
+  // Agora só limpa o campo de busca — o dropdown é populado dinamicamente
+  const busca = document.getElementById('na-busca-cliente');
+  if (busca && !busca.value) busca.value = '';
+}
+
+function filtrarClientesDropdown() {
+  const busca = document.getElementById('na-busca-cliente');
+  const dropdown = document.getElementById('na-clientes-dropdown');
+  if (!busca || !dropdown) return;
+
+  const q = busca.value.toLowerCase().trim();
+  const filtrados = q
+    ? clientes.filter(c => normalizarTexto(c.nome).includes(normalizarTexto(q)) || (c.fone||'').includes(q))
+    : clientes;
+
+  if (filtrados.length === 0) {
+    dropdown.innerHTML = '<div class="cliente-dropdown-item" style="color:var(--mid)">Nenhuma cliente encontrada</div>';
+  } else {
+    dropdown.innerHTML = filtrados.slice(0, 30).map(c =>
+      `<div class="cliente-dropdown-item" onclick="selecionarClienteDropdown(${c.id})">
+        <div class="ci-nome">${c.nome}</div>
+        ${c.fone ? `<div class="ci-fone">${c.fone}</div>` : ''}
+      </div>`
+    ).join('');
+  }
+  dropdown.style.display = 'block';
+}
+
+function selecionarClienteDropdown(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('na-cliente-cadastrada').value = id;
+  document.getElementById('na-busca-cliente').value = c.nome + (c.fone ? ' — ' + c.fone : '');
+  document.getElementById('na-clientes-dropdown').style.display = 'none';
+  document.getElementById('na-cliente').value = c.nome || '';
+  document.getElementById('na-fone').value = c.fone || '';
+  if (c.obs && !document.getElementById('na-obs').value) document.getElementById('na-obs').value = c.obs;
+  renderHistoricoServico();
+}
+
+function fecharDropdownCliente() {
+  const dropdown = document.getElementById('na-clientes-dropdown');
+  if (dropdown) dropdown.style.display = 'none';
 }
 
 function selecionarClienteCadastro() {
@@ -2998,6 +3044,9 @@ function openModal(id) {
       document.getElementById('na-modal-titulo').textContent = '📅 Novo Agendamento';
       document.getElementById('na-btn-salvar').textContent = 'Confirmar Agendamento';
       ['na-cliente-cadastrada','na-cliente','na-fone','na-obs'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
+  const busca = document.getElementById('na-busca-cliente');
+  if (busca) busca.value = '';
+  fecharDropdownCliente();;
       document.getElementById('na-data').value = selectedDate;
       const elHist = document.getElementById('na-historico-servico'); if (elHist) elHist.innerHTML = '';
     }
@@ -3042,6 +3091,15 @@ function showToast(msg) {
 // Fechar modal clicando no fundo
 document.querySelectorAll('.modal-bg').forEach(bg => {
   bg.addEventListener('click', e => { if (e.target===bg) bg.classList.remove('open'); });
+});
+
+// Fechar dropdown de cliente ao clicar fora
+document.addEventListener('click', e => {
+  const dropdown = document.getElementById('na-clientes-dropdown');
+  const busca = document.getElementById('na-busca-cliente');
+  if (dropdown && busca && !busca.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
 });
 
 // ═══════════════════════════════════════
