@@ -546,7 +546,7 @@ textarea { resize:vertical; min-height:80px; }
         oninput="filtrarClientesDropdown()" onfocus="filtrarClientesDropdown()"
         style="padding-right:36px">
       <span style="position:absolute;right:12px;top:34px;color:var(--mid);pointer-events:none">🔍</span>
-      <div id="na-clientes-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--rose-light);border-radius:10px;max-height:200px;overflow-y:auto;z-index:9999;box-shadow:0 8px 20px rgba(58,34,39,.15);margin-top:2px"></div>
+      <div id="na-clientes-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--rose-light);border-radius:10px;max-height:200px;overflow-y:auto;z-index:9999;box-shadow:0 8px 20px rgba(58,34,39,.15);margin-top:2px;overscroll-behavior:contain" ontouchmove="event.stopPropagation()"></div>
       <input type="hidden" id="na-cliente-cadastrada" value="">
     </div>
     <div class="form-group">
