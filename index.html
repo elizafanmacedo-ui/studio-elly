@@ -1069,6 +1069,55 @@ async function excluirDespesa(id) {
   }
 }
 
+async function zerarDespesasMes() {
+  // Pede a data do acerto
+  const hoje = today();
+  const dataAcerto = prompt('Informe a data do acerto (DD/MM/AAAA):\nDespesas até essa data serão marcadas como acertadas.', hoje.split('-').reverse().join('/'));
+  if (!dataAcerto) return;
+
+  // Converter DD/MM/AAAA para AAAA-MM-DD
+  const partes = dataAcerto.trim().split('/');
+  if (partes.length !== 3) { showToast('❌ Data inválida. Use DD/MM/AAAA'); return; }
+  const dataAcertoISO = `${partes[2]}-${partes[1].padStart(2,'0')}-${partes[0].padStart(2,'0')}`;
+  if (isNaN(new Date(dataAcertoISO))) { showToast('❌ Data inválida.'); return; }
+
+  // Filtrar despesas do mês atual não acertadas até a data escolhida
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + fatMesOffset);
+  const ano = base.getFullYear();
+  const mes = base.getMonth();
+
+  const paraAcertar = DESPESAS.filter(d => {
+    if (!d.data || d.acertada) return false;
+    const p = d.data.split('-');
+    const noMes = parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
+    return noMes && d.data <= dataAcertoISO;
+  });
+
+  if (paraAcertar.length === 0) {
+    showToast('Nenhuma despesa pendente até essa data.');
+    return;
+  }
+
+  if (!confirm(`Marcar ${paraAcertar.length} despesa(s) como acertadas até ${dataAcerto}?`)) return;
+
+  try {
+    await Promise.all(paraAcertar.map(d =>
+      fetch(DB_URL + '/despesas/' + d.id + '.json', {
+        method: 'PATCH',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ acertada: true, dataAcerto: dataAcertoISO })
+      })
+    ));
+    await loadDespesasFromFirebase();
+    renderDespesasFinanceiro();
+    showToast(`✅ ${paraAcertar.length} despesa(s) acertadas!`);
+  } catch(e) {
+    showToast('❌ Erro ao acertar despesas.');
+  }
+}
+
 function linhaDespesaHtml(d, comEditar) {
   const tagClass = d.tipo === 'qm' ? 'qm' : 'sqm';
   const tagLabel = d.tipo === 'qm' ? 'COM QUÍMICA' : 'SEM QUÍMICA';
@@ -1124,23 +1173,46 @@ function renderDespesasFinanceiro() {
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
-  const lista = DESPESAS.filter(d => {
+  const todasDoMes = DESPESAS.filter(d => {
     if (!d.data) return false;
     const p = d.data.split('-');
     return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
   }).sort((a,b) => a.data.localeCompare(b.data));
 
-  if (lista.length === 0) {
+  const pendentes = todasDoMes.filter(d => !d.acertada);
+  const acertadas = todasDoMes.filter(d => d.acertada);
+
+  if (todasDoMes.length === 0) {
     cont.innerHTML = `<div class="empty-state"><div class="es-icon">🧾</div><p>Nenhuma despesa lançada em ${mesLabel.toLowerCase()}</p></div>`;
     return;
   }
-  let total = 0;
-  const linhas = lista.map(d => { total += d.valor; return linhaDespesaHtml(d, true); }).join('');
+
+  let totalPendente = 0;
+  let totalAcertada = 0;
+  const linhasPendentes = pendentes.map(d => { totalPendente += d.valor; return linhaDespesaHtml(d, true); }).join('');
+  acertadas.forEach(d => { totalAcertada += d.valor; });
+
+  const btnZerar = currentUser === 1 && pendentes.length > 0
+    ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:10px;width:100%">✅ Marcar como acertadas até uma data...</button>`
+    : '';
+
+  const blocoAcertadas = acertadas.length > 0
+    ? `<div class="card" style="margin-top:12px;border:1px dashed var(--rose-light)">
+        <div class="card-title" style="color:var(--mid);font-size:0.85rem">✅ Acertadas (${acertadas.length})</div>
+        ${acertadas.map(d => `<div class="despesa-row" style="opacity:.6">${linhaDespesaHtml(d, false)}</div>`).join('')}
+        <div class="despesa-total-row"><span>Total acertado</span><span>${formatarMoeda(totalAcertada)}</span></div>
+      </div>`
+    : '';
+
   cont.innerHTML = `<div class="card">
-    <div class="card-title">🧾 Despesas do Mês</div>
-    ${linhas}
-    <div class="despesa-total-row"><span>Total do mês</span><span>${formatarMoeda(total)}</span></div>
-  </div>`;
+    <div class="card-title">🧾 Despesas Pendentes</div>
+    ${pendentes.length === 0
+      ? '<div style="text-align:center;color:var(--mid);padding:12px;font-size:0.85rem">Todas as despesas do mês foram acertadas ✅</div>'
+      : linhasPendentes + `<div class="despesa-total-row"><span>Total pendente</span><span>${formatarMoeda(totalPendente)}</span></div>`
+    }
+    ${btnZerar}
+  </div>
+  ${blocoAcertadas}`;
 }
 
 function trocarAbaFinanceiro(aba) {
