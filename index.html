@@ -347,7 +347,7 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ AGENDA ═══════════ -->
 <div class="page active" id="page-agenda">
-  <div class="card">
+  <div class="card" style="position:sticky;top:108px;z-index:75;margin-bottom:0;border-radius:16px 16px 0 0">
     <div class="date-nav">
       <button class="date-nav-btn" onclick="moveWeek(-1)">‹</button>
       <div class="date-label" id="month-label"></div>
@@ -358,7 +358,7 @@ textarea { resize:vertical; min-height:80px; }
     </div>
     <div class="week-scroll" id="week-scroll"></div>
   </div>
-  <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
+  <div id="prof-tab-wrap" class="prof-tab-wrap" style="position:sticky;top:calc(108px + 110px);z-index:74"></div>
   <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px">
     <div id="timeline"></div>
   </div>
