@@ -103,15 +103,15 @@ input:focus, select:focus, textarea:focus { border-color:var(--rose); background
 textarea { resize:vertical; min-height:80px; }
 
 /* ── AGENDA CALENDAR ── */
-.date-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-.date-nav-btn { width:36px; height:36px; border-radius:50%; border:none; background:var(--light); color:var(--rose-dark); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.date-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.date-nav-btn { width:30px; height:30px; border-radius:50%; border:none; background:var(--light); color:var(--rose-dark); font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .date-label { font-family:'Times New Roman',Times,serif; font-size:1.15rem; font-weight:600; color:var(--dark); }
-.week-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:16px; }
+.week-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:2px; margin-bottom:4px; }
 .week-scroll::-webkit-scrollbar { display:none; }
-.day-chip { flex-shrink:0; width:52px; text-align:center; padding:10px 0; border-radius:12px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; }
+.day-chip { flex-shrink:0; width:44px; text-align:center; padding:4px 0; border-radius:10px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; }
 .day-chip .dc-name { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--mid); font-weight:500; }
-.day-chip .dc-num { font-size:1.2rem; font-weight:600; color:var(--dark); margin-top:2px; }
-.day-chip .dc-dot { width:5px; height:5px; border-radius:50%; background:var(--rose); margin:4px auto 0; opacity:0; }
+.day-chip .dc-num { font-size:1rem; font-weight:600; color:var(--dark); margin-top:1px; }
+.day-chip .dc-dot { width:4px; height:4px; border-radius:50%; background:var(--rose); margin:2px auto 0; opacity:0; }
 .day-chip.has-event .dc-dot { opacity:1; }
 .day-chip.selected { background:var(--rose-dark); border-color:var(--rose-dark); }
 .day-chip.selected .dc-name, .day-chip.selected .dc-num { color:white; }
@@ -347,7 +347,7 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ AGENDA ═══════════ -->
 <div class="page active" id="page-agenda">
-  <div class="card" style="position:sticky;top:108px;z-index:75;margin-bottom:0;border-radius:16px 16px 0 0">
+  <div class="card" style="position:sticky;top:108px;z-index:75;margin-bottom:0;border-radius:16px 16px 0 0;padding:10px 14px 8px">
     <div class="date-nav">
       <button class="date-nav-btn" onclick="moveWeek(-1)">‹</button>
       <div class="date-label" id="month-label"></div>
@@ -358,7 +358,7 @@ textarea { resize:vertical; min-height:80px; }
     </div>
     <div class="week-scroll" id="week-scroll"></div>
   </div>
-  <div id="prof-tab-wrap" class="prof-tab-wrap" style="position:sticky;top:calc(108px + 110px);z-index:74"></div>
+  <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
   <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px">
     <div id="timeline"></div>
   </div>
@@ -2284,6 +2284,18 @@ function renderWeek() {
     </div>`;
   }
   document.getElementById('week-scroll').innerHTML = html;
+  // Ajustar posição sticky das abas de profissional
+  setTimeout(() => {
+    const calCard = document.querySelector('#page-agenda .card');
+    const profWrap = document.getElementById('prof-tab-wrap');
+    if (calCard && profWrap) {
+      const calH = calCard.offsetHeight;
+      const navH = 108; // header + nav
+      profWrap.style.position = 'sticky';
+      profWrap.style.top = (navH + calH) + 'px';
+      profWrap.style.zIndex = '74';
+    }
+  }, 50);
 }
 
 function selectDay(ds) { selectedDate = ds; renderWeek(); renderTimeline(); }
