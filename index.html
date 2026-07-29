@@ -290,6 +290,8 @@ textarea { resize:vertical; min-height:80px; }
 .config-chevron { margin-left:auto; color:var(--mid); font-size:0.9rem; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -764,6 +766,37 @@ let SERVICOS = [...SERVICOS_PADRAO];
 // FIREBASE
 // ═══════════════════════════════════════
 const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
+
+// ═══════════════════════════════════════
+// FIREBASE AUTH — preencha os 5 placeholders abaixo
+// ═══════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAx3j6rxjwjZiMB83J_Uu_2CUJFgaL80K4",
+  authDomain: "studio-elly.firebaseapp.com",
+  databaseURL: DB_URL
+};
+
+// E-mails das contas criadas no Console → Authentication → Users
+// (ficam no código de propósito: e-mail não é segredo, e a tela de login
+//  precisa deles ANTES de existir autenticação — não podem vir do banco)
+const EMAILS_AUTH = {
+  1: "elly@studioelly.app",
+  2: "denny@studioelly.app",
+  3: "lanna@studioelly.app"
+};
+
+firebase.initializeApp(FIREBASE_CONFIG);
+
+// Substitui o fetch(DB_URL + ...) — anexa o token de auth em toda chamada ao banco.
+// O getIdToken() do SDK renova o token sozinho quando ele expira (validade de 1h),
+// por isso TODA leitura/escrita precisa passar por aqui.
+async function fbFetch(caminho, opts = {}) {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error('não autenticado');
+  const token = await user.getIdToken();
+  const sep = caminho.includes('?') ? '&' : '?';
+  return fetch(DB_URL + caminho + sep + 'auth=' + token, opts);
+}
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
@@ -779,7 +812,7 @@ function renderFinanceiroSeAberto() {
 
 async function loadDespesasFromFirebase() {
   try {
-    const res = await fetch(DB_URL + '/despesas.json');
+    const res = await fbFetch('/despesas.json');
     const data = await res.json();
     const novas = [];
     if (data && typeof data === 'object') {
@@ -864,7 +897,7 @@ let syncInterval = null;
 // --- AGENDAMENTOS ---
 async function loadFromFirebase() {
   try {
-    const res = await fetch(DB_URL + '/agendamentos.json');
+    const res = await fbFetch('/agendamentos.json');
     const data = await res.json();
     let novos = [];
     if (data) {
@@ -879,9 +912,9 @@ async function loadFromFirebase() {
             item.forEach(a => { if (a && a.id) novos.push(a); });
             // migrar formato antigo
             novos.forEach(a => {
-              fetch(DB_URL + '/agendamentos/' + a.id + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(a) }).catch(()=>{});
+              fbFetch('/agendamentos/' + a.id + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(a) }).catch(()=>{});
             });
-            fetch(DB_URL + '/agendamentos/' + chave + '.json', { method:'DELETE' }).catch(()=>{});
+            fbFetch('/agendamentos/' + chave + '.json', { method:'DELETE' }).catch(()=>{});
           } else if (item && item.id) {
             novos.push(item);
           }
@@ -903,7 +936,7 @@ async function loadFromFirebase() {
 
 async function loadLancamentosAvulsos() {
   try {
-    const res = await fetch(DB_URL + '/lancamentos.json');
+    const res = await fbFetch('/lancamentos.json');
     if (!res.ok) return;
     const data = await res.json();
     if (data && typeof data === 'object') {
@@ -917,10 +950,10 @@ async function salvarLancamentoAvulso(key, hora, valorStr) {
   const valor = parseFloat(valorStr);
   if (isNaN(valor) || valor <= 0) {
     delete lancamentosAvulsos[key];
-    await fetch(DB_URL + '/lancamentos/' + key + '.json', { method:'DELETE' });
+    await fbFetch('/lancamentos/' + key + '.json', { method:'DELETE' });
   } else {
     lancamentosAvulsos[key] = valor;
-    await fetch(DB_URL + '/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
+    await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
   }
   renderTimeline();
   renderFinanceiroSeAberto();
@@ -928,7 +961,7 @@ async function salvarLancamentoAvulso(key, hora, valorStr) {
 
 async function saveAgendamento(id, val) {
   try {
-    const res = await fetch(DB_URL + '/agendamentos/' + id + '.json', {
+    const res = await fbFetch('/agendamentos/' + id + '.json', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
     });
     if (!res.ok) {
@@ -1015,7 +1048,7 @@ async function salvarDespesa() {
   };
 
   try {
-    const res = await fetch(DB_URL + '/despesas/' + id + '.json', {
+    const res = await fbFetch('/despesas/' + id + '.json', {
       method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(obj)
     });
     if (!res.ok) { showToast('⚠️ Erro ao salvar despesa (Firebase: ' + res.status + ')'); return; }
@@ -1065,7 +1098,7 @@ function cancelarEdicaoDespesa() {
 async function excluirDespesa(id) {
   if (!confirm('Apagar esta despesa? Essa ação não pode ser desfeita.')) return;
   try {
-    await fetch(DB_URL + '/despesas/' + id + '.json', { method: 'DELETE' });
+    await fbFetch('/despesas/' + id + '.json', { method: 'DELETE' });
     await loadDespesasFromFirebase();
     renderListaDespesasModal();
     showToast('🗑 Despesa removida');
@@ -1109,7 +1142,7 @@ async function zerarDespesasMes() {
 
   try {
     await Promise.all(paraAcertar.map(d =>
-      fetch(DB_URL + '/despesas/' + d.id + '.json', {
+      fbFetch('/despesas/' + d.id + '.json', {
         method: 'PATCH',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ acertada: true, dataAcerto: dataAcertoISO })
@@ -1232,7 +1265,7 @@ function trocarAbaFinanceiro(aba) {
 // --- CLIENTES ---
 async function loadClientesFromFirebase() {
   try {
-    const res = await fetch(DB_URL + '/clientes.json');
+    const res = await fbFetch('/clientes.json');
     const data = await res.json();
     let novos = [];
     if (data) {
@@ -1246,7 +1279,7 @@ async function loadClientesFromFirebase() {
 
 async function saveClienteFirebase(cliente) {
   try {
-    const res = await fetch(DB_URL + '/clientes/' + cliente.id + '.json', {
+    const res = await fbFetch('/clientes/' + cliente.id + '.json', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cliente)
     });
     if (!res.ok) {
@@ -1263,7 +1296,7 @@ async function saveClienteFirebase(cliente) {
 // --- SERVIÇOS (nó próprio /servicos) ---
 async function loadEquipeFirebase() {
   try {
-    const res = await fetch(DB_URL + '/equipe.json');
+    const res = await fbFetch('/equipe.json');
     const data = await res.json();
     if (data && typeof data === 'object') {
       let lista = [];
@@ -1291,7 +1324,7 @@ async function loadEquipeFirebase() {
 
 async function salvarEquipeFirebase() {
   const batch = FUNCIONARIOS.map(f =>
-    fetch(DB_URL + '/equipe/' + f.id + '.json', {
+    fbFetch('/equipe/' + f.id + '.json', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f)
     }).catch(()=>{})
   );
@@ -1300,7 +1333,7 @@ async function salvarEquipeFirebase() {
 
 async function loadServicosFromFirebase() {
   try {
-    const res = await fetch(DB_URL + '/servicos.json');
+    const res = await fbFetch('/servicos.json');
     const data = await res.json();
     if (data && typeof data === 'object') {
       let lista = [];
@@ -1331,7 +1364,7 @@ async function loadServicosFromFirebase() {
 async function saveServicosFirebase() {
   // Salva cada serviço em seu próprio nó
   const batch = SERVICOS.map(s =>
-    fetch(DB_URL + '/servicos/' + s.id + '.json', {
+    fbFetch('/servicos/' + s.id + '.json', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(s)
     }).catch(()=>{})
   );
@@ -1339,13 +1372,13 @@ async function saveServicosFirebase() {
 }
 
 async function deletarServicoFirebase(id) {
-  await fetch(DB_URL + '/servicos/' + id + '.json', { method:'DELETE' });
+  await fbFetch('/servicos/' + id + '.json', { method:'DELETE' });
 }
 
 // --- CONFIG ---
 async function loadConfigFromFirebase() {
   try {
-    const res = await fetch(DB_URL + '/config.json');
+    const res = await fbFetch('/config.json');
     const data = await res.json();
     if (data && typeof data === 'object') {
       configStudio = data;
@@ -1356,7 +1389,7 @@ async function loadConfigFromFirebase() {
 
 async function saveConfigFirebase(obj) {
   try {
-    const res = await fetch(DB_URL + '/config.json', {
+    const res = await fbFetch('/config.json', {
       method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
     });
     if (!res.ok) {
@@ -1372,6 +1405,7 @@ async function saveConfigFirebase(obj) {
 function startSync() {
   loadFromFirebase();
   loadEquipeFirebase();
+  loadFotosEquipe().then(() => { atualizarAvatarHeader(); initLogin(); }); // fotos exigem auth; atualiza avatar e grid do login
   loadClientesFromFirebase();
   loadServicosFromFirebase();
   loadConfigFromFirebase();
@@ -1388,7 +1422,7 @@ async function testarFirebase() {
   if (!el) return;
   el.innerHTML = '⏳ Testando...';
   try {
-    const res = await fetch(DB_URL + '/agendamentos.json?shallow=true', { method:'GET' });
+    const res = await fbFetch('/agendamentos.json?shallow=true', { method:'GET' });
     if (res.ok) {
       el.innerHTML = '<span style="color:#2e7d32;font-weight:700">✅ Conectado!</span> Firebase respondeu corretamente.<br><span style="font-size:0.76rem;color:var(--mid)">Se ainda assim não salva, verifique as Regras do banco no Firebase Console (devem permitir read/write).</span>';
     } else if (res.status === 401 || res.status === 403) {
@@ -1403,14 +1437,22 @@ async function testarFirebase() {
 
 // ═══════════════════════════════════════
 // BACKUP EM 1 CLIQUE (somente admin)
+// Baixa nó por nó — os mesmos caminhos que o app já usa com sucesso —
+// em vez de ler a raiz "/.json" inteira (que pode falhar por tamanho).
+// A senha (/config/senhaElly) fica FORA do arquivo de backup.
 // ═══════════════════════════════════════
 async function baixarBackup(row) {
   const sub = document.getElementById('backup-sub');
   if (sub) sub.textContent = '⏳ Gerando backup...';
+  const NOS = ['agendamentos','clientes','equipe','equipe_fotos','servicos','despesas','lancamentos','config'];
   try {
-    const res = await fetch(DB_URL + '/.json');
-    if (!res.ok) throw new Error('Firebase respondeu ' + res.status);
-    const dados = await res.json();
+    const dados = {};
+    for (const no of NOS) {
+      const res = await fbFetch('/' + no + '.json');
+      if (!res.ok) throw new Error('Firebase respondeu ' + res.status + ' ao ler /' + no);
+      dados[no] = await res.json();
+    }
+    if (dados.config && dados.config.senhaElly !== undefined) delete dados.config.senhaElly; // senha nunca vai pro arquivo
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1424,7 +1466,7 @@ async function baixarBackup(row) {
   } catch (e) {
     console.error('Backup error', e);
     if (sub) sub.textContent = 'Baixar tudo em 1 clique (.json)';
-    showToast('❌ Erro ao gerar backup. Verifique a internet.');
+    showToast('❌ Backup falhou: ' + (e && e.message ? e.message : 'erro desconhecido'));
   }
 }
 
@@ -2099,10 +2141,8 @@ function enviarRelatorio() {
 }
 
 // ═══════════════════════════════════════
-// LOGIN / AUTH
+// LOGIN / AUTH (Firebase Authentication)
 // ═══════════════════════════════════════
-const SENHA_PADRAO = null; // A senha real vive APENAS no Firebase (/config/senhaElly). Nunca escreva senha aqui.
-let senhaElly = null;
 let currentUser = null;
 let selectedDate = today();
 let weekOffset = 0;
@@ -2116,14 +2156,6 @@ function today() {
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 }
 
-async function carregarSenhaElly() {
-  try {
-    const res = await fetch(DB_URL + '/config/senhaElly.json');
-    const val = await res.json();
-    senhaElly = (typeof val === 'string' && val) ? val : SENHA_PADRAO;
-  } catch(e) { senhaElly = SENHA_PADRAO; }
-}
-
 function initLogin() {
   document.getElementById('prof-grid').innerHTML = FUNCIONARIOS.map(f => `
     <div class="prof-option ${f.cor}" id="po-${f.id}" onclick="selectProf(${f.id})">
@@ -2132,7 +2164,6 @@ function initLogin() {
       <div></div>
     </div>
   `).join('');
-  carregarSenhaElly();
 }
 
 function selectProf(id) {
@@ -2142,28 +2173,28 @@ function selectProf(id) {
   currentUser = id;
 }
 
-function acessoEllyValidoHoje() {
-  return localStorage.getItem('elly_auth_dia') === today();
-}
-
 function doLogin() {
   if (!currentUser) { showToast('Selecione quem está acessando'); return; }
-  if (currentUser === 1 && !acessoEllyValidoHoje()) {
-    document.getElementById('senha-input').value = '';
-    openModal('modal-senha');
-    return;
-  }
-  finalizarLogin();
+  // Com o Firebase Auth, TODO perfil entra com a própria senha
+  document.getElementById('senha-input').value = '';
+  openModal('modal-senha');
 }
 
 async function confirmarSenha() {
-  if (!senhaElly) { await carregarSenhaElly(); } // tenta recarregar se a 1ª leitura falhou
-  if (!senhaElly) { showToast('⚠️ Sem conexão para verificar a senha. Confira a internet e tente de novo.'); return; }
   const digitada = document.getElementById('senha-input').value;
-  if (digitada !== senhaElly) { showToast('Senha incorreta'); return; }
-  localStorage.setItem('elly_auth_dia', today());
-  closeModal('modal-senha');
-  finalizarLogin();
+  if (!digitada) { showToast('Digite a senha'); return; }
+  const email = EMAILS_AUTH[currentUser];
+  if (!email || email.startsWith('COLE_AQUI')) { showToast('⚠️ E-mail de acesso não configurado no código (EMAILS_AUTH).'); return; }
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, digitada);
+    closeModal('modal-senha');
+    finalizarLogin();
+  } catch(e) {
+    console.error('Auth error', e.code);
+    if (e.code === 'auth/network-request-failed') showToast('❌ Sem conexão. Verifique a internet.');
+    else if (e.code === 'auth/too-many-requests') showToast('⚠️ Muitas tentativas. Aguarde alguns minutos.');
+    else showToast('Senha incorreta');
+  }
 }
 
 function cancelarSenha() {
@@ -2172,9 +2203,18 @@ function cancelarSenha() {
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
 
+// Sessão persistente: quem já entrou uma vez não digita senha de novo ao reabrir o app.
+// O SDK guarda a sessão e renova o token sozinho.
+firebase.auth().onAuthStateChanged(user => {
+  if (user && !currentUser) {
+    const id = Object.keys(EMAILS_AUTH).find(k => EMAILS_AUTH[k] === user.email);
+    if (id) { currentUser = parseInt(id); finalizarLogin(); }
+  }
+});
+
 async function loadFotosEquipe() {
   try {
-    const res = await fetch(DB_URL + '/equipe_fotos.json');
+    const res = await fbFetch('/equipe_fotos.json');
     const data = await res.json();
     if (data) {
       FUNCIONARIOS.forEach(f => { if (data[f.id]) f.foto = data[f.id]; });
@@ -2227,7 +2267,7 @@ async function salvarFotoPerfil(dataUrl) {
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   if (!f) return;
   try {
-    const res = await fetch(DB_URL + '/equipe_fotos/' + currentUser + '.json', {
+    const res = await fbFetch('/equipe_fotos/' + currentUser + '.json', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dataUrl)
     });
     if (!res.ok) { showToast('⚠️ Erro ao salvar foto (Firebase: ' + res.status + ')'); return; }
@@ -2256,6 +2296,7 @@ function finalizarLogin() {
 }
 
 function logout() {
+  firebase.auth().signOut(); // encerra a sessão persistente do Firebase Auth
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
@@ -2268,15 +2309,20 @@ function logout() {
 async function trocarSenhaElly() {
   const nova = document.getElementById('nova-senha-input').value;
   const confirma = document.getElementById('confirma-senha-input').value;
-  if (!nova || nova.length < 4) { showToast('Senha precisa ter ao menos 4 caracteres'); return; }
+  if (!nova || nova.length < 6) { showToast('O Firebase exige senha com ao menos 6 caracteres'); return; }
   if (nova !== confirma) { showToast('As senhas não conferem'); return; }
+  const user = firebase.auth().currentUser;
+  if (!user) { showToast('Sessão expirada. Saia e entre de novo.'); return; }
   try {
-    await fetch(DB_URL + '/config/senhaElly.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(nova) });
-    senhaElly = nova;
+    await user.updatePassword(nova); // troca a senha da conta logada no Firebase Auth
     document.getElementById('nova-senha-input').value = '';
     document.getElementById('confirma-senha-input').value = '';
     showToast('✅ Senha atualizada!');
-  } catch(e) { showToast('Erro ao salvar senha'); }
+  } catch(e) {
+    console.error('updatePassword', e.code);
+    if (e.code === 'auth/requires-recent-login') showToast('⚠️ Por segurança, saia e entre de novo antes de trocar a senha.');
+    else showToast('Erro ao salvar senha');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -2695,7 +2741,7 @@ async function removerCliente(id) {
   if (!c) return;
   if (!confirm(`Remover "${c.nome}" do cadastro de clientes?\n\nOs agendamentos já feitos continuam no histórico, mas ela deixa de aparecer na lista de clientes.`)) return;
   try {
-    const res = await fetch(DB_URL + '/clientes/' + id + '.json', { method:'DELETE' });
+    const res = await fbFetch('/clientes/' + id + '.json', { method:'DELETE' });
     if (!res.ok) { showToast('⚠️ Erro ao remover cliente (Firebase: ' + res.status + ')'); return; }
     clientes = clientes.filter(x => x.id !== id);
     renderClientes();
@@ -2945,7 +2991,7 @@ async function salvarServico() {
     if (idx >= 0) {
       SERVICOS[idx] = { ...SERVICOS[idx], nome, cat, duracao, preco, profissionais:profIds };
       try {
-        const res = await fetch(DB_URL + '/servicos/' + editandoId + '.json', {
+        const res = await fbFetch('/servicos/' + editandoId + '.json', {
           method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(SERVICOS[idx])
         });
         if (!res.ok) { showToast('⚠️ Erro Firebase: ' + res.status); return; }
@@ -2957,7 +3003,7 @@ async function salvarServico() {
     const novo = { id:novoId, nome, cat, duracao, preco, profissionais:profIds };
     SERVICOS.push(novo);
     try {
-      const res = await fetch(DB_URL + '/servicos/' + novoId + '.json', {
+      const res = await fbFetch('/servicos/' + novoId + '.json', {
         method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo)
       });
       if (!res.ok) { SERVICOS.pop(); showToast('⚠️ Erro Firebase: ' + res.status); return; }
@@ -3223,7 +3269,7 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════
 // START
 // ═══════════════════════════════════════
-loadFotosEquipe().then(() => initLogin());
+initLogin();
 </script>
 </body>
 </html>
