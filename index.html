@@ -475,6 +475,11 @@ textarea { resize:vertical; min-height:80px; }
       <div><div class="config-label">Alterar Senha</div><div class="config-sub">Segurança do acesso</div></div>
       <div class="config-chevron">›</div>
     </div>
+    <div class="config-row" onclick="baixarBackup(this)">
+      <div class="config-icon" style="background:linear-gradient(150deg,#b8a1e0,#6a4a9c)">💾</div>
+      <div><div class="config-label">Backup dos Dados</div><div class="config-sub" id="backup-sub">Baixar tudo em 1 clique (.json)</div></div>
+      <div class="config-chevron">›</div>
+    </div>
   </div>
   <div class="card" id="card-firebase-status" style="border:2px solid var(--rose-light)">
     <div class="card-title">🔥 Status do Banco Firebase</div>
@@ -1396,6 +1401,33 @@ async function testarFirebase() {
   }
 }
 
+// ═══════════════════════════════════════
+// BACKUP EM 1 CLIQUE (somente admin)
+// ═══════════════════════════════════════
+async function baixarBackup(row) {
+  const sub = document.getElementById('backup-sub');
+  if (sub) sub.textContent = '⏳ Gerando backup...';
+  try {
+    const res = await fetch(DB_URL + '/.json');
+    if (!res.ok) throw new Error('Firebase respondeu ' + res.status);
+    const dados = await res.json();
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'backup-studio-elly-' + today() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    if (sub) sub.textContent = 'Último backup: hoje ✓';
+    showToast('✅ Backup baixado! Guarde o arquivo em local seguro.');
+  } catch (e) {
+    console.error('Backup error', e);
+    if (sub) sub.textContent = 'Baixar tudo em 1 clique (.json)';
+    showToast('❌ Erro ao gerar backup. Verifique a internet.');
+  }
+}
+
 // CONFIGURAÇÃO DO STUDIO
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2069,7 +2101,7 @@ function enviarRelatorio() {
 // ═══════════════════════════════════════
 // LOGIN / AUTH
 // ═══════════════════════════════════════
-const SENHA_PADRAO = 'Nego197353@';
+const SENHA_PADRAO = null; // A senha real vive APENAS no Firebase (/config/senhaElly). Nunca escreva senha aqui.
 let senhaElly = null;
 let currentUser = null;
 let selectedDate = today();
@@ -2124,9 +2156,11 @@ function doLogin() {
   finalizarLogin();
 }
 
-function confirmarSenha() {
+async function confirmarSenha() {
+  if (!senhaElly) { await carregarSenhaElly(); } // tenta recarregar se a 1ª leitura falhou
+  if (!senhaElly) { showToast('⚠️ Sem conexão para verificar a senha. Confira a internet e tente de novo.'); return; }
   const digitada = document.getElementById('senha-input').value;
-  if (digitada !== (senhaElly || SENHA_PADRAO)) { showToast('Senha incorreta'); return; }
+  if (digitada !== senhaElly) { showToast('Senha incorreta'); return; }
   localStorage.setItem('elly_auth_dia', today());
   closeModal('modal-senha');
   finalizarLogin();
