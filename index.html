@@ -833,6 +833,12 @@ function ehFuncionarioComissao(prof) {
   return !!prof && prof.id !== 1 && prof.tipo === 'funcionario';
 }
 
+// Lançamento avulso pode ser número (formato antigo / sócias) ou objeto {qm, sqm} (funcionárias)
+function valorDoAvulso(v) {
+  if (v && typeof v === 'object') return (parseFloat(v.qm) || 0) + (parseFloat(v.sqm) || 0);
+  return (typeof v === 'number' ? v : parseFloat(v)) || 0;
+}
+
 // ═══════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════
@@ -1029,6 +1035,27 @@ async function salvarLancamentoAvulso(key, hora, valorStr) {
     await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
   }
   renderTimeline();
+  renderFinanceiroSeAberto();
+}
+
+// Versão QM/SQM do lançamento avulso (funcionárias). Grava {qm, sqm} no mesmo nó /lancamentos.
+async function salvarLancamentoAvulsoQmSqm(key) {
+  const qmInput = document.getElementById('input-qm-av_' + key);
+  const sqmInput = document.getElementById('input-sqm-av_' + key);
+  if (!qmInput || !sqmInput) return;
+  const qm = parseFloat(qmInput.value) || 0;
+  const sqm = parseFloat(sqmInput.value) || 0;
+  const total = qm + sqm;
+  if (total <= 0) {
+    delete lancamentosAvulsos[key];
+    await fbFetch('/lancamentos/' + key + '.json', { method:'DELETE' });
+  } else {
+    const obj = { qm, sqm };
+    lancamentosAvulsos[key] = obj;
+    await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj) });
+  }
+  const somaEl = document.getElementById('soma-av_' + key);
+  if (somaEl) somaEl.textContent = total;
   renderFinanceiroSeAberto();
 }
 
@@ -2023,7 +2050,20 @@ function renderAcerto() {
     if (a.status === 'cancelado') return false;
     if (!a.data) return false;
     return filtroData(a.data);
-  }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+  });
+
+  // Lançamentos avulsos da profissional no período também entram no acerto
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    const p = key.split('_');
+    if (p.length < 3 || parseInt(p[2]) !== f.id) return;
+    if (!filtroData(p[0])) return;
+    const vTotal = valorDoAvulso(valor);
+    if (vTotal <= 0) return;
+    const e = { id:'av_'+key, data:p[0], hora:p[1], profId:f.id, valor:vTotal, nomeCliente:'(avulso)', servicoIds:[], isAvulso:true, status:'atendido' };
+    if (valor && typeof valor === 'object') { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
+    lancamentos.push(e);
+  });
+  lancamentos.sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
 
   const comValor = lancamentos.filter(a => typeof a.valor === 'number' && a.valor > 0);
   const semValor = lancamentos.filter(a => !(typeof a.valor === 'number' && a.valor > 0));
@@ -2189,12 +2229,15 @@ function renderFaturamento() {
   // Lançamentos avulsos do período
   const avulsosDoMes = [];
   Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
-    if (!valor || valor <= 0) return;
+    const vTotal = valorDoAvulso(valor);
+    if (vTotal <= 0) return;
     const partes = key.split('_');
     if (partes.length < 3) return;
     const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
     if (filtroData(data)) {
-      avulsosDoMes.push({ data, hora, profId, valor, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true });
+      const entry = { data, hora, profId, valor: vTotal, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true };
+      if (valor && typeof valor === 'object') { entry.valorQM = parseFloat(valor.qm) || 0; entry.valorSQM = parseFloat(valor.sqm) || 0; }
+      avulsosDoMes.push(entry);
     }
   });
 
@@ -2299,7 +2342,7 @@ function renderFaturamento() {
     }
 
     let brutoSemQuimica = 0, brutoComQuimica = 0;
-    listaAgend.forEach(a => {
+    [...listaAgend, ...listaAvulsos].forEach(a => {
       // Divisão manual QM/SQM anotada na agenda tem prioridade
       if (a.valorQM !== undefined || a.valorSQM !== undefined) {
         brutoComQuimica += a.valorQM || 0;
@@ -2912,15 +2955,41 @@ function renderTimeline() {
       </td>`;
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
-      const lancAtual = (lancamentosAvulsos[lancKey] !== undefined && lancamentosAvulsos[lancKey] > 0) ? lancamentosAvulsos[lancKey] : '';
+      const lancBruto = lancamentosAvulsos[lancKey];
+      const lancTotal = valorDoAvulso(lancBruto);
+      const lancAtual = lancTotal > 0 ? lancTotal : '';
+      const profAtivo = FUNCIONARIOS.find(x => x.id === activeProfId);
+      const avulsoQmSqm = ehFuncionarioComissao(profAtivo); // funcionária: avulso também divide QM/SQM
+      const qmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.qm > 0) ? lancBruto.qm : '';
+      const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
       rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
         <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
+        ${!avulsoQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
           <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${lancAtual}"
             onclick="event.stopPropagation()"
             onchange="salvarLancamentoAvulso('${lancKey}','${slot}',this.value)">
-        </div>
+        </div>` : `
+        <div class="qmsqm-box" onclick="event.stopPropagation()">
+          <div class="qmsqm-fechada" onclick="toggleQmSqm('av_${lancKey}')">
+            <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma" id="soma-av_${lancKey}">${lancTotal||0}</span>
+          </div>
+          <div class="qmsqm-expandida" id="expandida-av_${lancKey}">
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-qm-av_${lancKey}">QM</span>
+              <input type="number" inputmode="decimal" id="input-qm-av_${lancKey}" value="${qmAv}"
+                onfocus="esconderSiglaQmSqm('av_${lancKey}','qm')" onblur="restaurarSiglaQmSqm('av_${lancKey}','qm')"
+                onchange="salvarLancamentoAvulsoQmSqm('${lancKey}')">
+            </div>
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-sqm-av_${lancKey}">SQM</span>
+              <input type="number" inputmode="decimal" id="input-sqm-av_${lancKey}" value="${sqmAv}"
+                onfocus="esconderSiglaQmSqm('av_${lancKey}','sqm')" onblur="restaurarSiglaQmSqm('av_${lancKey}','sqm')"
+                onchange="salvarLancamentoAvulsoQmSqm('${lancKey}')">
+            </div>
+          </div>
+        </div>`}
       </td>`;
     }
     rows += '</tr>';
@@ -2933,7 +3002,7 @@ function renderTimeline() {
   // Incluir lançamentos avulsos do dia nos totais
   const avulsosDia = Object.entries(lancamentosAvulsos)
     .filter(([key]) => key.startsWith(selectedDate + '_'))
-    .map(([key, valor]) => { const p = key.split('_'); return { profId: parseInt(p[2]), valor: valor||0 }; });
+    .map(([key, valor]) => { const p = key.split('_'); return { profId: parseInt(p[2]), valor: valorDoAvulso(valor) }; });
 
   if (ehDono) {
     const totaisPorProf = {};
