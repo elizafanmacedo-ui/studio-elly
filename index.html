@@ -307,7 +307,6 @@ input.slot-valor-input:focus { outline:none !important; }
 .config-sub { font-size:0.68rem; color:var(--mid); margin-top:1px; }
 .config-chevron { margin-left:auto; color:var(--mid); font-size:0.9rem; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
@@ -1628,7 +1627,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo4g-avulso · 30/07/2026';
+const APP_VERSAO = 'passo5b-relatorio-wa · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2065,6 +2064,67 @@ async function zerarVale(profId) {
 }
 
 // ═══════════════════════════════════════
+// ACERTO → WHATSAPP (Passo 5)
+// ═══════════════════════════════════════
+// Recalcula o acerto com as MESMAS regras do modal (agendamentos + avulsos,
+// QM/SQM manual com prioridade, fallback automático por nome de serviço)
+function calcularAcertoDados(profId, offset) {
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return null;
+  const periodo = calcularPeriodoAcerto(f, offset || 0);
+  const filtroData = (dataStr) => { const d = new Date(dataStr + 'T00:00:00'); return d >= periodo.inicio && d <= periodo.fim; };
+  const lanc = agendamentos.filter(a => a.profId === profId && a.status !== 'cancelado' && a.data && filtroData(a.data));
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    const p2 = key.split('_');
+    if (p2.length < 3 || parseInt(p2[2]) !== profId) return;
+    if (!filtroData(p2[0])) return;
+    const vTotal = valorDoAvulso(valor);
+    if (vTotal <= 0) return;
+    const e = { valor: vTotal, servicoIds: [] };
+    if (valor && typeof valor === 'object') { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
+    lanc.push(e);
+  });
+  const comValor = lanc.filter(a => typeof a.valor === 'number' && a.valor > 0);
+  let brutoQM = 0, brutoSQM = 0;
+  comValor.forEach(a => {
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) { brutoQM += a.valorQM || 0; brutoSQM += a.valorSQM || 0; return; }
+    const svcs = (a.servicoIds || []).map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+    const somenteQuimica = svcs.length > 0 && svcs.every(x => servicoTemQuimica(x.nome));
+    if (somenteQuimica) brutoQM += a.valor; else brutoSQM += a.valor;
+  });
+  const comQM = brutoQM * 0.45, comSQM = brutoSQM * 0.50;
+  const total = comQM + comSQM;
+  const vale = f.valeAcumulado || 0;
+  return { f, periodo, qtd: comValor.length, brutoQM, brutoSQM, comQM, comSQM, total, vale, liquido: total - vale };
+}
+
+function abrirWAAcerto(profId, offset) {
+  const d = calcularAcertoDados(profId, offset);
+  if (!d) { showToast('Profissional não encontrada'); return; }
+  let texto =
+    '*ACERTO — ' + d.f.nome + '*\n' +
+    'Período: ' + d.periodo.label + '\n' +
+    'Atendimentos: ' + d.qtd + '\n\n' +
+    'Com química: ' + formatarMoeda(d.brutoQM) + ' × 45% = ' + formatarMoeda(d.comQM) + '\n' +
+    'Sem química: ' + formatarMoeda(d.brutoSQM) + ' × 50% = ' + formatarMoeda(d.comSQM) + '\n' +
+    'Comissão total: ' + formatarMoeda(d.total) + '\n';
+  if (d.vale > 0) texto += 'Vales/adiantamentos: −' + formatarMoeda(d.vale) + '\n';
+  texto += '\n*A RECEBER: ' + formatarMoeda(d.liquido) + '*\n_Studio Elly Designer_';
+  let num = (d.f.fone || '').replace(/\D/g, '');
+  if (num && num.length <= 11) num = '55' + num;
+  window.open('https://wa.me/' + (num ? num : '') + '?text=' + encodeURIComponent(texto), '_blank');
+}
+
+function enviarAcertoWA() {
+  if (acertoProfAberto === null) return;
+  abrirWAAcerto(acertoProfAberto, acertoPeriodoOffset[acertoProfAberto] || 0);
+}
+
+function enviarMeuAcertoWA() {
+  abrirWAAcerto(currentUser, fatPeriodoOffset);
+}
+
+// ═══════════════════════════════════════
 // ACERTO POR PROFISSIONAL (caixinha do admin)
 // ═══════════════════════════════════════
 let acertoProfAberto = null;
@@ -2234,7 +2294,8 @@ function renderAcerto() {
     <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
   </div>`;
 
-  html += `<button class="btn btn-primary btn-full" style="margin-top:10px" onclick="zerarVale(${f.id})">✅ Marcar como acertado</button>`;
+  html += `<button class="btn btn-gold btn-full" style="margin-top:10px" onclick="enviarAcertoWA()">📲 Enviar acerto por WhatsApp</button>`;
+  html += `<button class="btn btn-primary btn-full" style="margin-top:8px" onclick="zerarVale(${f.id})">✅ Marcar como acertado</button>`;
 
   body.innerHTML = html;
 }
@@ -2431,6 +2492,7 @@ function renderFaturamento() {
         <div style="border-top:2px solid var(--rose-dark);margin:6px 0"></div>
         <div style="display:flex;justify-content:space-between;font-size:1rem;color:var(--rose-dark)"><span><strong>Valor a receber</strong></span><strong>${formatarMoeda(valorFinal)}</strong></div>
       </div>
+      <button class="btn btn-gold btn-full" style="margin-top:12px" onclick="enviarMeuAcertoWA()">📲 Enviar meu acerto</button>
     </div>`;
   }
 
@@ -2560,8 +2622,8 @@ function renderFaturamento() {
   }
 
   if (ehDono) {
-    html += `<button onclick="enviarRelatorio()" style="width:100%;padding:12px;background:var(--rose-dark);color:#fff;border:none;border-radius:12px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:14px">
-      📧 Enviar Relatório por E-mail
+    html += `<button onclick="enviarRelatorioWA()" style="width:100%;padding:12px;background:var(--rose-dark);color:#fff;border:none;border-radius:12px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:14px">
+      📲 Enviar Relatório por WhatsApp
     </button>`;
   }
   window._fatLista = lista;
@@ -2609,7 +2671,7 @@ function fatSelecionarProf(profId) {
 // ═══════════════════════════════════════
 // RELATÓRIO POR EMAIL
 // ═══════════════════════════════════════
-function enviarRelatorio() {
+function enviarRelatorioWA() {
   const lista = window._fatLista || [];
   if (lista.length === 0) { alert('Nenhum dado para enviar.'); return; }
 
@@ -2655,29 +2717,80 @@ function enviarRelatorio() {
     comparativo = (diff >= 0 ? '▲ +' : '▼ ') + diff + '% vs ' + baseAnt.toLocaleDateString('pt-BR', {month:'long'});
   }
 
-  const btn = event.target;
-  btn.textContent = '⏳ Enviando...';
-  btn.disabled = true;
-
-  emailjs.init('QccBS0xlQ2rAGkRcC');
-  emailjs.send('service_n5d9af9', 'template_odx09mi', {
-    mes: mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1),
-    total_geral: formatarMoeda(totalGeral),
-    total_elly: formatarMoeda(porProf[1] || 0),
-    total_denny: formatarMoeda(porProf[2] || 0),
-    total_lanna: formatarMoeda(porProf[3] || 0),
-    melhor_dia: melhorDia,
-    servico_top: svcTop,
-    total_atendimentos: lista.length,
-    comparativo: comparativo
-  }).then(() => {
-    btn.textContent = '✅ Relatório enviado!';
-    setTimeout(() => { btn.textContent = '📧 Enviar Relatório por E-mail'; btn.disabled = false; }, 3000);
-  }).catch(err => {
-    console.error(err);
-    btn.textContent = '❌ Erro ao enviar';
-    btn.disabled = false;
+  // ── Lista completa de serviços do mês (quantidade + valor) ──
+  // Valor por serviço: agendamento com vários serviços divide o valor igualmente entre eles
+  const svcDetalhe = {};
+  lista.filter(a => !a.isAvulso).forEach(a => {
+    const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
+    if (ids.length === 0) return;
+    const valorPorSvc = (a.valor || 0) / ids.length;
+    ids.forEach(id => {
+      if (!svcDetalhe[id]) svcDetalhe[id] = { qtd: 0, valor: 0 };
+      svcDetalhe[id].qtd += 1;
+      svcDetalhe[id].valor += valorPorSvc;
+    });
   });
+  const listaServicos = Object.entries(svcDetalhe)
+    .map(([id, d2]) => ({ nome: (SERVICOS.find(x => x.id === parseInt(id)) || {}).nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
+    .sort((a, b) => b.valor - a.valor)
+    .map(x => x.nome + ': ' + x.qtd + 'x — ' + formatarMoeda(x.valor))
+    .join('\n') || 'Nenhum serviço no mês';
+
+  // ── Avulsos separados dos agendamentos ──
+  const avulsos = lista.filter(a => a.isAvulso);
+  const totalAvulsos = avulsos.reduce((t, a) => t + a.valor, 0);
+  const totalAgendados = totalGeral - totalAvulsos;
+
+  // ── Despesas do mês e resultado ──
+  const despesasDoMes = DESPESAS.filter(d2 => {
+    if (!d2.data) return false;
+    const p2 = d2.data.split('-');
+    return parseInt(p2[0]) === anoAtual && (parseInt(p2[1]) - 1) === mesAtual;
+  }).reduce((t, d2) => t + (d2.valor || 0), 0);
+  const resultadoMes = totalGeral - despesasDoMes;
+
+  // ── Comissões a pagar (funcionárias, cálculo sobre o mês do relatório) ──
+  const linhasComissao = [];
+  FUNCIONARIOS.filter(f2 => ehFuncionarioComissao(f2)).forEach(f2 => {
+    let qm = 0, sqm = 0;
+    lista.filter(a => a.profId === f2.id).forEach(a => {
+      if (a.valorQM !== undefined || a.valorSQM !== undefined) { qm += a.valorQM || 0; sqm += a.valorSQM || 0; return; }
+      const svcs2 = (a.servicoIds || []).map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+      const soQuimica = svcs2.length > 0 && svcs2.every(x => servicoTemQuimica(x.nome));
+      if (soQuimica) qm += a.valor; else sqm += a.valor;
+    });
+    const com = qm * 0.45 + sqm * 0.50;
+    if (com > 0) linhasComissao.push(f2.nome + ': ' + formatarMoeda(com));
+  });
+  const comissoesAPagar = linhasComissao.length > 0 ? linhasComissao.join('\n') : 'Nenhuma funcionária no regime de comissão';
+
+  // ── Monta o relatório em texto e abre o WhatsApp do salão ──
+  const mesTitulo = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
+  const nomeStudio = getConfig('nome', 'Studio Elly Designer');
+
+  const linhasProf = FUNCIONARIOS
+    .map(f2 => f2.nome + ': ' + formatarMoeda(porProf[f2.id] || 0))
+    .join('\n');
+
+  let texto =
+    '*RELATÓRIO — ' + mesTitulo + '*\n' +
+    '_' + nomeStudio + '_\n\n' +
+    '*Faturamento bruto:* ' + formatarMoeda(totalGeral) + '\n' +
+    'Agendamentos: ' + formatarMoeda(totalAgendados) + '\n' +
+    'Avulsos (' + avulsos.length + 'x): ' + formatarMoeda(totalAvulsos) + '\n' +
+    'Atendimentos: ' + lista.length + '\n' +
+    'Comparativo: ' + comparativo + '\n' +
+    'Melhor dia: ' + melhorDia + '\n' +
+    'Serviço top: ' + svcTop + '\n\n' +
+    '*Por profissional:*\n' + linhasProf + '\n\n' +
+    '*Serviços do mês:*\n' + listaServicos + '\n\n' +
+    '*Despesas:* −' + formatarMoeda(despesasDoMes) + '\n' +
+    '*Resultado aproximado:* ' + formatarMoeda(resultadoMes) + '\n\n' +
+    '*Comissões a pagar:*\n' + comissoesAPagar;
+
+  let num = String(getConfig('whatsapp', '')).replace(/\D/g, '');
+  if (num && num.length <= 11) num = '55' + num;
+  window.open('https://wa.me/' + (num ? num : '') + '?text=' + encodeURIComponent(texto), '_blank');
 }
 
 // ═══════════════════════════════════════
@@ -3583,6 +3696,10 @@ function editarProfissional(id) {
         </select>
       </div>
       <div class="form-group" style="margin:0">
+        <label>WhatsApp da profissional (para envio do acerto)</label>
+        <input type="tel" id="ep-fone" value="${prof.fone||''}" placeholder="(98) 9XXXX-XXXX">
+      </div>
+      <div class="form-group" style="margin:0">
         <label>Dia de corte</label>
         <input type="number" id="ep-dia-corte" min="1" max="31" value="${prof.diaCorte||1}" placeholder="Ex: 1, 15...">
         <div style="font-size:0.72rem;color:var(--mid);margin-top:2px">Dia do mês em que o período começa a contar (semanal/quinzenal usa como referência inicial). Só tem efeito para funcionárias.</div>
@@ -3605,8 +3722,10 @@ async function salvarProfissional(id) {
   prof.nome = novoNome; prof.emoji = novoEmoji||'💅'; prof.cor = novaCor;
   const elPeriodicidade = document.getElementById('ep-periodicidade');
   const elDiaCorte = document.getElementById('ep-dia-corte');
+  const elFoneProf = document.getElementById('ep-fone');
   if (elPeriodicidade) prof.periodicidade = elPeriodicidade.value;
   if (elDiaCorte) prof.diaCorte = Math.min(31, Math.max(1, parseInt(elDiaCorte.value) || 1));
+  if (elFoneProf) prof.fone = elFoneProf.value.trim();
   document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
