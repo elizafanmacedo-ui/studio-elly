@@ -186,6 +186,8 @@ input.slot-valor-input:focus { outline:none !important; }
 .qmsqm-fechada { min-height:0; line-height:1.2; }
 .qmsqm-soma { font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
 .qmsqm-soma.zerada { color:var(--mid); opacity:0.5; font-weight:600; }
+.avulso-desc-tap { flex:1 1 auto; min-width:0; padding:0 6px; font-size:0.72rem; font-style:italic; color:var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; text-align:left; }
+.avulso-desc-tap.vazia { color:var(--mid); opacity:0.45; }
 
 /* ── LISTAS ── */
 .list-item { display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:16px; margin-bottom:8px; background:linear-gradient(150deg,#fff,var(--light)); box-shadow:0 6px 16px rgba(58,34,39,.1); }
@@ -565,14 +567,18 @@ input.slot-valor-input:focus { outline:none !important; }
 </div>
 
 <!-- ═══════════ FAB ═══════════ -->
-<button class="fab" id="fab-agendamento" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
+<button class="fab" id="fab-agendamento" onclick="openModal('modal-novo-agendamento');setModoAvulso(false)" title="Novo agendamento">+</button>
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="na-modal-titulo">📅 Novo Agendamento</div>
-    <div class="form-group" style="position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div class="modal-title" id="na-modal-titulo" style="margin-bottom:0">📅 Novo Agendamento</div>
+      <button class="btn btn-ghost btn-sm" id="na-btn-avulso" onclick="toggleModoAvulso()" style="white-space:nowrap">⚡ Avulso</button>
+    </div>
+    <div style="height:12px"></div>
+    <div class="form-group na-so-agendamento" style="position:relative">
       <label>Cliente cadastrada (opcional)</label>
       <input type="text" id="na-busca-cliente" placeholder="Buscar cliente..." autocomplete="off"
         oninput="filtrarClientesDropdown()" onfocus="filtrarClientesDropdown()"
@@ -581,11 +587,11 @@ input.slot-valor-input:focus { outline:none !important; }
       <div id="na-clientes-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--rose-light);border-radius:10px;max-height:200px;overflow-y:auto;z-index:9999;box-shadow:0 8px 20px rgba(58,34,39,.15);margin-top:2px;overscroll-behavior:contain" ontouchmove="event.stopPropagation()"></div>
       <input type="hidden" id="na-cliente-cadastrada" value="">
     </div>
-    <div class="form-group">
+    <div class="form-group na-so-agendamento">
       <label>Nome da Cliente *</label>
       <input type="text" id="na-cliente" placeholder="Nome completo..." oninput="renderHistoricoServico()">
     </div>
-    <div class="form-group">
+    <div class="form-group na-so-agendamento">
       <label>WhatsApp (opcional)</label>
       <input type="tel" id="na-fone" placeholder="(98) 9XXXX-XXXX">
     </div>
@@ -608,7 +614,7 @@ input.slot-valor-input:focus { outline:none !important; }
       <label>Horário *</label>
       <input type="time" id="na-hora" value="09:00">
     </div>
-    <div class="form-group">
+    <div class="form-group na-so-agendamento">
       <label>Observações</label>
       <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
     </div>
@@ -838,10 +844,18 @@ function ehFuncionarioComissao(prof) {
   return !!prof && prof.id !== 1 && prof.tipo === 'funcionario';
 }
 
-// Lançamento avulso pode ser número (formato antigo / sócias) ou objeto {qm, sqm} (funcionárias)
+// Lançamento avulso pode ser: número (formato antigo), {valor, desc} (sócias) ou {qm, sqm, desc} (funcionárias)
 function valorDoAvulso(v) {
-  if (v && typeof v === 'object') return (parseFloat(v.qm) || 0) + (parseFloat(v.sqm) || 0);
+  if (v && typeof v === 'object') return (parseFloat(v.valor) || 0) + (parseFloat(v.qm) || 0) + (parseFloat(v.sqm) || 0);
   return (typeof v === 'number' ? v : parseFloat(v)) || 0;
+}
+
+function descDoAvulso(v) {
+  return (v && typeof v === 'object' && v.desc) ? String(v.desc) : '';
+}
+
+function escHtml(t) {
+  return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ═══════════════════════════════════════
@@ -1032,16 +1046,22 @@ async function loadLancamentosAvulsos() {
 
 async function salvarLancamentoAvulso(key, hora, valorStr) {
   const valor = parseFloat(valorStr);
-  if (isNaN(valor) || valor <= 0) {
+  const desc = descDoAvulso(lancamentosAvulsos[key]);
+  if ((isNaN(valor) || valor <= 0) && !desc) {
     delete lancamentosAvulsos[key];
     await fbFetch('/lancamentos/' + key + '.json', { method:'DELETE' });
   } else {
-    lancamentosAvulsos[key] = valor;
-    await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(valor) });
+    const sidsAtuais = (lancamentosAvulsos[key] && typeof lancamentosAvulsos[key] === 'object' && Array.isArray(lancamentosAvulsos[key].sids)) ? lancamentosAvulsos[key].sids : null;
+    let novo;
+    if (desc) { novo = { valor: (isNaN(valor) || valor <= 0) ? 0 : valor, desc }; if (sidsAtuais) novo.sids = sidsAtuais; }
+    else { novo = valor; }
+    lancamentosAvulsos[key] = novo;
+    await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo) });
   }
   renderTimeline();
   renderFinanceiroSeAberto();
 }
+
 
 // Versão QM/SQM do lançamento avulso (funcionárias). Grava {qm, sqm} no mesmo nó /lancamentos.
 async function salvarLancamentoAvulsoQmSqm(key) {
@@ -1051,11 +1071,15 @@ async function salvarLancamentoAvulsoQmSqm(key) {
   const qm = parseFloat(qmInput.value) || 0;
   const sqm = parseFloat(sqmInput.value) || 0;
   const total = qm + sqm;
-  if (total <= 0) {
+  const desc = descDoAvulso(lancamentosAvulsos[key]);
+  if (total <= 0 && !desc) {
     delete lancamentosAvulsos[key];
     await fbFetch('/lancamentos/' + key + '.json', { method:'DELETE' });
   } else {
     const obj = { qm, sqm };
+    if (desc) obj.desc = desc;
+    const atualObj = lancamentosAvulsos[key];
+    if (atualObj && typeof atualObj === 'object' && Array.isArray(atualObj.sids)) obj.sids = atualObj.sids;
     lancamentosAvulsos[key] = obj;
     await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj) });
   }
@@ -1578,7 +1602,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo4b · 29/07/2026';
+const APP_VERSAO = 'passo4e-avulso · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2066,7 +2090,8 @@ function renderAcerto() {
     if (!filtroData(p[0])) return;
     const vTotal = valorDoAvulso(valor);
     if (vTotal <= 0) return;
-    const e = { id:'av_'+key, data:p[0], hora:p[1], profId:f.id, valor:vTotal, nomeCliente:'(avulso)', servicoIds:[], isAvulso:true, status:'atendido' };
+    const d = descDoAvulso(valor);
+    const e = { id:'av_'+key, data:p[0], hora:p[1], profId:f.id, valor:vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds:[], isAvulso:true, status:'atendido' };
     if (valor && typeof valor === 'object') { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
     lancamentos.push(e);
   });
@@ -2242,7 +2267,8 @@ function renderFaturamento() {
     if (partes.length < 3) return;
     const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
     if (filtroData(data)) {
-      const entry = { data, hora, profId, valor: vTotal, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true };
+      const d = descDoAvulso(valor);
+      const entry = { data, hora, profId, valor: vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds: [], isAvulso: true };
       if (valor && typeof valor === 'object') { entry.valorQM = parseFloat(valor.qm) || 0; entry.valorSQM = parseFloat(valor.sqm) || 0; }
       avulsosDoMes.push(entry);
     }
@@ -2969,8 +2995,10 @@ function renderTimeline() {
       const avulsoQmSqm = ehFuncionarioComissao(profAtivo); // funcionária: avulso também divide QM/SQM
       const qmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.qm > 0) ? lancBruto.qm : '';
       const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
+      const descAv = descDoAvulso(lancBruto);
       rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
         <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
+        <span class="avulso-desc-tap ${descAv ? '' : 'vazia'}" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">${descAv ? escHtml(descAv) : 'serviço...'}</span>
         ${!avulsoQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
@@ -3058,8 +3086,51 @@ function renderTimeline() {
   }
 }
 
+// ═══════════════════════════════════════
+// MODO AVULSO no modal de agendamento
+// ═══════════════════════════════════════
+let modoAvulso = false;
+
+function setModoAvulso(ligado) {
+  modoAvulso = ligado;
+  document.querySelectorAll('#modal-novo-agendamento .na-so-agendamento').forEach(el => el.style.display = ligado ? 'none' : '');
+  const titulo = document.getElementById('na-modal-titulo');
+  const btnSalvar = document.getElementById('na-btn-salvar');
+  const btnAvulso = document.getElementById('na-btn-avulso');
+  if (titulo) titulo.textContent = ligado ? '⚡ Lançamento Avulso' : '📅 Novo Agendamento';
+  if (btnSalvar) btnSalvar.textContent = ligado ? 'Salvar Avulso' : 'Confirmar Agendamento';
+  if (btnAvulso) {
+    btnAvulso.style.background = ligado ? 'var(--rose-dark)' : '';
+    btnAvulso.style.color = ligado ? '#fff' : '';
+    btnAvulso.textContent = ligado ? '⚡ Avulso ✓' : '⚡ Avulso';
+  }
+}
+
+function toggleModoAvulso() { setModoAvulso(!modoAvulso); }
+
+// Toque na descrição do slot vazio: abre a lista de serviços (modal em modo avulso)
+function abrirAvulsoSlot(hora) {
+  openModal('modal-novo-agendamento');
+  setModoAvulso(true);
+  populateSelects();
+  setTimeout(() => {
+    document.getElementById('na-hora').value = hora;
+    document.getElementById('na-data').value = selectedDate;
+    document.getElementById('na-profissional').value = activeProfId;
+    const key = selectedDate + '_' + hora + '_' + activeProfId;
+    const atual = lancamentosAvulsos[key];
+    const sids = (atual && typeof atual === 'object' && Array.isArray(atual.sids)) ? atual.sids : [];
+    const nomes = descDoAvulso(atual).split(' + ');
+    document.querySelectorAll('.svc-check').forEach(c => {
+      const svc = SERVICOS.find(x => x.id === parseInt(c.value));
+      c.checked = sids.includes(parseInt(c.value)) || (svc && nomes.includes(svc.nome));
+    });
+  }, 150);
+}
+
 function abrirSlot(hora) {
   openModal('modal-novo-agendamento');
+  setModoAvulso(false);
   setTimeout(() => {
     document.getElementById('na-hora').value = hora;
     document.getElementById('na-data').value = selectedDate;
@@ -3124,6 +3195,7 @@ function editarAgendamento() {
   if (!a) return;
   editingApptId = viewingApptId;
   closeModal('modal-ver-agendamento');
+  setModoAvulso(false);
   document.getElementById('na-modal-titulo').textContent = '✏️ Editar Agendamento';
   document.getElementById('na-btn-salvar').textContent = 'Salvar Alterações';
   document.getElementById('na-cliente').value = a.nomeCliente;
@@ -3175,7 +3247,45 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   return { clienteId: novoCliente.id, precisaConfirmar: false };
 }
 
-function salvarAgendamento() {
+async function salvarAgendamento() {
+  // ── MODO AVULSO: grava em /lancamentos, sem criar agendamento nem cliente ──
+  if (modoAvulso) {
+    const servicoIdsAv = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
+    const profIdAv = parseInt(document.getElementById('na-profissional').value);
+    const dataAv = document.getElementById('na-data').value;
+    const horaAv = document.getElementById('na-hora').value;
+    if (servicoIdsAv.length === 0 || !profIdAv || !dataAv || !horaAv) {
+      showToast('Escolha serviço, profissional, data e horário'); return;
+    }
+    const svcsAv = servicoIdsAv.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+    const desc = svcsAv.map(x => x.nome).join(' + ');
+    const profAv = FUNCIONARIOS.find(x => x.id === profIdAv);
+    const key = dataAv + '_' + horaAv + '_' + profIdAv;
+    const existente = lancamentosAvulsos[key];
+
+    // O valor NUNCA é preenchido automaticamente: começa em R$0 e é digitado no slot.
+    // Se o slot já tinha valor digitado, ele é preservado — só a descrição é atualizada.
+    let novo;
+    if (ehFuncionarioComissao(profAv)) {
+      if (existente && typeof existente === 'object') {
+        novo = { qm: parseFloat(existente.qm) || 0, sqm: parseFloat(existente.sqm) || 0, desc, sids: servicoIdsAv };
+      } else {
+        novo = { qm: 0, sqm: 0, desc, sids: servicoIdsAv };
+      }
+    } else {
+      novo = { valor: valorDoAvulso(existente), desc, sids: servicoIdsAv };
+    }
+
+    lancamentosAvulsos[key] = novo;
+    await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo) });
+    closeModal('modal-novo-agendamento');
+    setModoAvulso(false);
+    document.querySelectorAll('.svc-check:checked').forEach(c => c.checked = false);
+    selectedDate = dataAv; renderWeek(); renderTimeline(); renderFinanceiroSeAberto();
+    showToast('⚡ Avulso lançado! Agora digite o valor no slot.');
+    return;
+  }
+
   let clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
   const fone = document.getElementById('na-fone').value.trim();
