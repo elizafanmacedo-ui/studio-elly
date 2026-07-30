@@ -171,6 +171,17 @@ textarea { resize:vertical; min-height:80px; }
 .slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
 .slot-valor-input { width:52px; border:none; background:transparent; font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
 .slot-valor-input:focus { outline:none; }
+/* QM/SQM (Etapa 3 da migração) — caixinha de valor com/sem química para funcionárias */
+.qmsqm-box { position:relative; flex-shrink:0; }
+.qmsqm-fechada { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; cursor:pointer; }
+.qmsqm-expandida { display:none; position:absolute; top:-4px; right:0; z-index:60; background:white; border:2px solid var(--rose); border-radius:8px; padding:5px; box-shadow:0 4px 14px rgba(126,78,87,0.25); width:100px; }
+.qmsqm-expandida.aberta { display:block; }
+.qmsqm-campo { display:flex; align-items:center; gap:3px; border:1px solid var(--rose-light); border-radius:6px; padding:2px 5px; background:var(--light); margin-bottom:4px; }
+.qmsqm-campo:last-child { margin-bottom:0; }
+.qmsqm-sigla { font-size:0.6rem; font-weight:800; color:var(--rose-dark); flex-shrink:0; }
+.qmsqm-sigla.escondida { display:none; }
+.qmsqm-campo input { width:100%; border:none; background:transparent; font-size:0.8rem; text-align:right; padding:1px 0; }
+.qmsqm-campo input:focus { outline:none; }
 
 /* ── LISTAS ── */
 .list-item { display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:16px; margin-bottom:8px; background:linear-gradient(150deg,#fff,var(--light)); box-shadow:0 6px 16px rgba(58,34,39,.1); }
@@ -308,6 +319,15 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ MODAL SENHA ═══════════ -->
+<!-- ═══════════ MODAL: ACERTO POR PROFISSIONAL (Etapa 4 da migração) ═══════════ -->
+<div class="modal-bg" id="modal-acerto" style="z-index:650">
+  <div class="modal" style="padding-bottom:24px">
+    <div class="modal-handle"></div>
+    <div id="acerto-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="fecharAcerto()">Fechar</button>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-senha" style="z-index:600">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -733,8 +753,8 @@ textarea { resize:vertical; min-height:80px; }
 // ═══════════════════════════════════════
 const FUNCIONARIOS_PADRAO = [
   { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
-  { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos' },
-  { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza' },
+  { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos', tipo:'socio', periodicidade:'quinzenal', diaCorte:1 },
+  { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza', tipo:'socio', periodicidade:'quinzenal', diaCorte:1 },
 ];
 let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
@@ -761,6 +781,57 @@ const SERVICOS_PADRAO = [
 ];
 
 let SERVICOS = [...SERVICOS_PADRAO];
+
+// ═══════════════════════════════════════
+// MOTOR DE COMISSÃO (Etapa 1 da migração)
+// ═══════════════════════════════════════
+const SERVICOS_QUIMICA_REF = [
+  'hidratacao profunda','spa capilar','nutricao capilar','reconstrucao capilar',
+  'luzes','mechas','balayage','morena iluminada','ombre hair','descoloracao',
+  'wella','matizacao','tonalizante','selagem','progressiva','botox capilar',
+  'cauterizacao','relaxamento','alisamento','permanente','cachos quimicos',
+  'micropigmentacao','coloracao','tintura','retoque de raiz'
+];
+
+function servicoTemQuimica(nomeServico) {
+  const n = normalizarTexto(nomeServico);
+  return SERVICOS_QUIMICA_REF.some(ref => n.includes(ref));
+}
+
+// Calcula o período de acerto atual do profissional, com offset (0 = período atual,
+// -1 = período anterior, +1 = próximo), baseado na periodicidade e dia de corte definidos pelo admin
+function calcularPeriodoAcerto(prof, offset = 0) {
+  const periodicidade = prof.periodicidade || 'quinzenal';
+  const diaCorte = prof.diaCorte || 1;
+  const hoje = new Date();
+
+  if (periodicidade === 'mensal') {
+    const base = new Date(hoje.getFullYear(), hoje.getMonth() + offset, diaCorte);
+    const inicio = new Date(base);
+    const fim = new Date(base.getFullYear(), base.getMonth() + 1, diaCorte - 1);
+    return { inicio, fim, label: inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' a ' + fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) };
+  }
+
+  const duracaoDias = periodicidade === 'semanal' ? 7 : 15;
+  const anoRef = new Date(hoje.getFullYear(), 0, diaCorte);
+  const diffDias = Math.floor((hoje - anoRef) / 86400000);
+  const cicloAtual = Math.floor(diffDias / duracaoDias);
+  const inicio = new Date(anoRef);
+  inicio.setDate(inicio.getDate() + (cicloAtual + offset) * duracaoDias);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + duracaoDias - 1);
+  return { inicio, fim, label: inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' a ' + fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) };
+}
+
+function percentualComissao(nomeServico) {
+  return servicoTemQuimica(nomeServico) ? 0.45 : 0.50;
+}
+
+// Helper central: só é tratado como funcionário quem foi explicitamente marcado.
+// Elly (admin) e qualquer perfil sem marcação contam como sócio → nada muda no app.
+function ehFuncionarioComissao(prof) {
+  return !!prof && prof.id !== 1 && prof.tipo === 'funcionario';
+}
 
 // ═══════════════════════════════════════
 // FIREBASE
@@ -896,6 +967,8 @@ let syncInterval = null;
 
 // --- AGENDAMENTOS ---
 async function loadFromFirebase() {
+  // Não re-renderizar enquanto alguém digita vale ou QM/SQM (o re-render apagaria a digitação)
+  if (window.valeEmEdicao || window.valorAgendamentoEmEdicao || qmSqmAberta) return;
   try {
     const res = await fbFetch('/agendamentos.json');
     const data = await res.json();
@@ -1307,6 +1380,8 @@ async function loadEquipeFirebase() {
       }
       if (lista.length > 0) {
         FUNCIONARIOS = lista;
+        // Migração (Etapa 2): quem não tem tipo definido é sócio → comportamento atual preservado
+        FUNCIONARIOS.forEach(f => { if (f.id !== 1 && !f.tipo) { f.tipo = 'socio'; f.periodicidade = f.periodicidade || 'quinzenal'; f.diaCorte = f.diaCorte || 1; } });
       } else {
         FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
         await salvarEquipeFirebase();
@@ -1803,6 +1878,59 @@ function alterarStatus(novoStatus) {
 // ═══════════════════════════════════════
 // VALOR (campo para uso futuro — não remover)
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// QM/SQM (Etapa 3 da migração) — só aparece para funcionárias
+// ═══════════════════════════════════════
+let qmSqmAberta = null;
+
+function toggleQmSqm(apptId) {
+  const el = document.getElementById('expandida-' + apptId);
+  if (!el) return;
+  if (qmSqmAberta && qmSqmAberta !== apptId) {
+    const anterior = document.getElementById('expandida-' + qmSqmAberta);
+    if (anterior) anterior.classList.remove('aberta');
+  }
+  el.classList.toggle('aberta');
+  qmSqmAberta = el.classList.contains('aberta') ? apptId : null;
+}
+
+function esconderSiglaQmSqm(apptId, tipo) {
+  window.valorAgendamentoEmEdicao = true;
+  const sigla = document.getElementById('sigla-' + tipo + '-' + apptId);
+  if (sigla) sigla.classList.add('escondida');
+}
+
+function restaurarSiglaQmSqm(apptId, tipo) {
+  window.valorAgendamentoEmEdicao = false;
+  const input = document.getElementById('input-' + tipo + '-' + apptId);
+  const sigla = document.getElementById('sigla-' + tipo + '-' + apptId);
+  if (sigla && input && input.value === '') sigla.classList.remove('escondida');
+}
+
+async function salvarValorQmSqm(apptId) {
+  const a = agendamentos.find(x => x.id === apptId);
+  if (!a) return;
+  const qmInput = document.getElementById('input-qm-' + apptId);
+  const sqmInput = document.getElementById('input-sqm-' + apptId);
+  const qm = parseFloat(qmInput.value) || 0;
+  const sqm = parseFloat(sqmInput.value) || 0;
+  a.valorQM = qmInput.value === '' ? null : qm;
+  a.valorSQM = sqmInput.value === '' ? null : sqm;
+  a.valor = qm + sqm;
+  const somaEl = document.getElementById('soma-' + apptId);
+  if (somaEl) somaEl.textContent = a.valor;
+  await saveAgendamento(a.id, a);
+  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
+}
+
+document.addEventListener('click', (e) => {
+  if (qmSqmAberta && !e.target.closest('.qmsqm-box')) {
+    const el = document.getElementById('expandida-' + qmSqmAberta);
+    if (el) el.classList.remove('aberta');
+    qmSqmAberta = null;
+  }
+});
+
 function salvarValorAgendamento(id, valor) {
   const a = agendamentos.find(x => x.id === id);
   if (!a) return;
@@ -1817,39 +1945,255 @@ function salvarValorAgendamento(id, valor) {
 // ═══════════════════════════════════════
 let fatMesOffset = 0;
 
-function moveMesFaturamento(delta) { fatMesOffset += delta; if (finAbaAtiva === 'despesas') renderDespesasFinanceiro(); else renderFaturamento(); }
+let fatPeriodoOffset = 0; // navegação por período de acerto (funcionárias)
+
+function moveMesFaturamento(delta) {
+  const prof = FUNCIONARIOS.find(f => f.id === currentUser);
+  if (ehFuncionarioComissao(prof) && currentUser !== 1) { fatPeriodoOffset += delta; }
+  else { fatMesOffset += delta; }
+  if (finAbaAtiva === 'despesas') renderDespesasFinanceiro(); else renderFaturamento();
+}
+
+async function lancarVale(profId) {
+  const input = document.getElementById('vale-valor-' + profId);
+  const valor = parseFloat(input.value);
+  if (!valor || valor <= 0) { showToast('Digite um valor válido'); return; }
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  f.valeAcumulado = (f.valeAcumulado || 0) + valor;
+  f.valesHistorico = f.valesHistorico || [];
+  f.valesHistorico.push({ data: today(), valor, zerado: false });
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  showToast('✅ Vale registrado!');
+}
+
+async function zerarVale(profId) {
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  if (!confirm(`Confirma que o acerto de ${f.nome} foi feito e o vale de ${formatarMoeda(f.valeAcumulado||0)} deve ser zerado?`)) return;
+  (f.valesHistorico || []).forEach(v => { if (!v.zerado) v.zerado = true; });
+  f.valeAcumulado = 0;
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  if (acertoProfAberto === profId) renderAcerto();
+  showToast('✅ Acerto marcado, vale zerado!');
+}
+
+// ═══════════════════════════════════════
+// ACERTO POR PROFISSIONAL (caixinha do admin)
+// ═══════════════════════════════════════
+let acertoProfAberto = null;
+let acertoPeriodoOffset = {};
+
+function abrirAcerto(profId) {
+  acertoProfAberto = profId;
+  if (acertoPeriodoOffset[profId] === undefined) acertoPeriodoOffset[profId] = 0;
+  renderAcerto();
+  document.getElementById('modal-acerto').classList.add('open');
+}
+
+function fecharAcerto() {
+  document.getElementById('modal-acerto').classList.remove('open');
+  acertoProfAberto = null;
+}
+
+function moveAcertoPeriodo(delta) {
+  if (acertoProfAberto === null) return;
+  acertoPeriodoOffset[acertoProfAberto] = (acertoPeriodoOffset[acertoProfAberto] || 0) + delta;
+  renderAcerto();
+}
+
+
+function renderAcerto() {
+  const body = document.getElementById('acerto-body');
+  if (!body || acertoProfAberto === null) return;
+  const f = FUNCIONARIOS.find(x => x.id === acertoProfAberto);
+  if (!f) return;
+
+  const offset = acertoPeriodoOffset[acertoProfAberto] || 0;
+  const periodo = calcularPeriodoAcerto(f, offset);
+  const filtroData = (dataStr) => {
+    const d = new Date(dataStr + 'T00:00:00');
+    return d >= periodo.inicio && d <= periodo.fim;
+  };
+
+  const lancamentos = agendamentos.filter(a => {
+    if (a.profId !== f.id) return false;
+    if (a.status === 'cancelado') return false;
+    if (!a.data) return false;
+    return filtroData(a.data);
+  }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+  const comValor = lancamentos.filter(a => typeof a.valor === 'number' && a.valor > 0);
+  const semValor = lancamentos.filter(a => !(typeof a.valor === 'number' && a.valor > 0));
+
+  let brutoComQuimica = 0, brutoSemQuimica = 0;
+  comValor.forEach(a => {
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+      brutoComQuimica += a.valorQM || 0;
+      brutoSemQuimica += a.valorSQM || 0;
+      return;
+    }
+    const idsServicos = a.servicoIds || [];
+    const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+    const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
+    if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+  });
+
+  const comissaoComQuimica = brutoComQuimica * 0.45;
+  const comissaoSemQuimica = brutoSemQuimica * 0.50;
+  const comissaoTotal = comissaoComQuimica + comissaoSemQuimica;
+  const valeAcumulado = f.valeAcumulado || 0;
+  const valorFinal = comissaoTotal - valeAcumulado;
+
+  const ultimoAcerto = (f.valesHistorico || []).filter(v => v.zerado).slice(-1)[0];
+
+  const tagLancamento = (a) => {
+    if (!(typeof a.valor === 'number' && a.valor > 0)) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#fff3d6;color:#8a6100">sem valor</span>`;
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+      if ((a.valorQM||0) > 0 && (a.valorSQM||0) > 0) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--rose-light);color:var(--rose-dark)">QM+SQM</span>`;
+      if ((a.valorQM||0) > 0) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#fbe2e2;color:#a13a3a">QM</span>`;
+      return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#e0f0e0;color:#2f7a3f">SQM</span>`;
+    }
+    return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--light);color:var(--mid)">auto</span>`;
+  };
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--rose-light);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${f.emoji||'👤'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:1rem">${f.nome}</div>
+        <div style="font-size:0.75rem;color:var(--mid)">${(f.periodicidade||'quinzenal').charAt(0).toUpperCase()+(f.periodicidade||'quinzenal').slice(1)} · corte dia ${f.diaCorte||1}${ultimoAcerto?' · último acerto '+formatDate(ultimoAcerto.data):''}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" onclick="moveAcertoPeriodo(-1)">‹</button>
+      <div style="font-weight:700;font-size:0.9rem">${periodo.label}</div>
+      <button class="btn btn-ghost btn-sm" onclick="moveAcertoPeriodo(1)">›</button>
+    </div>
+
+    <div style="font-size:0.75rem;color:var(--mid);margin-bottom:6px">Lançamentos (${lancamentos.length})</div>
+    <div style="max-height:180px;overflow-y:auto;margin-bottom:14px">`;
+
+  if (lancamentos.length === 0) {
+    html += `<div style="text-align:center;color:var(--mid);padding:14px 0;font-size:0.82rem">Nenhum lançamento neste período</div>`;
+  } else {
+    lancamentos.forEach(a => {
+      const svcs = (a.servicoIds||[]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ') || '—';
+      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--light)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.82rem;font-weight:600">${formatDate(a.data)} · ${svcs}</div>
+          <div style="font-size:0.72rem;color:var(--mid)">${a.nomeCliente||'—'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          ${tagLancamento(a)}
+          <div style="font-size:0.82rem;font-weight:700;margin-top:3px">${a.valor?formatarMoeda(a.valor):'—'}</div>
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  if (semValor.length > 0) {
+    html += `<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fff9ed;border-radius:8px;margin-bottom:12px">
+      <span style="font-size:0.9rem">⚠️</span>
+      <span style="font-size:0.75rem;color:#8a6100">${semValor.length} lançamento${semValor.length!==1?'s':''} sem valor — não entra${semValor.length!==1?'m':''} no cálculo</span>
+    </div>`;
+  }
+
+  html += `<div style="font-size:0.75rem;color:var(--mid);margin-bottom:6px">Cálculo</div>`;
+
+  html += `<div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:5px"><span>Bruto QM</span><strong>${formatarMoeda(brutoComQuimica)}</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-top:5px;border-top:1px dashed var(--rose-light)"><span>× 45%</span><strong style="color:var(--rose-dark)">${formatarMoeda(comissaoComQuimica)}</strong></div>
+  </div>
+  <div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:5px"><span>Bruto SQM</span><strong>${formatarMoeda(brutoSemQuimica)}</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-top:5px;border-top:1px dashed var(--rose-light)"><span>× 50%</span><strong style="color:var(--rose-dark)">${formatarMoeda(comissaoSemQuimica)}</strong></div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--rose-light);border-radius:10px;margin-bottom:8px">
+    <span style="font-size:0.85rem">Comissão total</span>
+    <strong style="color:var(--rose-dark)">${formatarMoeda(comissaoTotal)}</strong>
+  </div>`;
+
+  if (valeAcumulado > 0) {
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#fbe2e2;border-radius:10px;margin-bottom:10px">
+      <span style="font-size:0.85rem;color:#a13a3a">− Vale</span>
+      <strong style="color:#a13a3a">${formatarMoeda(valeAcumulado)}</strong>
+    </div>`;
+  }
+
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#e0f0e0;border-radius:10px;margin-bottom:14px">
+    <span style="font-size:0.85rem;color:#2f7a3f">Valor líquido a pagar</span>
+    <strong style="color:#2f7a3f;font-size:1.15rem">${formatarMoeda(valorFinal)}</strong>
+  </div>`;
+
+  html += `<div style="display:flex;gap:6px">
+    <input type="number" inputmode="decimal" id="vale-valor-${f.id}" placeholder="Novo vale" onfocus="window.valeEmEdicao=true" onblur="window.valeEmEdicao=false" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+    <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
+  </div>`;
+
+  html += `<button class="btn btn-primary btn-full" style="margin-top:10px" onclick="zerarVale(${f.id})">✅ Marcar como acertado</button>`;
+
+  body.innerHTML = html;
+}
 
 function renderFaturamento() {
-  const base = new Date();
-  base.setDate(1);
-  base.setMonth(base.getMonth() + fatMesOffset);
-  const ano = base.getFullYear();
-  const mes = base.getMonth();
-  const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
-  const lbl = document.getElementById('fat-mes-label');
-  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
-
   const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
-  // Agendamentos do mês com valor (exceto cancelado)
+  const profLogado = FUNCIONARIOS.find(f => f.id === currentUser);
+  const usaPeriodoAcerto = !ehDono && ehFuncionarioComissao(profLogado); // sócias continuam navegando por mês, como hoje
+
+  let ano, mes, mesLabel, filtroData;
+  if (usaPeriodoAcerto) {
+    const periodo = calcularPeriodoAcerto(profLogado, fatPeriodoOffset);
+    mesLabel = periodo.label;
+    filtroData = (dataStr) => {
+      const d = new Date(dataStr + 'T00:00:00');
+      return d >= periodo.inicio && d <= periodo.fim;
+    };
+  } else {
+    const base = new Date();
+    base.setDate(1);
+    base.setMonth(base.getMonth() + fatMesOffset);
+    ano = base.getFullYear();
+    mes = base.getMonth();
+    mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+    filtroData = (dataStr) => {
+      const partes = dataStr.split('-');
+      return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes;
+    };
+  }
+  const lbl = document.getElementById('fat-mes-label');
+  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
+
+  // Agendamentos do período com valor (exceto cancelado)
   const doMes = agendamentos.filter(a => {
     if (a.status === 'cancelado') return false;
     if (!a.data) return false;
-    const partes = a.data.split('-');
-    return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes && typeof a.valor === 'number' && a.valor > 0;
+    return filtroData(a.data) && typeof a.valor === 'number' && a.valor > 0;
   }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
 
-  // Lançamentos avulsos do mês
+  // Agendamentos do período SEM valor (aviso para funcionárias — não entra no cálculo)
+  const semValorDoMes = agendamentos.filter(a => {
+    if (a.status === 'cancelado') return false;
+    if (!a.data) return false;
+    return filtroData(a.data) && (typeof a.valor !== 'number' || a.valor <= 0);
+  });
+
+  // Lançamentos avulsos do período
   const avulsosDoMes = [];
   Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
     if (!valor || valor <= 0) return;
     const partes = key.split('_');
     if (partes.length < 3) return;
     const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
-    const kp = data.split('-');
-    if (parseInt(kp[0]) === ano && (parseInt(kp[1]) - 1) === mes) {
+    if (filtroData(data)) {
       avulsosDoMes.push({ data, hora, profId, valor, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true });
     }
   });
@@ -1938,6 +2282,100 @@ function renderFaturamento() {
     });
   }
   html += `</div>`;
+
+  // ═══ Sua Comissão (Etapa 5) — só para funcionárias; sócias seguem vendo o app como hoje ═══
+  if (usaPeriodoAcerto) {
+    const pendentesDoUsuario = semValorDoMes.filter(a => a.profId === currentUser);
+    if (pendentesDoUsuario.length > 0) {
+      html += `<div class="card" style="margin-bottom:14px;border:2px solid #e0a030;background:#fff9ed">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.3rem">⚠️</span>
+          <div>
+            <strong style="font-size:0.9rem">${pendentesDoUsuario.length} agendamento${pendentesDoUsuario.length!==1?'s':''} sem valor preenchido</strong>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:2px">Sem o valor, esse atendimento não entra no cálculo da sua comissão. Preencha na agenda.</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    let brutoSemQuimica = 0, brutoComQuimica = 0;
+    listaAgend.forEach(a => {
+      // Divisão manual QM/SQM anotada na agenda tem prioridade
+      if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+        brutoComQuimica += a.valorQM || 0;
+        brutoSemQuimica += a.valorSQM || 0;
+        return;
+      }
+      // Fallback automático por nome de serviço (agendamentos antigos)
+      const idsServicos = a.servicoIds || [];
+      const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+      const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
+      if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+    });
+    const comissaoSemQuimica = brutoSemQuimica * 0.50;
+    const comissaoComQuimica = brutoComQuimica * 0.45;
+    const comissaoTotal = comissaoSemQuimica + comissaoComQuimica;
+    const valeAcumulado = (profLogado && profLogado.valeAcumulado) || 0;
+    const valorFinal = comissaoTotal - valeAcumulado;
+
+    html += `<div class="card" style="margin-bottom:14px;border:2px solid var(--rose-light)">
+      <div class="card-title">🧾 Sua Comissão — ${mesLabel}</div>
+      <div style="font-size:0.85rem;line-height:1.9">
+        <div style="display:flex;justify-content:space-between"><span>Serviços sem química (${formatarMoeda(brutoSemQuimica)} × 50%)</span><strong>${formatarMoeda(comissaoSemQuimica)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Serviços com química (${formatarMoeda(brutoComQuimica)} × 45%)</span><strong>${formatarMoeda(comissaoComQuimica)}</strong></div>
+        <div style="border-top:1px solid var(--rose-light);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Total de comissão</span><strong>${formatarMoeda(comissaoTotal)}</strong></div>
+        ${valeAcumulado>0?`<div style="display:flex;justify-content:space-between;color:#c0392b"><span>Desconto de vale/adiantamento</span><strong>-${formatarMoeda(valeAcumulado)}</strong></div>`:''}
+        <div style="border-top:2px solid var(--rose-dark);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between;font-size:1rem;color:var(--rose-dark)"><span><strong>Valor a receber</strong></span><strong>${formatarMoeda(valorFinal)}</strong></div>
+      </div>
+    </div>`;
+  }
+
+  // ═══ Cards do admin (Etapa 4): Acerto por Profissional + Vales — só aparecem se houver funcionária ═══
+  if (ehDono) {
+    const funcionarias = FUNCIONARIOS.filter(f => ehFuncionarioComissao(f));
+    if (funcionarias.length > 0) {
+      html += `<div class="card" style="margin-bottom:14px">
+        <div class="card-title">🧮 Acerto por Profissional</div>
+        <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Toque no nome pra ver o cálculo de comissão, lançamentos e vale do período de cada uma.</div>`;
+      funcionarias.forEach(f => {
+        const acumulado = f.valeAcumulado || 0;
+        html += `<div onclick="abrirAcerto(${f.id})" style="display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--light);cursor:pointer">
+          <div>
+            <div style="font-weight:600">${f.emoji||''} ${f.nome}</div>
+            <div style="font-size:0.72rem;color:var(--mid)">${(f.periodicidade||'quinzenal').charAt(0).toUpperCase()+(f.periodicidade||'quinzenal').slice(1)}${acumulado>0?' · vale pendente':''}</div>
+          </div>
+          <span style="color:var(--rose-dark);font-size:1.1rem">›</span>
+        </div>`;
+      });
+      html += `</div>`;
+
+      html += `<div class="card" style="margin-bottom:14px">
+        <div class="card-title">💵 Vales e Adiantamentos</div>
+        <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Só você vê e gerencia esta área. A profissional vê apenas o desconto final no próprio resumo.</div>`;
+      funcionarias.forEach(f => {
+        const acumulado = f.valeAcumulado || 0;
+        const historico = f.valesHistorico || [];
+        html += `<div style="border:1px solid var(--rose-light);border-radius:10px;padding:10px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>${f.emoji} ${f.nome}</strong>
+            <span style="color:${acumulado>0?'#c0392b':'var(--mid)'};font-weight:700">${formatarMoeda(acumulado)} pendente</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <input type="number" inputmode="decimal" id="vale-valor-${f.id}" placeholder="Valor do vale" onfocus="window.valeEmEdicao=true" onblur="window.valeEmEdicao=false" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+            <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
+          </div>
+          ${acumulado>0?`<button class="btn btn-danger btn-sm" style="width:100%;margin-top:6px" onclick="zerarVale(${f.id})">✅ Marcar acerto como feito (zerar)</button>`:''}
+          ${historico.length>0?`<div style="margin-top:8px;font-size:0.75rem;color:var(--mid)">
+            <div style="font-weight:600;margin-bottom:2px">Histórico:</div>
+            ${historico.slice(-5).reverse().map(v => `<div>${formatDate(v.data)} — ${formatarMoeda(v.valor)}${v.zerado?' (já acertado)':''}</div>`).join('')}
+          </div>`:''}
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
 
   if (ehDono) {
     // Abas por profissional para o dono
@@ -2436,17 +2874,41 @@ function renderTimeline() {
     rows += `<tr><td class="hora-td">${slot}</td>`;
     if (appt) {
       const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
+      const qmAtual = (appt.valorQM !== undefined && appt.valorQM !== null) ? appt.valorQM : '';
+      const sqmAtual = (appt.valorSQM !== undefined && appt.valorSQM !== null) ? appt.valorSQM : '';
+      const profDoAppt = FUNCIONARIOS.find(x => x.id === appt.profId);
+      const usaQmSqm = ehFuncionarioComissao(profDoAppt); // sócias e Elly: input simples, como hoje
       rows += `<td class="slot-td tem-appt">
         <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
           <div class="slot-nome">${appt.nomeCliente}</div>
           <div class="slot-svc">${getNomesServicos(appt)}</div>
         </div>
+        ${!usaQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
           <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${valorAtual}"
             onclick="event.stopPropagation()"
             onchange="salvarValorAgendamento(${appt.id},this.value)">
-        </div>
+        </div>` : `
+        <div class="qmsqm-box" onclick="event.stopPropagation()">
+          <div class="qmsqm-fechada" onclick="toggleQmSqm(${appt.id})">
+            <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma" id="soma-${appt.id}">${valorAtual||0}</span>
+          </div>
+          <div class="qmsqm-expandida" id="expandida-${appt.id}">
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-qm-${appt.id}">QM</span>
+              <input type="number" inputmode="decimal" id="input-qm-${appt.id}" value="${qmAtual}"
+                onfocus="esconderSiglaQmSqm(${appt.id},'qm')" onblur="restaurarSiglaQmSqm(${appt.id},'qm')"
+                onchange="salvarValorQmSqm(${appt.id})">
+            </div>
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-sqm-${appt.id}">SQM</span>
+              <input type="number" inputmode="decimal" id="input-sqm-${appt.id}" value="${sqmAtual}"
+                onfocus="esconderSiglaQmSqm(${appt.id},'sqm')" onblur="restaurarSiglaQmSqm(${appt.id},'sqm')"
+                onchange="salvarValorQmSqm(${appt.id})">
+            </div>
+          </div>
+        </div>`}
       </td>`;
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
@@ -2800,15 +3262,37 @@ function salvarCliente() {
 // ═══════════════════════════════════════
 // FUNCIONÁRIOS
 // ═══════════════════════════════════════
+async function alternarTipoSocio(id) {
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  if (!f) return;
+  const vaiVirarSocio = f.tipo === 'funcionario';
+  const msg = vaiVirarSocio
+    ? `Tornar ${f.nome} sócia? A partir de agora não entra mais no cálculo de comissão, não precisa preencher QM/SQM, e sai da lista de Acerto. Isso pode ser revertido depois.`
+    : `Tornar ${f.nome} funcionária? Passa a ter comissão calculada (45% com química / 50% sem) e os campos QM/SQM aparecem nos atendimentos dela.`;
+  if (!confirm(msg)) return;
+  f.tipo = vaiVirarSocio ? 'socio' : 'funcionario';
+  await salvarEquipeFirebase();
+  renderFuncionarios();
+  if (document.getElementById('page-agenda').classList.contains('active')) renderTimeline();
+  showToast(vaiVirarSocio ? '🤝 Agora é sócia' : '👤 Agora é funcionária');
+}
+
 function renderFuncionarios() {
   document.getElementById('lista-funcionarios').innerHTML = FUNCIONARIOS.map(f => {
     const hoje = agendamentos.filter(a => a.profId===f.id && a.data===today() && a.status!=='cancelado').length;
+    const badgeTipo = (f.id !== 1 && currentUser === 1)
+      ? `<button onclick="event.stopPropagation();alternarTipoSocio(${f.id})"
+           style="border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,${f.tipo==='funcionario'?'.85':'.25'});color:${f.tipo==='funcionario'?'var(--rose-dark)':'#fff'};border-radius:20px;padding:4px 10px;font-size:0.66rem;font-weight:700;white-space:nowrap;cursor:pointer;margin-top:5px">
+           ${f.tipo==='funcionario' ? '👤 Funcionária' : '🤝 Sócia'}
+         </button>`
+      : '';
     return `<div class="equipe-card ${f.cor}" onclick="editarProfissional(${f.id})">
       <div class="eq-avatar">${f.emoji}</div>
       <div class="eq-info">
         <div class="eq-name">${f.nome}</div>
         <div class="eq-role">${f.role}</div>
         <div class="eq-role" style="margin-top:4px;font-weight:700">${hoje} hoje</div>
+        ${badgeTipo}
       </div>
       <div style="color:rgba(255,255,255,.85);font-size:0.9rem">✏️</div>
     </div>`;
@@ -2868,6 +3352,20 @@ function editarProfissional(id) {
         <label>Serviços realizados</label>
         <div style="max-height:160px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px;margin-top:4px">${todosSvcs}</div>
       </div>
+      ${currentUser===1 && id!==1 ? `
+      <div class="form-group" style="margin:0;border-top:1px solid var(--rose-light);padding-top:12px">
+        <label>💰 Periodicidade do acerto de comissão</label>
+        <select id="ep-periodicidade" style="margin-top:4px">
+          <option value="semanal" ${prof.periodicidade==='semanal'?'selected':''}>Semanal</option>
+          <option value="quinzenal" ${(!prof.periodicidade||prof.periodicidade==='quinzenal')?'selected':''}>Quinzenal</option>
+          <option value="mensal" ${prof.periodicidade==='mensal'?'selected':''}>Mensal</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Dia de corte</label>
+        <input type="number" id="ep-dia-corte" min="1" max="31" value="${prof.diaCorte||1}" placeholder="Ex: 1, 15...">
+        <div style="font-size:0.72rem;color:var(--mid);margin-top:2px">Dia do mês em que o período começa a contar (semanal/quinzenal usa como referência inicial). Só tem efeito para funcionárias.</div>
+      </div>` : ''}
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-prof')">Cancelar</button>
         <button class="btn btn-primary" style="flex:1" onclick="salvarProfissional(${id})">Salvar</button>
@@ -2884,6 +3382,10 @@ async function salvarProfissional(id) {
   const novaCor = document.getElementById('ep-cor-val').value;
   if (!novoNome) { showToast('Digite um nome'); return; }
   prof.nome = novoNome; prof.emoji = novoEmoji||'💅'; prof.cor = novaCor;
+  const elPeriodicidade = document.getElementById('ep-periodicidade');
+  const elDiaCorte = document.getElementById('ep-dia-corte');
+  if (elPeriodicidade) prof.periodicidade = elPeriodicidade.value;
+  if (elDiaCorte) prof.diaCorte = Math.min(31, Math.max(1, parseInt(elDiaCorte.value) || 1));
   document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
