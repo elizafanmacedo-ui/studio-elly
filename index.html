@@ -182,6 +182,9 @@ textarea { resize:vertical; min-height:80px; }
 .qmsqm-sigla.escondida { display:none; }
 .qmsqm-campo input { width:100%; border:none; background:transparent; font-size:0.8rem; text-align:right; padding:1px 0; }
 .qmsqm-campo input:focus { outline:none; }
+.qmsqm-fechada { min-height:0; line-height:1.2; }
+.qmsqm-soma { font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
+.qmsqm-soma.zerada { color:var(--mid); opacity:0.5; font-weight:600; }
 
 /* ── LISTAS ── */
 .list-item { display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:16px; margin-bottom:8px; background:linear-gradient(150deg,#fff,var(--light)); box-shadow:0 6px 16px rgba(58,34,39,.1); }
@@ -2973,7 +2976,7 @@ function renderTimeline() {
         </div>` : `
         <div class="qmsqm-box" onclick="event.stopPropagation()">
           <div class="qmsqm-fechada" onclick="toggleQmSqm('av_${lancKey}')">
-            <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma" id="soma-av_${lancKey}">${lancTotal||0}</span>
+            <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma ${lancTotal>0?'':'zerada'}" id="soma-av_${lancKey}">${lancTotal||0}</span>
           </div>
           <div class="qmsqm-expandida" id="expandida-av_${lancKey}">
             <div class="qmsqm-campo">
