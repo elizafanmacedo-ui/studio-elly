@@ -908,6 +908,9 @@ const EMAILS_AUTH = {
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
+// Sessão persistente: lembra quem entrou mesmo após fechar o app (equivale ao antigo "passe do dia", mas sem expirar em 24h).
+// Em navegadores que bloqueiam LOCAL (ex.: modo privado), cai para SESSION sem quebrar o login.
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
 
 // Substitui o fetch(DB_URL + ...) — anexa o token de auth em toda chamada ao banco.
 // O getIdToken() do SDK renova o token sozinho quando ele expira (validade de 1h),
@@ -1652,7 +1655,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo7-final · 30/07/2026';
+const APP_VERSAO = 'passo7b-sessao · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2891,7 +2894,13 @@ function cancelarSenha() {
 firebase.auth().onAuthStateChanged(user => {
   if (user && !currentUser) {
     const id = Object.keys(EMAILS_AUTH).find(k => EMAILS_AUTH[k] === user.email);
-    if (id) { currentUser = parseInt(id); finalizarLogin(); }
+    if (id) { currentUser = parseInt(id); finalizarLogin(); return; }
+  }
+  if (!user && !currentUser) {
+    // Sem sessão: mostra o login imediatamente (não espera o timeout de segurança)
+    initLogin();
+    const lp = document.getElementById('login-page');
+    if (lp) lp.style.display = '';
   }
 });
 
@@ -4355,7 +4364,10 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════
 const elVersao = document.getElementById('app-versao');
 if (elVersao) elVersao.textContent = 'Versão ' + APP_VERSAO;
-initLogin();
+// Não mostramos o login de imediato: esperamos o onAuthStateChanged decidir se já há sessão.
+// Se em 2,5s o Firebase não reconhecer ninguém, aí sim exibimos a tela de login.
+document.getElementById('login-page').style.display = 'none';
+setTimeout(() => { if (!currentUser) { initLogin(); document.getElementById('login-page').style.display = ''; } }, 2500);
 </script>
 </body>
 </html>
