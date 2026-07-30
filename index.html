@@ -334,6 +334,27 @@ input.slot-valor-input:focus { outline:none !important; }
   </div>
 </div>
 
+<!-- ═══════════ MODAL: ALTERAR MINHA SENHA (não-admin) ═══════════ -->
+<div class="modal-bg" id="modal-minha-senha" style="z-index:660">
+  <div class="modal" style="padding-bottom:24px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Alterar minha senha</div>
+    <p style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Troca a senha de quem está logado agora (mínimo 6 caracteres).</p>
+    <div class="form-group">
+      <label>Nova senha</label>
+      <input type="password" id="msp-nova" placeholder="Nova senha">
+    </div>
+    <div class="form-group">
+      <label>Confirmar nova senha</label>
+      <input type="password" id="msp-confirma" placeholder="Repita a senha">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-minha-senha')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="trocarMinhaSenha()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-senha" style="z-index:600">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -355,6 +376,8 @@ input.slot-valor-input:focus { outline:none !important; }
   <div style="display:flex;align-items:center;gap:8px">
     <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
     <div style="display:flex;align-items:center;gap:6px">
+      <button id="btn-minha-senha" onclick="abrirMinhaSenha()" title="Alterar minha senha"
+        style="display:none;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.35);border-radius:50%;width:30px;height:30px;font-size:0.85rem;cursor:pointer;color:#fff;flex-shrink:0">🔒</button>
       <div id="user-avatar" onclick="abrirTrocaFoto()" style="width:34px;height:34px;border-radius:50%;overflow:hidden;cursor:pointer;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid rgba(255,255,255,0.4)">👤</div>
       <div class="header-user" onclick="logout()" id="user-label" style="background:none;padding:0">—</div>
       <input type="file" accept="image/*" id="input-foto-perfil" style="display:none" onchange="processarFotoSelecionada(event)">
@@ -375,6 +398,7 @@ input.slot-valor-input:focus { outline:none !important; }
 
 <!-- ═══════════ AGENDA ═══════════ -->
 <div class="page active" id="page-agenda">
+  <div id="card-confirmar-amanha" style="display:none"></div>
   <div class="card" style="position:sticky;top:108px;z-index:75;margin-bottom:0;border-radius:16px 16px 0 0;padding:10px 14px 8px">
     <div class="date-nav">
       <button class="date-nav-btn" onclick="moveWeek(-1)">‹</button>
@@ -1628,7 +1652,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo6-reativacao · 30/07/2026';
+const APP_VERSAO = 'passo7-final · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2882,6 +2906,8 @@ async function loadFotosEquipe() {
 }
 
 function atualizarAvatarHeader() {
+  const btnSenha = document.getElementById('btn-minha-senha');
+  if (btnSenha) btnSenha.style.display = (currentUser && currentUser !== 1) ? 'flex' : 'none';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   const el = document.getElementById('user-avatar');
   if (!f || !el) return;
@@ -3069,7 +3095,66 @@ function getNomesServicos(appt) {
   return ids.map(id => { const s = SERVICOS.find(x => x.id === id); return s ? s.nome : ''; }).filter(Boolean).join(' • ');
 }
 
+// ═══════════════════════════════════════
+// ALTERAR MINHA SENHA (não-admin) — Passo 7
+// ═══════════════════════════════════════
+function abrirMinhaSenha() {
+  document.getElementById('msp-nova').value = '';
+  document.getElementById('msp-confirma').value = '';
+  openModal('modal-minha-senha');
+}
+
+async function trocarMinhaSenha() {
+  const nova = document.getElementById('msp-nova').value;
+  const confirma = document.getElementById('msp-confirma').value;
+  if (!nova || nova.length < 6) { showToast('O Firebase exige senha com ao menos 6 caracteres'); return; }
+  if (nova !== confirma) { showToast('As senhas não conferem'); return; }
+  const user = firebase.auth().currentUser;
+  if (!user) { showToast('Sessão expirada. Saia e entre de novo.'); return; }
+  try {
+    await user.updatePassword(nova);
+    closeModal('modal-minha-senha');
+    showToast('✅ Senha atualizada!');
+  } catch(e) {
+    console.error('updatePassword', e.code);
+    if (e.code === 'auth/requires-recent-login') showToast('⚠️ Por segurança, saia e entre de novo antes de trocar a senha.');
+    else showToast('Erro ao salvar senha');
+  }
+}
+
+// ═══════════════════════════════════════
+// FILA DE CONFIRMAÇÃO DE VÉSPERA — Passo 7
+// ═══════════════════════════════════════
+function renderConfirmacoesAmanha() {
+  const el = document.getElementById('card-confirmar-amanha');
+  if (!el) return;
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const amanha = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const lista = agendamentos
+    .filter(a => a.data === amanha && !['confirmado','cancelado'].includes(a.status))
+    .filter(a => currentUser === 1 || a.profId === currentUser)
+    .sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+  if (lista.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+  let html = `<div class="card" style="margin-bottom:10px;border:2px solid var(--gold-light)">
+    <div class="card-title">📲 Confirmar para amanhã <span style="font-size:0.78rem;color:var(--mid);font-weight:600">(${lista.length})</span></div>`;
+  lista.forEach(a => {
+    const prof = FUNCIONARIOS.find(x => x.id === a.profId);
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--light)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.85rem;font-weight:600">${a.hora} · ${escHtml(a.nomeCliente || '—')}</div>
+        <div style="font-size:0.72rem;color:var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(getNomesServicos(a))}${currentUser===1 && prof ? ' · ' + prof.nome : ''}</div>
+      </div>
+      <button class="btn btn-green btn-sm" style="flex-shrink:0" onclick="abrirWAById(${a.id},'confirmar')">📲</button>
+    </div>`;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
 function renderTimeline() {
+  renderConfirmacoesAmanha();
   renderProfTabs();
   const dayAppts = agendamentos
     .filter(a => a.data === selectedDate && a.status !== 'cancelado' && a.profId === activeProfId)
