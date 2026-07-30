@@ -1655,7 +1655,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo7b-sessao · 30/07/2026';
+const APP_VERSAO = 'passo7c-sessao · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2861,7 +2861,9 @@ function selectProf(id) {
 
 function doLogin() {
   if (!currentUser) { showToast('Selecione quem está acessando'); return; }
-  // Com o Firebase Auth, TODO perfil entra com a própria senha
+  // Já autenticada como este perfil neste dispositivo → entra sem pedir senha
+  if (authUserId === currentUser && firebase.auth().currentUser) { finalizarLogin(); return; }
+  // Perfil diferente da sessão ativa (ou sem sessão) → pede a senha
   document.getElementById('senha-input').value = '';
   openModal('modal-senha');
 }
@@ -2873,6 +2875,7 @@ async function confirmarSenha() {
   if (!email || email.startsWith('COLE_AQUI')) { showToast('⚠️ E-mail de acesso não configurado no código (EMAILS_AUTH).'); return; }
   try {
     await firebase.auth().signInWithEmailAndPassword(email, digitada);
+    authUserId = currentUser;
     closeModal('modal-senha');
     finalizarLogin();
   } catch(e) {
@@ -2889,19 +2892,20 @@ function cancelarSenha() {
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
 
-// Sessão persistente: quem já entrou uma vez não digita senha de novo ao reabrir o app.
-// O SDK guarda a sessão e renova o token sozinho.
+// Sessão persistente: o app LEMBRA quem está logado (não pede senha de novo),
+// mas SEMPRE mostra a tela de seleção de perfil ao abrir — não entra sozinho.
+// authUserId = id da profissional cuja sessão do Firebase está ativa neste dispositivo.
+let authUserId = null;
 firebase.auth().onAuthStateChanged(user => {
-  if (user && !currentUser) {
+  authUserId = null;
+  if (user) {
     const id = Object.keys(EMAILS_AUTH).find(k => EMAILS_AUTH[k] === user.email);
-    if (id) { currentUser = parseInt(id); finalizarLogin(); return; }
+    if (id) authUserId = parseInt(id);
   }
-  if (!user && !currentUser) {
-    // Sem sessão: mostra o login imediatamente (não espera o timeout de segurança)
-    initLogin();
-    const lp = document.getElementById('login-page');
-    if (lp) lp.style.display = '';
-  }
+  // Em qualquer caso, mostramos a tela de seleção de perfil (não finalizamos o login automaticamente)
+  initLogin();
+  const lp = document.getElementById('login-page');
+  if (lp) lp.style.display = '';
 });
 
 async function loadFotosEquipe() {
@@ -4364,10 +4368,7 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════
 const elVersao = document.getElementById('app-versao');
 if (elVersao) elVersao.textContent = 'Versão ' + APP_VERSAO;
-// Não mostramos o login de imediato: esperamos o onAuthStateChanged decidir se já há sessão.
-// Se em 2,5s o Firebase não reconhecer ninguém, aí sim exibimos a tela de login.
-document.getElementById('login-page').style.display = 'none';
-setTimeout(() => { if (!currentUser) { initLogin(); document.getElementById('login-page').style.display = ''; } }, 2500);
+initLogin();
 </script>
 </body>
 </html>
