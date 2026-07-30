@@ -173,8 +173,8 @@ textarea { resize:vertical; min-height:80px; }
 input.slot-valor-input { width:52px !important; max-width:52px !important; padding:0 !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.86rem !important; font-weight:800; color:var(--dark); text-align:right !important; }
 input.slot-valor-input:focus { outline:none !important; }
 /* QM/SQM (Etapa 3 da migração) — caixinha de valor com/sem química para funcionárias */
-.qmsqm-box { position:relative; flex-shrink:0; }
-.qmsqm-fechada { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; cursor:pointer; }
+.qmsqm-box { position:relative; flex:0 0 auto !important; width:auto !important; }
+.qmsqm-fechada { display:flex; align-items:center; justify-content:flex-end; gap:2px; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px !important; height:auto !important; min-height:0 !important; line-height:1.2 !important; cursor:pointer; box-shadow:none !important; border:none !important; }
 .qmsqm-expandida { display:none; position:absolute; top:-4px; right:0; z-index:60; background:white; border:2px solid var(--rose); border-radius:8px; padding:5px; box-shadow:0 4px 14px rgba(126,78,87,0.25); width:100px; }
 .qmsqm-expandida.aberta { display:block; }
 .qmsqm-campo { display:flex; align-items:center; gap:3px; border:1px solid var(--rose-light); border-radius:6px; padding:2px 5px; background:var(--light); margin-bottom:4px; }
@@ -184,10 +184,11 @@ input.slot-valor-input:focus { outline:none !important; }
 .qmsqm-campo input { width:100% !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.8rem !important; text-align:right !important; padding:1px 0 !important; }
 .qmsqm-campo input:focus { outline:none !important; }
 .qmsqm-fechada { min-height:0; line-height:1.2; }
-.qmsqm-soma { font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
+.qmsqm-soma { width:52px; max-width:52px; font-size:0.86rem !important; font-weight:800; color:var(--dark); text-align:right; overflow:hidden; }
 .qmsqm-soma.zerada { color:var(--mid); opacity:0.5; font-weight:600; }
 .avulso-desc-tap { flex:1 1 auto; min-width:0; padding:0 6px; font-size:0.72rem; font-style:italic; color:var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; text-align:left; }
 .avulso-desc-tap.vazia { color:var(--mid); opacity:0.45; }
+.avulso-del { flex:0 0 auto; font-size:0.78rem; opacity:0.45; cursor:pointer; padding:2px 4px; margin-left:4px; }
 
 /* ── LISTAS ── */
 .list-item { display:flex; align-items:center; gap:12px; padding:12px 10px; border-radius:16px; margin-bottom:8px; background:linear-gradient(150deg,#fff,var(--light)); box-shadow:0 6px 16px rgba(58,34,39,.1); }
@@ -618,6 +619,7 @@ input.slot-valor-input:focus { outline:none !important; }
       <label>Observações</label>
       <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
     </div>
+    <button class="btn btn-danger btn-full" id="na-btn-excluir-avulso" style="display:none;margin-top:8px" onclick="excluirAvulsoDoModal()">🗑 Excluir este lançamento avulso</button>
     <div style="display:flex;gap:10px;margin-top:8px">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-novo-agendamento')">Cancelar</button>
       <button class="btn btn-primary" style="flex:1" id="na-btn-salvar" onclick="salvarAgendamento()">Confirmar Agendamento</button>
@@ -1062,6 +1064,30 @@ async function salvarLancamentoAvulso(key, hora, valorStr) {
   renderFinanceiroSeAberto();
 }
 
+
+async function excluirAvulso(key) {
+  if (!confirm('Excluir este lançamento avulso? O valor e a descrição serão apagados.')) return false;
+  delete lancamentosAvulsos[key];
+  try {
+    await fbFetch('/lancamentos/' + key + '.json', { method:'DELETE' });
+  } catch(e) { showToast('❌ Erro ao excluir. Verifique a internet.'); return false; }
+  renderTimeline();
+  renderFinanceiroSeAberto();
+  showToast('🗑 Lançamento avulso excluído');
+  return true;
+}
+
+// Exclusão a partir do modal de serviços do avulso
+let avulsoKeyAberto = null;
+async function excluirAvulsoDoModal() {
+  if (!avulsoKeyAberto) return;
+  const apagou = await excluirAvulso(avulsoKeyAberto);
+  if (apagou) {
+    avulsoKeyAberto = null;
+    closeModal('modal-novo-agendamento');
+    setModoAvulso(false);
+  }
+}
 
 // Versão QM/SQM do lançamento avulso (funcionárias). Grava {qm, sqm} no mesmo nó /lancamentos.
 async function salvarLancamentoAvulsoQmSqm(key) {
@@ -1602,7 +1628,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo4e-avulso · 30/07/2026';
+const APP_VERSAO = 'passo4g-avulso · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -3025,6 +3051,7 @@ function renderTimeline() {
             </div>
           </div>
         </div>`}
+        ${(lancTotal > 0 || descAv) ? `<span class="avulso-del" onclick="event.stopPropagation();excluirAvulso('${lancKey}')" title="Excluir avulso">🗑</span>` : ''}
       </td>`;
     }
     rows += '</tr>';
@@ -3093,6 +3120,11 @@ let modoAvulso = false;
 
 function setModoAvulso(ligado) {
   modoAvulso = ligado;
+  if (!ligado) {
+    avulsoKeyAberto = null;
+    const be = document.getElementById('na-btn-excluir-avulso');
+    if (be) be.style.display = 'none';
+  }
   document.querySelectorAll('#modal-novo-agendamento .na-so-agendamento').forEach(el => el.style.display = ligado ? 'none' : '');
   const titulo = document.getElementById('na-modal-titulo');
   const btnSalvar = document.getElementById('na-btn-salvar');
@@ -3119,6 +3151,9 @@ function abrirAvulsoSlot(hora) {
     document.getElementById('na-profissional').value = activeProfId;
     const key = selectedDate + '_' + hora + '_' + activeProfId;
     const atual = lancamentosAvulsos[key];
+    avulsoKeyAberto = (valorDoAvulso(atual) > 0 || descDoAvulso(atual)) ? key : null;
+    const btnExcluir = document.getElementById('na-btn-excluir-avulso');
+    if (btnExcluir) btnExcluir.style.display = avulsoKeyAberto ? 'block' : 'none';
     const sids = (atual && typeof atual === 'object' && Array.isArray(atual.sids)) ? atual.sids : [];
     const nomes = descDoAvulso(atual).split(' + ');
     document.querySelectorAll('.svc-check').forEach(c => {
