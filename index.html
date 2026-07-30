@@ -394,6 +394,7 @@ input.slot-valor-input:focus { outline:none !important; }
 
 <!-- ═══════════ CLIENTES ═══════════ -->
 <div class="page" id="page-clientes">
+  <div id="card-reativar"></div>
   <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>👤 Clientes</span>
@@ -1627,7 +1628,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo5b-relatorio-wa · 30/07/2026';
+const APP_VERSAO = 'passo6-reativacao · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2494,6 +2495,11 @@ function renderFaturamento() {
       </div>
       <button class="btn btn-gold btn-full" style="margin-top:12px" onclick="enviarMeuAcertoWA()">📲 Enviar meu acerto</button>
     </div>`;
+  }
+
+  // Sócias (não-admin sem comissão): botão de relatório pessoal do mês
+  if (!ehDono && !usaPeriodoAcerto) {
+    html += `<button class="btn btn-gold btn-full" style="margin-bottom:14px" onclick="enviarRelatorioSociaWA()">📲 Enviar meu relatório por WhatsApp</button>`;
   }
 
   // ═══ Cards do admin (Etapa 4): Acerto por Profissional + Vales — só aparecem se houver funcionária ═══
@@ -3499,7 +3505,158 @@ async function salvarAgendamento() {
 // ═══════════════════════════════════════
 // CLIENTES
 // ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// REATIVAÇÃO DE CLIENTES (Passo 6 — só admin)
+// ═══════════════════════════════════════
+let reativarFiltro = 'todos';
+let reativarLimite = 10;
+
+function tempoAtras(dias) {
+  if (dias < 30) return 'há ' + dias + ' dia' + (dias !== 1 ? 's' : '');
+  const meses = Math.floor(dias / 30);
+  if (meses < 12) return 'há ' + meses + ' ' + (meses === 1 ? 'mês' : 'meses');
+  const anos = Math.floor(meses / 12);
+  return 'há ' + (anos === 1 ? '1 ano' : anos + ' anos');
+}
+
+function listaParaReativar() {
+  const ultima = {};
+  agendamentos.forEach(a => {
+    if (a.status !== 'atendido' || !a.clienteId || !a.data) return;
+    if (!ultima[a.clienteId] || a.data > ultima[a.clienteId].data) ultima[a.clienteId] = a;
+  });
+  const hoje = new Date();
+  const out = [];
+  clientes.forEach(c => {
+    const u = ultima[c.id];
+    if (!u) return;
+    const dias = Math.floor((hoje - new Date(u.data + 'T00:00:00')) / 86400000);
+    const svcs = (u.servicoIds || [u.servicoId]).map(id => SERVICOS.find(x => x.id === id)).filter(Boolean);
+    const ehMicro = svcs.some(x => normalizarTexto(x.nome).includes('micropigmenta'));
+    if (reativarFiltro === 'micro' && !ehMicro) return;
+    if (reativarFiltro === 'cabelo' && ehMicro) return;
+    const limite = reativarFiltro === 'micro' ? 300 : 60;
+    if (dias <= limite) return;
+    out.push({ c, dias, servicos: svcs.map(x => x.nome).join(', ') || '—' });
+  });
+  return out.sort((a, b) => b.dias - a.dias);
+}
+
+function abrirWAReativar(clienteId) {
+  const c = clientes.find(x => x.id === clienteId);
+  if (!c) return;
+  const nomeStudio = getConfig('nome', 'Studio Elly Designer');
+  const texto = 'Olá ' + (c.nome || '').split(' ')[0] + '! 💕\n' +
+    'Aqui é o ' + nomeStudio + '.\n' +
+    'Já faz um tempinho que não te vemos por aqui! 🥰\n' +
+    'Que tal agendar um horário? Temos disponibilidade essa semana.\n' +
+    'Fale com a gente! 😊';
+  let num = String(c.fone || '').replace(/\D/g, '');
+  if (num && num.length <= 11) num = '55' + num;
+  window.open('https://wa.me/' + (num ? num : '') + '?text=' + encodeURIComponent(texto), '_blank');
+}
+
+function setReativarFiltro(f) {
+  reativarFiltro = f;
+  reativarLimite = 10;
+  renderCardReativar();
+}
+
+function reativarVerMais() {
+  reativarLimite += 10;
+  renderCardReativar();
+}
+
+function renderCardReativar() {
+  const el = document.getElementById('card-reativar');
+  if (!el) return;
+  if (currentUser !== 1) { el.innerHTML = ''; return; }
+  const lista = listaParaReativar();
+  const chip = (id, rotulo) => `<button onclick="setReativarFiltro('${id}')"
+    style="padding:5px 12px;border-radius:16px;border:1.5px solid var(--rose-light);font-size:0.72rem;font-weight:700;cursor:pointer;background:${reativarFiltro===id?'var(--rose-dark)':'transparent'};color:${reativarFiltro===id?'#fff':'var(--mid)'}">${rotulo}</button>`;
+  let html = `<div class="card" style="margin-bottom:14px">
+    <div class="card-title">📋 Clientes para Reativar${lista.length>0?` <span style="font-size:0.75rem;color:var(--mid);font-weight:600">(${lista.length})</span>`:''}</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+      ${chip('todos','Todos · +60d')}${chip('micro','Micropigmentação · +300d')}${chip('cabelo','Cabelo · +60d')}
+    </div>`;
+  if (lista.length === 0) {
+    html += `<div style="text-align:center;color:var(--mid);padding:12px 0;font-size:0.82rem">Nenhuma cliente para reativar neste filtro 🎉</div>`;
+  } else {
+    lista.slice(0, reativarLimite).forEach(item => {
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--light)">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:0.86rem">${escHtml(item.c.nome)}</div>
+          <div style="font-size:0.72rem;color:var(--mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(item.servicos)} · ${tempoAtras(item.dias)}</div>
+        </div>
+        <button class="btn btn-green btn-sm" style="flex-shrink:0" onclick="abrirWAReativar(${item.c.id})">📲 WhatsApp</button>
+      </div>`;
+    });
+    if (lista.length > reativarLimite) {
+      html += `<button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="reativarVerMais()">Ver mais (${lista.length - reativarLimite} restantes)</button>`;
+    }
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// RELATÓRIO PESSOAL DA SÓCIA (Passo 6)
+// ═══════════════════════════════════════
+function enviarRelatorioSociaWA() {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  if (!f) return;
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + fatMesOffset);
+  const ano = base.getFullYear(), mes = base.getMonth();
+  const mesLabelRaw = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+  const mesLabel = mesLabelRaw.charAt(0).toUpperCase() + mesLabelRaw.slice(1);
+  const dentro = (ds) => { const p2 = ds.split('-'); return parseInt(p2[0]) === ano && (parseInt(p2[1]) - 1) === mes; };
+
+  const ags = agendamentos.filter(a => a.profId === currentUser && a.status !== 'cancelado' && a.data && dentro(a.data) && typeof a.valor === 'number' && a.valor > 0);
+  const avs = [];
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    const p2 = key.split('_');
+    if (p2.length < 3 || parseInt(p2[2]) !== currentUser) return;
+    if (!dentro(p2[0])) return;
+    const vTotal = valorDoAvulso(valor);
+    if (vTotal > 0) avs.push(vTotal);
+  });
+  const totalAvs = avs.reduce((t, v) => t + v, 0);
+  const total = ags.reduce((t, a) => t + a.valor, 0) + totalAvs;
+
+  const svcDet = {};
+  ags.forEach(a => {
+    const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
+    if (ids.length === 0) return;
+    const valorPorSvc = a.valor / ids.length;
+    ids.forEach(id => {
+      if (!svcDet[id]) svcDet[id] = { qtd: 0, valor: 0 };
+      svcDet[id].qtd += 1;
+      svcDet[id].valor += valorPorSvc;
+    });
+  });
+  const listaServ = Object.entries(svcDet)
+    .map(([id, d2]) => ({ nome: (SERVICOS.find(x => x.id === parseInt(id)) || {}).nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
+    .sort((a, b) => b.valor - a.valor)
+    .map(x => x.nome + ': ' + x.qtd + 'x — ' + formatarMoeda(x.valor))
+    .join('\n') || 'Nenhum serviço no mês';
+
+  let texto =
+    '*Meu Relatório — ' + f.nome + ' · ' + mesLabel + '*\n' +
+    'Atendimentos: ' + (ags.length + avs.length) + '\n' +
+    'Faturamento total: ' + formatarMoeda(total) + '\n\n' +
+    'Serviços realizados:\n' + listaServ + '\n';
+  if (avs.length > 0) texto += '\nAvulsos: ' + avs.length + ' — ' + formatarMoeda(totalAvs) + '\n';
+  texto += '\n_' + getConfig('nome', 'Studio Elly Designer') + '_';
+
+  let num = String(f.fone || '').replace(/\D/g, '');
+  if (num && num.length <= 11) num = '55' + num;
+  window.open('https://wa.me/' + (num ? num : '') + '?text=' + encodeURIComponent(texto), '_blank');
+}
+
 function renderClientes() {
+  renderCardReativar();
   const el = document.getElementById('lista-clientes');
   if (!el) return;
   const q = (document.getElementById('search-cliente')?.value||'').toLowerCase();
