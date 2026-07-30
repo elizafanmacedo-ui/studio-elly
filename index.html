@@ -169,8 +169,9 @@ textarea { resize:vertical; min-height:80px; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
 .slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
 .slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
-.slot-valor-input { width:52px; border:none; background:transparent; font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
-.slot-valor-input:focus { outline:none; }
+.slot-td .slot-valor-wrap { flex:0 0 auto !important; width:auto !important; }
+input.slot-valor-input { width:52px !important; max-width:52px !important; padding:0 !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.86rem !important; font-weight:800; color:var(--dark); text-align:right !important; }
+input.slot-valor-input:focus { outline:none !important; }
 /* QM/SQM (Etapa 3 da migração) — caixinha de valor com/sem química para funcionárias */
 .qmsqm-box { position:relative; flex-shrink:0; }
 .qmsqm-fechada { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; cursor:pointer; }
@@ -180,8 +181,8 @@ textarea { resize:vertical; min-height:80px; }
 .qmsqm-campo:last-child { margin-bottom:0; }
 .qmsqm-sigla { font-size:0.6rem; font-weight:800; color:var(--rose-dark); flex-shrink:0; }
 .qmsqm-sigla.escondida { display:none; }
-.qmsqm-campo input { width:100%; border:none; background:transparent; font-size:0.8rem; text-align:right; padding:1px 0; }
-.qmsqm-campo input:focus { outline:none; }
+.qmsqm-campo input { width:100% !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.8rem !important; text-align:right !important; padding:1px 0 !important; }
+.qmsqm-campo input:focus { outline:none !important; }
 .qmsqm-fechada { min-height:0; line-height:1.2; }
 .qmsqm-soma { font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
 .qmsqm-soma.zerada { color:var(--mid); opacity:0.5; font-weight:600; }
@@ -473,6 +474,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <div class="page" id="page-config">
+  <div style="text-align:center;font-size:0.7rem;color:var(--mid);opacity:0.75;padding:0 0 8px" id="app-versao"></div>
   <div class="card">
     <div class="card-title">⚙️ Configurações</div>
     <div class="config-row" onclick="document.getElementById('cfg-nome').focus();document.getElementById('cfg-nome').scrollIntoView()">
@@ -1576,6 +1578,8 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
+const APP_VERSAO = 'passo4b · 29/07/2026';
+
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
 function getConfig(campo, fallback) {
@@ -3843,6 +3847,8 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════
 // START
 // ═══════════════════════════════════════
+const elVersao = document.getElementById('app-versao');
+if (elVersao) elVersao.textContent = 'Versão ' + APP_VERSAO;
 initLogin();
 </script>
 </body>
