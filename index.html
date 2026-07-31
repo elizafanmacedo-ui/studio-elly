@@ -14,7 +14,7 @@
   --gold: #d4a63f;
   --gold-light: #f5e2b0;
   --dark: #2f2325;
-  --mid: #6f5b60;
+  --mid: #4f3b41;
   --light: #f7efea;
   --white: #ffffff;
   --sage: #5fb384;
@@ -26,7 +26,9 @@
   --valor-saida: #c0000a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Times New Roman', Times, serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+/* Serifada preservada só no logo e nos títulos de card (charme da marca) */
+.card-title, .modal-title { font-family: 'Times New Roman', Times, serif; }
 
 /* ── HEADER ── */
 .header {
@@ -46,26 +48,15 @@ body { font-family: 'Times New Roman', Times, serif; background: var(--cream); c
 .nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
 .nav-cell { flex:1 1 0; min-width:0; }
 .nav-btn { display:block; width:100%; min-width:0; padding:10px 2px 9px; font-size:0.58rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
+/* regra active antiga removida — nova barra escura define abaixo */
 .nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; position:relative; }
 .nav-btn { position:relative; background-repeat:no-repeat; background-position:center 2px; background-size:60px 60px; }
-.nav-cell:nth-child(1) .nav-btn{background-image:radial-gradient(circle, rgba(255,90,120,0.95) 0%, rgba(255,110,140,0.6) 25%, rgba(255,143,160,0.25) 50%, rgba(255,143,160,0) 78%);}
-.nav-cell:nth-child(2) .nav-btn{background-image:radial-gradient(circle, rgba(90,140,255,0.95) 0%, rgba(110,155,255,0.6) 25%, rgba(143,184,255,0.25) 50%, rgba(143,184,255,0) 78%);}
-.nav-cell:nth-child(3) .nav-btn{background-image:radial-gradient(circle, rgba(255,150,60,0.95) 0%, rgba(255,165,80,0.6) 25%, rgba(255,179,107,0.25) 50%, rgba(255,179,107,0) 78%);}
-.nav-cell:nth-child(4) .nav-btn{background-image:radial-gradient(circle, rgba(170,90,255,0.95) 0%, rgba(185,110,255,0.6) 25%, rgba(201,143,255,0.25) 50%, rgba(201,143,255,0) 78%);}
-.nav-cell:nth-child(5) .nav-btn{background-image:radial-gradient(circle, rgba(255,196,50,0.95) 0%, rgba(255,206,80,0.6) 25%, rgba(255,216,115,0.25) 50%, rgba(255,216,115,0) 78%);}
-.nav-cell:nth-child(6) .nav-btn{background-image:radial-gradient(circle, rgba(70,190,130,0.95) 0%, rgba(95,200,145,0.6) 25%, rgba(127,209,165,0.25) 50%, rgba(127,209,165,0) 78%);}
-.nav-cell:nth-child(7) .nav-btn{background-image:radial-gradient(circle, rgba(150,150,160,0.95) 0%, rgba(165,165,175,0.6) 25%, rgba(180,180,190,0.25) 50%, rgba(180,180,190,0) 78%);}
-.nav-btn::after{
-  content:''; position:absolute; left:50%; top:2px; width:60px; height:60px; transform:translateX(-50%);
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  background-size:60px 60px;
-  mix-blend-mode:overlay;
-  opacity:.9;
-  -webkit-mask-image:radial-gradient(circle, black 0%, black 20%, transparent 75%);
-  mask-image:radial-gradient(circle, black 0%, black 20%, transparent 75%);
-  pointer-events:none;
-}
+/* ── BARRA DE NAVEGAÇÃO · Opção C escura, adaptável ao tema ── */
+.nav { display:flex; background:linear-gradient(180deg, color-mix(in srgb, var(--rose-dark) 82%, #000), color-mix(in srgb, var(--rose-dark) 96%, #000)); border-bottom:none; padding:5px 4px; gap:2px; box-shadow:0 2px 10px rgba(0,0,0,0.18); }
+.nav-btn { color:rgba(255,255,255,0.58); border-bottom:none; border-radius:12px; padding:9px 2px 7px; }
+.nav-btn .nav-icon { filter:grayscale(0.35) opacity(0.85); transition:filter 0.2s; }
+.nav-btn.active { color:#fff; border-bottom:none; background:rgba(255,255,255,0.14); background:color-mix(in srgb, var(--rose-light) 22%, transparent); box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12); }
+.nav-btn.active .nav-icon { filter:none; }
 
 /* ── PAGES ── */
 .page { display:none; padding:18px 16px 90px; }
@@ -98,7 +89,7 @@ body { font-family: 'Times New Roman', Times, serif; background: var(--cream); c
 /* ── FORM ── */
 .form-group { margin-bottom:14px; }
 label { display:block; font-size:0.78rem; font-weight:500; color:var(--mid); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.06em; }
-input, select, textarea { width:100%; padding:12px 14px; border:1.5px solid var(--rose-light); border-radius:10px; font-family:'Times New Roman',Times,serif; font-size:0.9rem; background:var(--cream); color:var(--dark); outline:none; transition:border 0.2s; }
+input, select, textarea { width:100%; padding:12px 14px; border:1.5px solid var(--rose-light); border-radius:10px; font-family:inherit; font-size:0.9rem; background:var(--cream); color:var(--dark); outline:none; transition:border 0.2s; }
 input:focus, select:focus, textarea:focus { border-color:var(--rose); background:white; }
 textarea { resize:vertical; min-height:80px; }
 
@@ -160,8 +151,11 @@ textarea { resize:vertical; min-height:80px; }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
 .grade-table { width:100%; border-collapse:collapse; }
 .grade-table tr { border-bottom:1px solid var(--rose-light); }
-.hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:44px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
-.slot-td { height:44px; padding:4px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
+.hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:36px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
+.slot-td { height:36px; padding:3px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
+/* Área de toque de 44x44 no + dos slots, sem alterar o visual */
+.slot-mais-tap { position:relative; display:inline-flex; align-items:center; justify-content:center; }
+.slot-mais-tap::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; z-index:5; }
 .slot-td:hover { background:var(--light); }
 .slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:default; }
 .slot-appt-content { display:flex; flex-direction:column; justify-content:center; min-height:100%; cursor:pointer; flex:1; min-width:0; }
@@ -356,6 +350,10 @@ input.slot-valor-input:focus { outline:none !important; }
       <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-minha-senha')">Cancelar</button>
       <button class="btn btn-primary" style="flex:1" onclick="trocarMinhaSenha()">Salvar</button>
     </div>
+    <div style="border-top:1px solid var(--rose-light);margin:16px 0 10px"></div>
+    <div class="card-title" style="font-size:1rem">🎨 Tema do App</div>
+    <p style="font-size:0.76rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário — não muda a tela de mais ninguém.</p>
+    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
   </div>
 </div>
 
@@ -396,8 +394,7 @@ input.slot-valor-input:focus { outline:none !important; }
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
-  <div class="nav-cell" id="nav-temas"><button class="nav-btn" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button></div>
-  <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
+  <div class="nav-cell" id="nav-config"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
 <!-- ═══════════ AGENDA ═══════════ -->
@@ -496,13 +493,7 @@ input.slot-valor-input:focus { outline:none !important; }
 
 <!-- ═══════════ CONFIG ═══════════ -->
 <!-- ═══════════ TEMAS (acessível a todos os usuários) ═══════════ -->
-<div class="page" id="page-temas">
-  <div class="card">
-    <div class="card-title">🎨 Tema do App</div>
-    <p style="font-size:0.85rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário. Cada pessoa pode ter uma cor diferente — a sua troca não muda a tela de ninguém mais.</p>
-    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
-  </div>
-</div>
+
 
 <div class="page" id="page-config">
   <div style="text-align:center;font-size:0.7rem;color:var(--mid);opacity:0.75;padding:0 0 8px" id="app-versao"></div>
@@ -596,7 +587,7 @@ input.slot-valor-input:focus { outline:none !important; }
 </div>
 
 <!-- ═══════════ FAB ═══════════ -->
-<button class="fab" id="fab-agendamento" onclick="openModal('modal-novo-agendamento');setModoAvulso(false)" title="Novo agendamento">+</button>
+<button class="fab" id="fab-agendamento" onclick="populateSelects();openModal('modal-novo-agendamento');setModoAvulso(false)" title="Novo agendamento">+</button>
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
@@ -960,34 +951,40 @@ async function loadDespesasFromFirebase() {
 // ═══════════════════════════════════════
 const TEMAS = {
   rose: {
-    label: 'Rosé Clássico', publico: 'Feminino',
-    swatch: '#c49a9e',
-    vars: { rose:'#d0b0b3', 'rose-light':'#f2e7e8', 'rose-dark':'#957175', cream:'#fbf9f7', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4446', mid:'#918587', light:'#f6f1ee', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+    label: 'Rosé Clássico', publico: 'Feminino', swatch: '#c98d95',
+    vars: { rose:'#c98d95', 'rose-light':'#f3e2e4', 'rose-dark':'#8a4550', cream:'#fdf8f6', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3f3235', mid:'#7a6468', light:'#f7efec', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
   },
   lavanda: {
-    label: 'Lavanda', publico: 'Feminino',
-    swatch: '#a99bc0',
-    vars: { rose:'#bbb1cd', 'rose-light':'#ece6f2', 'rose-dark':'#7c6f93', cream:'#faf9fc', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#463f51', mid:'#8b8598', light:'#f3f1fa', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+    label: 'Lavanda', publico: 'Feminino', swatch: '#a793c4',
+    vars: { rose:'#a793c4', 'rose-light':'#ece3f4', 'rose-dark':'#6a5b86', cream:'#fbf9fd', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3a3247', mid:'#726a83', light:'#f4f0fb', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
   },
   sage: {
-    label: 'Verde Sálvia', publico: 'Unissex',
-    swatch: '#8aa693',
-    vars: { rose:'#a4bcac', 'rose-light':'#e5eee7', 'rose-dark':'#738f7d', cream:'#f8faf8', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3d453f', mid:'#849087', light:'#f0f4f0', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+    label: 'Verde Sálvia', publico: 'Unissex', swatch: '#89ad97',
+    vars: { rose:'#89ad97', 'rose-light':'#e3efe7', 'rose-dark':'#5a7d6a', cream:'#f8fbf9', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#31382f', mid:'#6b7d70', light:'#eef5f0', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
   },
   grafite: {
-    label: 'Grafite', publico: 'Masculino',
-    swatch: '#6b7078',
-    vars: { rose:'#8a8e94', 'rose-light':'#e3e4e6', 'rose-dark':'#5e6268', cream:'#f6f6f7', gold:'#c2b394', 'gold-light':'#ece3d0', dark:'#414449', mid:'#82858a', light:'#ebecee', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+    label: 'Grafite', publico: 'Masculino', swatch: '#767b83',
+    vars: { rose:'#767b83', 'rose-light':'#e3e5e8', 'rose-dark':'#494d54', cream:'#f7f7f8', gold:'#c2b394', 'gold-light':'#ece3d0', dark:'#34373c', mid:'#6c6f75', light:'#ebeced', sage:'#a1b0a7', 'sage-dark':'#84968b' }
   },
   marinho: {
-    label: 'Azul Marinho', publico: 'Masculino',
-    swatch: '#546e82',
-    vars: { rose:'#7590a2', 'rose-light':'#e0e7ec', 'rose-dark':'#4c6373', cream:'#f6f8f9', gold:'#c4b088', 'gold-light':'#eee4cf', dark:'#3a444c', mid:'#77848e', light:'#e9edf0', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+    label: 'Azul Marinho', publico: 'Masculino', swatch: '#5f8095',
+    vars: { rose:'#5f8095', 'rose-light':'#e0e9ee', 'rose-dark':'#3a5468', cream:'#f6f9fa', gold:'#c4b088', 'gold-light':'#eee4cf', dark:'#2f3d47', mid:'#647380', light:'#e8eef2', sage:'#a1b0a7', 'sage-dark':'#84968b' }
   },
   ambar: {
-    label: 'Âmbar', publico: 'Masculino',
-    swatch: '#a17d5c',
-    vars: { rose:'#b6987b', 'rose-light':'#eee2d3', 'rose-dark':'#8a6c50', cream:'#faf7f2', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4136', mid:'#93826f', light:'#f2ece1', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+    label: 'Âmbar', publico: 'Masculino', swatch: '#b3895f',
+    vars: { rose:'#b3895f', 'rose-light':'#efe0cf', 'rose-dark':'#7d5a3b', cream:'#fdf8f1', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3f3428', mid:'#816d57', light:'#f3ebdd', sage:'#a1b0a7', 'sage-dark':'#84968b' }
+  },
+  terracota: {
+    label: 'Nude & Terracota', publico: 'Feminino', swatch: '#a85d4e',
+    vars: { rose:'#c98a6d', 'rose-light':'#f0dace', 'rose-dark':'#a85d4e', cream:'#f8f1ea', gold:'#d4b483', 'gold-light':'#f3e4c8', dark:'#3a2b28', mid:'#8a7168', light:'#f2e6dc', sage:'#bcae94', 'sage-dark':'#9a8c72' }
+  },
+  ardosia: {
+    label: 'Rosé & Ardósia', publico: 'Feminino', swatch: '#9a6b77',
+    vars: { rose:'#c99aa6', 'rose-light':'#f3dde3', 'rose-dark':'#9a6b77', cream:'#faf6f7', gold:'#cbb896', 'gold-light':'#efe3cf', dark:'#332a33', mid:'#7d6870', light:'#f2e8ea', sage:'#a9bcae', 'sage-dark':'#8a9d8f' }
+  },
+  esmeralda: {
+    label: 'Esmeralda & Champagne', publico: 'Unissex', swatch: '#2f5348',
+    vars: { rose:'#3d6a5b', 'rose-light':'#dfe8e0', 'rose-dark':'#2f5348', cream:'#f6f4ec', gold:'#c9a24a', 'gold-light':'#f0e5c6', dark:'#1f2b26', mid:'#5c6960', light:'#e8efe6', sage:'#c9a24a', 'sage-dark':'#a8862f' }
   }
 };
 
@@ -1659,7 +1656,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo7d · 30/07/2026';
+const APP_VERSAO = 'usabilidade1-aba-servicos · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2989,11 +2986,9 @@ function finalizarLogin() {
   document.getElementById('user-label').textContent = f.nome;
   atualizarAvatarHeader();
   aplicarTema(f.tema || 'rose');
+  activeProfId = currentUser; // Tarefa 1: agenda abre já na aba da profissional logada
   document.getElementById('sync-dot').style.display = 'block';
-  if (currentUser === 1) {
-    document.getElementById('nav-config').style.display = 'block';
-    document.getElementById('nav-temas').style.display = 'none';
-  }
+  document.getElementById('nav-config').style.display = 'block';
   initApp();
   startSync();
 }
@@ -3003,8 +2998,6 @@ function logout() {
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
-  document.getElementById('nav-config').style.display = 'none';
-  document.getElementById('nav-temas').style.display = 'block';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -3119,6 +3112,7 @@ function getNomesServicos(appt) {
 function abrirMinhaSenha() {
   document.getElementById('msp-nova').value = '';
   document.getElementById('msp-confirma').value = '';
+  renderSeletorTemas();
   openModal('modal-minha-senha');
 }
 
@@ -3245,7 +3239,7 @@ function renderTimeline() {
       const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
       const descAv = descDoAvulso(lancBruto);
       rows += `<td class="slot-td ${descAv ? 'tem-avulso' : ''}" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
-        <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
+        <span class="slot-mais-tap" style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="event.stopPropagation();abrirSlot('${slot}')">+</span>
         ${descAv
           ? `<div class="slot-avulso-content" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">
                <div class="slot-nome">Avulso</div>
@@ -3391,6 +3385,7 @@ function abrirAvulsoSlot(hora) {
 }
 
 function abrirSlot(hora) {
+  populateSelects(); // Tarefa 2: recarrega serviços da aba ativa
   openModal('modal-novo-agendamento');
   setModoAvulso(false);
   setTimeout(() => {
@@ -4244,7 +4239,10 @@ function abrirHistoricoServico() {
 function populateSelects() {
   populateClientesSelect();
   const lista = document.getElementById('na-servicos-lista');
-  lista.innerHTML = SERVICOS.sort((a,b)=>a.nome.localeCompare(b.nome)).map(s =>
+  // Tarefa 2: só os serviços que a profissional da aba ativa realiza (fallback: todos)
+  let servicosVisiveis = SERVICOS.filter(s => Array.isArray(s.profissionais) && s.profissionais.includes(activeProfId));
+  if (servicosVisiveis.length === 0) servicosVisiveis = SERVICOS.slice();
+  lista.innerHTML = servicosVisiveis.sort((a,b)=>a.nome.localeCompare(b.nome)).map(s =>
     `<label style="display:flex;align-items:center;gap:8px;font-size:0.88rem;cursor:pointer;padding:3px 0">
       <input type="checkbox" class="svc-check" value="${s.id}" onchange="filtrarProfissional();renderHistoricoServico()" style="width:16px;height:16px;accent-color:var(--rose);cursor:pointer">
       <span>${s.nome} <span style="color:var(--mid);font-size:0.78rem">(${s.duracao}min)</span></span>
@@ -4305,7 +4303,6 @@ function showPage(id, btn) {
     if (agendamentos.length > 0) { renderAtivo(); } else { loadFromFirebase().then(renderAtivo); }
   }
   if (id==='config') { testarFirebase(); renderSeletorTemas(); }
-  if (id==='temas') { renderSeletorTemas(); }
 }
 
 function openModal(id) {
