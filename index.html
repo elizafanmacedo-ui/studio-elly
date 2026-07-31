@@ -394,7 +394,7 @@ input.slot-valor-input:focus { outline:none !important; }
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
-  <div class="nav-cell" id="nav-config"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
+  <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
 <!-- ═══════════ AGENDA ═══════════ -->
@@ -1656,7 +1656,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade1-aba-servicos · 31/07/2026';
+const APP_VERSAO = 'usabilidade3-config-admin · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2988,7 +2988,7 @@ function finalizarLogin() {
   aplicarTema(f.tema || 'rose');
   activeProfId = currentUser; // Tarefa 1: agenda abre já na aba da profissional logada
   document.getElementById('sync-dot').style.display = 'block';
-  document.getElementById('nav-config').style.display = 'block';
+  document.getElementById('nav-config').style.display = (currentUser === 1) ? 'block' : 'none';
   initApp();
   startSync();
 }
@@ -2998,6 +2998,7 @@ function logout() {
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
+  document.getElementById('nav-config').style.display = 'none';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -3239,7 +3240,7 @@ function renderTimeline() {
       const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
       const descAv = descDoAvulso(lancBruto);
       rows += `<td class="slot-td ${descAv ? 'tem-avulso' : ''}" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
-        <span class="slot-mais-tap" style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="event.stopPropagation();abrirSlot('${slot}')">+</span>
+        ${!descAv ? `<span class="slot-mais-tap" style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="event.stopPropagation();abrirSlot('${slot}')">+</span>` : ''}
         ${descAv
           ? `<div class="slot-avulso-content" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">
                <div class="slot-nome">Avulso</div>
