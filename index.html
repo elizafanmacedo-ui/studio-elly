@@ -188,6 +188,10 @@ input.slot-valor-input:focus { outline:none !important; }
 .qmsqm-soma.zerada { color:var(--mid); opacity:0.5; font-weight:600; }
 .avulso-desc-tap { flex:1 1 auto; min-width:0; padding:0 6px; font-size:0.72rem; font-style:italic; color:var(--dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; text-align:left; }
 .avulso-desc-tap.vazia { color:var(--mid); opacity:0.45; }
+.slot-avulso-content { flex:1 1 auto; min-width:0; cursor:pointer; padding-right:6px; }
+.slot-avulso-content .slot-nome { font-size:0.9rem; font-weight:700; color:var(--dark); }
+.slot-avulso-content .slot-svc { font-size:0.75rem; color:var(--mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.slot-td.tem-avulso { background:rgba(212,166,63,0.10); }
 .avulso-del { flex:0 0 auto; font-size:0.78rem; opacity:0.45; cursor:pointer; padding:2px 4px; margin-left:4px; }
 
 /* ── LISTAS ── */
@@ -1655,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'passo7c-sessao · 30/07/2026';
+const APP_VERSAO = 'passo7d · 30/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2899,7 +2903,8 @@ let authUserId = null;
 firebase.auth().onAuthStateChanged(user => {
   authUserId = null;
   if (user) {
-    const id = Object.keys(EMAILS_AUTH).find(k => EMAILS_AUTH[k] === user.email);
+    const emailLogado = (user.email || '').trim().toLowerCase();
+    const id = Object.keys(EMAILS_AUTH).find(k => (EMAILS_AUTH[k] || '').trim().toLowerCase() === emailLogado);
     if (id) authUserId = parseInt(id);
   }
   // Em qualquer caso, mostramos a tela de seleção de perfil (não finalizamos o login automaticamente)
@@ -3239,9 +3244,14 @@ function renderTimeline() {
       const qmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.qm > 0) ? lancBruto.qm : '';
       const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
       const descAv = descDoAvulso(lancBruto);
-      rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
+      rows += `<td class="slot-td ${descAv ? 'tem-avulso' : ''}" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
         <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
-        <span class="avulso-desc-tap ${descAv ? '' : 'vazia'}" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">${descAv ? escHtml(descAv) : 'serviço...'}</span>
+        ${descAv
+          ? `<div class="slot-avulso-content" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">
+               <div class="slot-nome">Avulso</div>
+               <div class="slot-svc">${escHtml(descAv)}</div>
+             </div>`
+          : `<span class="avulso-desc-tap vazia" onclick="event.stopPropagation();abrirAvulsoSlot('${slot}')">serviço...</span>`}
         ${!avulsoQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
