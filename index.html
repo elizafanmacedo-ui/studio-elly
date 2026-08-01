@@ -1659,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade5-prof-despesas · 31/07/2026';
+const APP_VERSAO = 'usabilidade6-prof-visivel · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -3472,8 +3472,6 @@ function editarAgendamento() {
     const ids = a.servicoIds || [a.servicoId];
     document.querySelectorAll('.svc-check').forEach(c => { c.checked = ids.includes(parseInt(c.value)); });
     document.getElementById('na-profissional').value = a.profId;
-    const grpProf = document.getElementById('na-prof-group');
-    if (grpProf) grpProf.style.display = ''; // na edição, sempre visível
     renderHistoricoServico();
   }, 100);
   openModal('modal-novo-agendamento');
@@ -4260,13 +4258,11 @@ function populateSelects() {
   const selProf = document.getElementById('na-profissional');
   selProf.innerHTML = '<option value="">Selecione...</option>' +
     FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-  // Aberto a partir de uma aba de profissional → já preenche e oculta o campo
+  // Aberto a partir de uma aba de profissional → já vem selecionada (campo permanece visível)
   const grpProf = document.getElementById('na-prof-group');
+  if (grpProf) grpProf.style.display = '';
   if (activeProfId && FUNCIONARIOS.some(f => f.id === activeProfId)) {
     selProf.value = String(activeProfId);
-    if (grpProf) grpProf.style.display = 'none';
-  } else {
-    if (grpProf) grpProf.style.display = '';
   }
 }
 
