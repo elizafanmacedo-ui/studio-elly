@@ -1659,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade6-prof-visivel · 31/07/2026';
+const APP_VERSAO = 'usabilidade7-prof-fixa · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -4267,19 +4267,28 @@ function populateSelects() {
 }
 
 function filtrarProfissional() {
-  const checks = [...document.querySelectorAll('.svc-check:checked')];
   const sel = document.getElementById('na-profissional');
+  // Aberto de uma aba de profissional: a pessoa é fixa — marcar serviço NÃO altera o campo
+  if (activeProfId && FUNCIONARIOS.some(f => f.id === activeProfId)) {
+    if (sel.value !== String(activeProfId)) sel.value = String(activeProfId);
+    return;
+  }
+  const anterior = sel.value; // preservar a escolha atual ao repopular
+  const checks = [...document.querySelectorAll('.svc-check:checked')];
   if (checks.length === 0) {
     sel.innerHTML = '<option value="">Selecione...</option>' + FUNCIONARIOS.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+    if (anterior) sel.value = anterior;
     return;
   }
   const svcsSel = checks.map(c => SERVICOS.find(s=>s.id===parseInt(c.value))).filter(Boolean);
   const profIds = FUNCIONARIOS.map(f=>f.id).filter(fid => svcsSel.every(s=>s.profissionais.includes(fid)));
   if (profIds.length > 0) {
-    sel.innerHTML = '<option value="">Selecione...</option>' + profIds.map(id=>{const f=FUNCIONARIOS.find(x=>x.id===id);return f?`<option value="${f.id}">${f.nome}`:''}).join('');
-    if (profIds.length===1) sel.value=profIds[0];
+    sel.innerHTML = '<option value="">Selecione...</option>' + profIds.map(id=>{const f=FUNCIONARIOS.find(x=>x.id===id);return f?`<option value="${f.id}">${f.nome}</option>`:''}).join('');
+    if (anterior && profIds.includes(parseInt(anterior))) sel.value = anterior;
+    else if (profIds.length===1) sel.value=profIds[0];
   } else {
     sel.innerHTML = '<option value="">Qualquer profissional</option>' + FUNCIONARIOS.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+    if (anterior) sel.value = anterior;
   }
 }
 
