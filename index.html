@@ -157,13 +157,13 @@ textarea { resize:vertical; min-height:80px; }
 .slot-mais-tap { position:relative; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; font-size:1.15rem; font-weight:700; line-height:1; color:var(--rose-dark); background:var(--rose-light); box-shadow:0 1px 4px rgba(0,0,0,0.12); flex-shrink:0; }
 .slot-mais-tap::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; z-index:5; }
 .slot-td:hover { background:var(--light); }
-.slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 12px; display:flex; align-items:center; justify-content:space-between; gap:8px; cursor:default; }
-.slot-appt-content { display:flex; flex-direction:column; justify-content:center; min-height:100%; cursor:pointer; flex:1; min-width:0; }
-.slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; }
+.slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:default; box-sizing:border-box; max-width:100%; overflow:hidden; }
+.slot-appt-content { display:flex; flex-direction:column; justify-content:center; min-height:100%; cursor:pointer; flex:1 1 auto; min-width:0; overflow:hidden; }
+.slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
 .slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
 .slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
-.slot-td .slot-valor-wrap { flex:0 0 auto !important; width:auto !important; }
+.slot-td .slot-valor-wrap { flex:0 0 auto !important; width:auto !important; white-space:nowrap; }
 input.slot-valor-input { width:52px !important; max-width:52px !important; padding:0 !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.86rem !important; font-weight:800; color:var(--dark); text-align:right !important; }
 input.slot-valor-input:focus { outline:none !important; }
 /* QM/SQM (Etapa 3 da migração) — caixinha de valor com/sem química para funcionárias */
@@ -1659,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade8-nav-fix · 31/07/2026';
+const APP_VERSAO = 'usabilidade9-valor-visivel · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
