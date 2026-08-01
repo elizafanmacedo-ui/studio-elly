@@ -620,7 +620,7 @@ input.slot-valor-input:focus { outline:none !important; }
       <div id="na-servicos-lista" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px"></div>
       <div id="na-historico-servico" style="margin-top:8px"></div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="na-prof-group">
       <label>Profissional *</label>
       <select id="na-profissional">
         <option value="">Selecione...</option>
@@ -1394,8 +1394,11 @@ function renderDespesasFinanceiro() {
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
+  // Pendentes (não acertadas) aparecem sempre e migram de mês em mês até o acerto;
+  // acertadas ficam no mês em que caíram. Não filtrar pendentes por mês do calendário.
   const todasDoMes = DESPESAS.filter(d => {
     if (!d.data) return false;
+    if (!d.acertada) return true;
     const p = d.data.split('-');
     return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
   }).sort((a,b) => a.data.localeCompare(b.data));
@@ -1404,7 +1407,7 @@ function renderDespesasFinanceiro() {
   const acertadas = todasDoMes.filter(d => d.acertada);
 
   if (todasDoMes.length === 0) {
-    cont.innerHTML = `<div class="empty-state"><div class="es-icon">🧾</div><p>Nenhuma despesa lançada em ${mesLabel.toLowerCase()}</p></div>`;
+    cont.innerHTML = `<div class="empty-state"><div class="es-icon">🧾</div><p>Nenhuma despesa pendente ou lançada em ${mesLabel.toLowerCase()}</p></div>`;
     return;
   }
 
@@ -1656,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade4-mais-destacado · 31/07/2026';
+const APP_VERSAO = 'usabilidade5-prof-despesas · 31/07/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2408,6 +2411,9 @@ function renderFaturamento() {
   if (ehDono) {
     const despesasMesLista = DESPESAS.filter(d => {
       if (!d.data) return false;
+      // Pendentes (não acertadas) aparecem sempre, migrando de mês em mês até o acerto.
+      // Acertadas ficam registradas no mês em que caíram.
+      if (!d.acertada) return true;
       const p = d.data.split('-');
       return parseInt(p[0]) === ano && (parseInt(p[1]) - 1) === mes;
     });
@@ -3466,6 +3472,8 @@ function editarAgendamento() {
     const ids = a.servicoIds || [a.servicoId];
     document.querySelectorAll('.svc-check').forEach(c => { c.checked = ids.includes(parseInt(c.value)); });
     document.getElementById('na-profissional').value = a.profId;
+    const grpProf = document.getElementById('na-prof-group');
+    if (grpProf) grpProf.style.display = ''; // na edição, sempre visível
     renderHistoricoServico();
   }, 100);
   openModal('modal-novo-agendamento');
@@ -4252,6 +4260,14 @@ function populateSelects() {
   const selProf = document.getElementById('na-profissional');
   selProf.innerHTML = '<option value="">Selecione...</option>' +
     FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+  // Aberto a partir de uma aba de profissional → já preenche e oculta o campo
+  const grpProf = document.getElementById('na-prof-group');
+  if (activeProfId && FUNCIONARIOS.some(f => f.id === activeProfId)) {
+    selProf.value = String(activeProfId);
+    if (grpProf) grpProf.style.display = 'none';
+  } else {
+    if (grpProf) grpProf.style.display = '';
+  }
 }
 
 function filtrarProfissional() {
