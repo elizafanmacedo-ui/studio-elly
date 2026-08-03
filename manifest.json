@@ -1,0 +1,15 @@
+{
+  "name": "Studio Elly Designer",
+  "short_name": "Studio Elly",
+  "description": "Agenda e gestão do Studio Elly Designer",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fdf6f0",
+  "theme_color": "#7a3d4a",
+  "orientation": "portrait"
+}
