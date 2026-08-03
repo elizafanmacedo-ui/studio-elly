@@ -157,7 +157,7 @@ textarea { resize:vertical; min-height:80px; }
 .slot-mais-tap { position:relative; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; font-size:1.15rem; font-weight:700; line-height:1; color:var(--rose-dark); background:var(--rose-light); box-shadow:0 1px 4px rgba(0,0,0,0.12); flex-shrink:0; }
 .slot-mais-tap::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; z-index:5; }
 .slot-td:hover { background:var(--light); }
-.slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:default; box-sizing:border-box; width:100%; max-width:100%; overflow:hidden; }
+.slot-td.tem-appt { background:linear-gradient(135deg,#efd8dc,#e8c8ce); box-shadow:inset 5px 0 0 #bb7b84; border-radius:0 12px 12px 0; padding:7px 10px; display:flex; align-items:center; justify-content:space-between; gap:6px; cursor:default; box-sizing:border-box; max-width:100%; overflow:hidden; }
 .slot-appt-content { display:flex; flex-direction:column; justify-content:center; min-height:100%; cursor:pointer; flex:1 1 auto; min-width:0; overflow:hidden; }
 .slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
@@ -587,7 +587,7 @@ input.slot-valor-input:focus { outline:none !important; }
 </div>
 
 <!-- ═══════════ FAB ═══════════ -->
-<button class="fab" id="fab-agendamento" onclick="populateSelects();openModal('modal-novo-agendamento');setModoAvulso(false)" title="Novo agendamento">+</button>
+<!-- FAB removido a pedido: novo agendamento é feito pelo + do slot -->
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
@@ -1659,7 +1659,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'usabilidade9-valor-visivel · 31/07/2026';
+const APP_VERSAO = 'melhorias1-dom-fab-del · 01/08/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -2993,6 +2993,7 @@ function finalizarLogin() {
   atualizarAvatarHeader();
   aplicarTema(f.tema || 'rose');
   activeProfId = currentUser; // Tarefa 1: agenda abre já na aba da profissional logada
+  ajustarSeDomingo(); // domingo não opera
   document.getElementById('sync-dot').style.display = 'block';
   document.getElementById('nav-config').style.display = (currentUser === 1) ? 'block' : 'none';
   initApp();
@@ -3055,7 +3056,7 @@ function renderWeek() {
   monday.setDate(now.getDate() - dow + 1);
   document.getElementById('month-label').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
   let html = '';
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 6; i++) { // Seg a Sáb (domingo removido)
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -3082,6 +3083,15 @@ function renderWeek() {
 }
 
 function selectDay(ds) { selectedDate = ds; renderWeek(); renderTimeline(); }
+
+// Domingo removido da operação: se selectedDate cair num domingo, joga para a segunda seguinte
+function ajustarSeDomingo() {
+  const d = new Date(selectedDate + 'T00:00:00');
+  if (d.getDay() === 0) {
+    d.setDate(d.getDate() + 1);
+    selectedDate = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+}
 function moveWeek(dir) { weekOffset += dir; renderWeek(); renderTimeline(); }
 
 // ═══════════════════════════════════════
@@ -3895,9 +3905,29 @@ function renderFuncionarios() {
         <div class="eq-role" style="margin-top:4px;font-weight:700">${hoje} hoje</div>
         ${badgeTipo}
       </div>
-      <div style="color:rgba(255,255,255,.85);font-size:0.9rem">✏️</div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <div style="color:rgba(255,255,255,.85);font-size:0.9rem">✏️</div>
+        ${(f.id !== 1 && currentUser === 1) ? `<span onclick="event.stopPropagation();excluirProfissional(${f.id})" title="Excluir profissional" style="font-size:0.95rem;cursor:pointer;opacity:0.85">🗑</span>` : ''}
+      </div>
     </div>`;
   }).join('');
+}
+
+// Exclui a profissional da equipe, PRESERVANDO os agendamentos dela no Firebase (histórico intacto)
+async function excluirProfissional(id) {
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  if (!f) return;
+  if (id === 1) { showToast('A administradora não pode ser excluída'); return; }
+  const qtd = agendamentos.filter(a => a.profId === id).length;
+  const aviso = `Excluir ${f.nome} da equipe?\n\nEla deixa de aparecer na agenda e nos lançamentos.` +
+    (qtd > 0 ? `\n\nOs ${qtd} agendamento(s) dela permanecem salvos no histórico (não são apagados).` : '');
+  if (!confirm(aviso)) return;
+  FUNCIONARIOS = FUNCIONARIOS.filter(x => x.id !== id);
+  if (activeProfId === id) activeProfId = currentUser;
+  await salvarEquipeFirebase();
+  renderFuncionarios();
+  if (document.getElementById('page-agenda').classList.contains('active')) { renderProfTabs(); renderTimeline(); }
+  showToast('🗑 ' + f.nome + ' removida da equipe');
 }
 
 function updateStats() {
@@ -4315,7 +4345,7 @@ function showPage(id, btn) {
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
   if (id==='agenda') { renderWeek(); renderTimeline(); }
-  document.getElementById('fab-agendamento').style.display = (id==='agenda' ? 'flex' : 'none');
+  const _fab=document.getElementById('fab-agendamento'); if(_fab) _fab.style.display='none';
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
