@@ -66,7 +66,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; ba
 .nav-btn.active .nav-icon { filter:none; }
 
 /* ── PAGES ── */
-.page { display:none; padding:18px 16px 90px; }
+.page { display:none; padding:18px 16px 90px; overflow-x:hidden; }
 .page.active { display:block; }
 
 /* ── CARDS ── */
@@ -156,7 +156,7 @@ textarea { resize:vertical; min-height:80px; }
 .pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
-.grade-table { width:100%; border-collapse:collapse; }
+.grade-table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .grade-table tr { border-bottom:1px solid var(--rose-light); }
 .hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:36px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
 .slot-td { height:36px; padding:3px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
