@@ -66,7 +66,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; ba
 .nav-btn.active .nav-icon { filter:none; }
 
 /* ── PAGES ── */
-.page { display:none; padding:18px 16px 90px; overflow-x:hidden; }
+.page { display:none; padding:18px 16px 90px; }
 .page.active { display:block; }
 
 /* ── CARDS ── */
@@ -836,10 +836,14 @@ input.slot-valor-input:focus { outline:none !important; }
     <div class="form-group">
       <label>Plano</label>
       <select id="saas-plano" onchange="saasAtualizarValor()">
-        <option value="mensal|59">Mensal — R$59</option>
-        <option value="trimestral|159">Trimestral — R$159</option>
-        <option value="anual|599">Anual — R$599</option>
+        <option value="mensal|59">Mensal</option>
+        <option value="trimestral|159">Trimestral</option>
+        <option value="anual|599">Anual</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label>Valor (R$)</label>
+      <input type="number" id="saas-valor" placeholder="Ex: 59" min="1">
     </div>
     <div class="form-group">
       <label>Vencimento</label>
@@ -4521,7 +4525,8 @@ async function renderSaas() {
     else bloqueados++;
     if (s !== 'bloqueado') {
       const p = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
-      receita += p.valor / p.mesesMensal; // normaliza para valor mensal
+      const val = c.valor || p.valor;
+      receita += val / p.mesesMensal;
     }
   });
   document.getElementById('saas-ativos').textContent = ativos;
@@ -4555,7 +4560,7 @@ async function renderSaas() {
       <div class="saas-avatar" style="background:${bg}">💇</div>
       <div class="saas-info">
         <div class="saas-nome">${escHtml(c.nome)}</div>
-        <div class="saas-detalhe">${plano.label} · R$${plano.valor} · Vence ${dataFmt}</div>
+        <div class="saas-detalhe">${plano.label} · R$${c.valor || plano.valor} · Vence ${dataFmt}</div>
         <span class="saas-badge ${badgeClass}">${badgeLabel}</span>
       </div>
       <div class="saas-acoes">${botoes}</div>
@@ -4564,7 +4569,8 @@ async function renderSaas() {
 }
 
 function saasAtualizarValor() {
-  // hook para futuras validações
+  const [plano, val] = document.getElementById('saas-plano').value.split('|');
+  document.getElementById('saas-valor').value = val || '';
 }
 
 function abrirModalSaasCliente() {
@@ -4573,6 +4579,7 @@ function abrirModalSaasCliente() {
   document.getElementById('saas-nome').value = '';
   document.getElementById('saas-whatsapp').value = '';
   document.getElementById('saas-plano').value = 'mensal|59';
+  document.getElementById('saas-valor').value = '59';
   const prox = new Date();
   prox.setMonth(prox.getMonth() + 1);
   document.getElementById('saas-vencimento').value = prox.toISOString().split('T')[0];
@@ -4588,6 +4595,7 @@ function saasEditar(id) {
   document.getElementById('saas-whatsapp').value = c.whatsapp || '';
   const plano = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
   document.getElementById('saas-plano').value = c.plano + '|' + plano.valor;
+  document.getElementById('saas-valor').value = c.valor || plano.valor;
   document.getElementById('saas-vencimento').value = c.vencimento;
   openModal('modal-saas-cliente');
 }
@@ -4597,10 +4605,11 @@ async function salvarSaasCliente() {
   if (!nome) { showToast('Digite o nome do cliente'); return; }
   const whatsapp = document.getElementById('saas-whatsapp').value.trim();
   const [plano] = document.getElementById('saas-plano').value.split('|');
+  const valor = parseFloat(document.getElementById('saas-valor').value) || 59;
   const vencimento = document.getElementById('saas-vencimento').value;
   if (!vencimento) { showToast('Selecione o vencimento'); return; }
 
-  const dados = { nome, whatsapp, plano, vencimento, status: 'ativo' };
+  const dados = { nome, whatsapp, plano, valor, vencimento, status: 'ativo' };
 
   try {
     if (saasEditId) {
