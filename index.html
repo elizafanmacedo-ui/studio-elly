@@ -4552,9 +4552,12 @@ async function renderSaas() {
 
     const botoes = s === 'bloqueado'
       ? `<button class="saas-btn sbtn-renovar" onclick="saasRenovar('${c.id}')">Reativar</button>
-         <button class="saas-btn sbtn-editar" onclick="saasEditar('${c.id}')">Editar</button>`
+         <button class="saas-btn sbtn-editar" onclick="saasEditar('${c.id}')">✏️</button>
+         <button class="saas-btn sbtn-bloquear" onclick="saasExcluir('${c.id}')">🗑</button>`
       : `<button class="saas-btn sbtn-renovar" onclick="saasRenovar('${c.id}')">Renovar</button>
-         <button class="saas-btn sbtn-bloquear" onclick="saasBloquear('${c.id}')">Bloquear</button>`;
+         <button class="saas-btn sbtn-bloquear" onclick="saasBloquear('${c.id}')">Bloquear</button>
+         <button class="saas-btn sbtn-editar" onclick="saasEditar('${c.id}')">✏️</button>
+         <button class="saas-btn sbtn-bloquear" onclick="saasExcluir('${c.id}')">🗑</button>`;
 
     return `<div class="saas-card">
       <div class="saas-avatar" style="background:${bg}">💇</div>
@@ -4628,6 +4631,19 @@ async function salvarSaasCliente() {
     showToast('✅ Cliente salvo!');
   } catch (e) {
     showToast('Erro ao salvar');
+  }
+}
+
+async function saasExcluir(id) {
+  const c = saasClientes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm('Excluir ' + c.nome + '? Esta ação não pode ser desfeita.')) return;
+  try {
+    await fbFetch('/saas_clientes/' + id + '.json', { method: 'DELETE' });
+    renderSaas();
+    showToast('🗑 ' + c.nome + ' excluído');
+  } catch (e) {
+    showToast('Erro ao excluir');
   }
 }
 
