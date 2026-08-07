@@ -263,6 +263,24 @@ input.slot-valor-input:focus { outline:none !important; }
 .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:500; }
 .badge-rose { background:var(--rose-light); color:var(--rose-dark); }
 .badge-gold { background:var(--gold-light); color:#7a5c1e; }
+/* ── SAAS ── */
+.stat-box { border-radius:14px; padding:12px 8px; text-align:center; }
+.stat-box-num { font-size:1.5rem; font-weight:800; line-height:1; }
+.stat-box-label { font-size:0.62rem; color:var(--mid); font-weight:700; text-transform:uppercase; margin-top:4px; }
+.saas-card { background:var(--white); border-radius:16px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:12px; box-shadow:0 2px 8px rgba(58,34,39,.08); }
+.saas-avatar { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+.saas-info { flex:1; min-width:0; }
+.saas-nome { font-weight:700; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.saas-detalhe { font-size:0.72rem; color:var(--mid); margin-top:2px; }
+.saas-badge { font-size:0.63rem; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:5px; }
+.sb-ativo { background:#e8f5e9; color:#2e7d32; }
+.sb-vencendo { background:#fff3e0; color:#e65100; }
+.sb-bloqueado { background:#ffebee; color:#c62828; }
+.saas-acoes { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+.saas-btn { font-size:0.67rem; font-weight:700; padding:5px 10px; border-radius:8px; border:none; cursor:pointer; white-space:nowrap; }
+.sbtn-bloquear { background:#ffebee; color:#c62828; }
+.sbtn-renovar { background:#e8f5e9; color:#2e7d32; }
+.sbtn-editar { background:var(--light); color:var(--mid); }
 .badge-green { background:#e8f5e9; color:#2e7d32; }
 
 /* ── LOGIN ── */
@@ -401,6 +419,7 @@ input.slot-valor-input:focus { outline:none !important; }
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
+  <div class="nav-cell" id="nav-saas" style="display:none"><button class="nav-btn" onclick="showPage('saas',this)"><span class="nav-icon">👑</span>SaaS</button></div>
   <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
@@ -501,6 +520,24 @@ input.slot-valor-input:focus { outline:none !important; }
 <!-- ═══════════ CONFIG ═══════════ -->
 <!-- ═══════════ TEMAS (acessível a todos os usuários) ═══════════ -->
 
+
+<div class="page" id="page-saas">
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>👑 Clientes SaaS</span>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalSaasCliente()">+ Novo</button>
+    </div>
+    <div class="stats-grid-4" style="margin-top:8px">
+      <div class="stat-box" style="background:var(--green-light,#e8f5e9)"><div class="stat-box-num" id="saas-ativos" style="color:#2e7d32">0</div><div class="stat-box-label">Ativos</div></div>
+      <div class="stat-box" style="background:#fff3e0"><div class="stat-box-num" id="saas-vencendo" style="color:#e65100">0</div><div class="stat-box-label">Vencendo</div></div>
+      <div class="stat-box" style="background:#ffebee"><div class="stat-box-num" id="saas-bloqueados" style="color:#c62828">0</div><div class="stat-box-label">Bloqueados</div></div>
+      <div class="stat-box" style="background:var(--gold-light)"><div class="stat-box-num" id="saas-receita" style="color:#7a5c1e;font-size:1.1rem">R$0</div><div class="stat-box-label">Receita/mês</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div id="saas-lista"></div>
+  </div>
+</div>
 
 <div class="page" id="page-config">
   <div style="text-align:center;font-size:0.7rem;color:var(--mid);opacity:0.75;padding:0 0 8px" id="app-versao"></div>
@@ -780,6 +817,38 @@ input.slot-valor-input:focus { outline:none !important; }
     </div>
     <div id="desp-lista-modal"></div>
     <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeModal('modal-despesa')">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL: NOVO/EDITAR CLIENTE SAAS -->
+<div class="modal-bg" id="modal-saas-cliente" style="z-index:640">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="saas-modal-titulo">👑 Novo Cliente</div>
+    <div class="form-group">
+      <label>Nome do salão / cliente</label>
+      <input type="text" id="saas-nome" placeholder="Ex: Mel Manicure">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp (com DDD)</label>
+      <input type="tel" id="saas-whatsapp" placeholder="Ex: 5599999999999">
+    </div>
+    <div class="form-group">
+      <label>Plano</label>
+      <select id="saas-plano" onchange="saasAtualizarValor()">
+        <option value="mensal|59">Mensal — R$59</option>
+        <option value="trimestral|159">Trimestral — R$159</option>
+        <option value="anual|599">Anual — R$599</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Vencimento</label>
+      <input type="date" id="saas-vencimento">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-saas-cliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarSaasCliente()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -1666,7 +1735,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'melhorias2-icone-app · 01/08/2026';
+const APP_VERSAO = 'saas-mensalidade · 06/08/2026';
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -3003,6 +3072,7 @@ function finalizarLogin() {
   ajustarSeDomingo(); // domingo não opera
   document.getElementById('sync-dot').style.display = 'block';
   document.getElementById('nav-config').style.display = (currentUser === 1) ? 'block' : 'none';
+  document.getElementById('nav-saas').style.display = (currentUser === 1) ? 'block' : 'none';
   initApp();
   startSync();
 }
@@ -3013,6 +3083,7 @@ function logout() {
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
   document.getElementById('nav-config').style.display = 'none';
+  document.getElementById('nav-saas').style.display = 'none';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -4362,6 +4433,7 @@ function showPage(id, btn) {
     if (agendamentos.length > 0) { renderAtivo(); } else { loadFromFirebase().then(renderAtivo); }
   }
   if (id==='config') { testarFirebase(); renderSeletorTemas(); }
+  if (id==='saas') renderSaas();
 }
 
 function openModal(id) {
@@ -4406,6 +4478,186 @@ function closeModal(id) {
   if (id==='modal-novo-agendamento') editingApptId = null;
   if (id==='modal-nova-cliente') editingClienteId = null;
   if (id==='modal-novo-servico') document.getElementById('ns-editando-id').value = '';
+}
+
+// ═══════════ SAAS — GESTÃO DE CLIENTES (só admin) ═══════════
+let saasClientes = [];
+let saasEditId = null;
+
+const SAAS_PLANOS = {
+  mensal: { label: 'Mensal', valor: 59, mesesMensal: 1 },
+  trimestral: { label: 'Trimestral', valor: 159, mesesMensal: 3 },
+  anual: { label: 'Anual', valor: 599, mesesMensal: 12 }
+};
+
+function saasStatus(c) {
+  if (c.status === 'bloqueado') return 'bloqueado';
+  const dias = Math.floor((new Date(c.vencimento + 'T12:00:00') - new Date().setHours(12,0,0,0)) / 86400000);
+  if (dias < 0) return 'bloqueado';
+  if (dias <= 5) return 'vencendo';
+  return 'ativo';
+}
+
+async function loadSaas() {
+  try {
+    const r = await fbFetch('/saas_clientes.json');
+    const data = await r.json();
+    saasClientes = data ? Object.entries(data).map(([id, v]) => ({ id, ...v })) : [];
+  } catch (e) {
+    saasClientes = [];
+  }
+}
+
+async function renderSaas() {
+  await loadSaas();
+  const lista = document.getElementById('saas-lista');
+
+  // Stats
+  let ativos = 0, vencendo = 0, bloqueados = 0, receita = 0;
+  saasClientes.forEach(c => {
+    const s = saasStatus(c);
+    if (s === 'ativo') ativos++;
+    else if (s === 'vencendo') vencendo++;
+    else bloqueados++;
+    if (s !== 'bloqueado') {
+      const p = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
+      receita += p.valor / p.mesesMensal; // normaliza para valor mensal
+    }
+  });
+  document.getElementById('saas-ativos').textContent = ativos;
+  document.getElementById('saas-vencendo').textContent = vencendo;
+  document.getElementById('saas-bloqueados').textContent = bloqueados;
+  document.getElementById('saas-receita').textContent = 'R$' + Math.round(receita);
+
+  if (saasClientes.length === 0) {
+    lista.innerHTML = '<div style="text-align:center;padding:30px 20px;color:var(--mid)"><div style="font-size:2.5rem;margin-bottom:10px">👑</div><p style="font-size:0.85rem">Nenhum cliente cadastrado</p><p style="font-size:0.75rem;margin-top:6px;opacity:0.7">Toque em + Novo para adicionar</p></div>';
+    return;
+  }
+
+  const ordem = { bloqueado: 0, vencendo: 1, ativo: 2 };
+  const sorted = [...saasClientes].sort((a, b) => ordem[saasStatus(a)] - ordem[saasStatus(b)]);
+
+  lista.innerHTML = sorted.map(c => {
+    const s = saasStatus(c);
+    const badgeClass = s === 'ativo' ? 'sb-ativo' : s === 'vencendo' ? 'sb-vencendo' : 'sb-bloqueado';
+    const badgeLabel = s === 'ativo' ? '✅ Ativo' : s === 'vencendo' ? '⚠️ Vencendo' : '🔴 Bloqueado';
+    const bg = s === 'bloqueado' ? '#ffebee' : s === 'vencendo' ? '#fff3e0' : '#e8f5e9';
+    const dataFmt = new Date(c.vencimento + 'T12:00:00').toLocaleDateString('pt-BR');
+    const plano = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
+
+    const botoes = s === 'bloqueado'
+      ? `<button class="saas-btn sbtn-renovar" onclick="saasRenovar('${c.id}')">Reativar</button>
+         <button class="saas-btn sbtn-editar" onclick="saasEditar('${c.id}')">Editar</button>`
+      : `<button class="saas-btn sbtn-renovar" onclick="saasRenovar('${c.id}')">Renovar</button>
+         <button class="saas-btn sbtn-bloquear" onclick="saasBloquear('${c.id}')">Bloquear</button>`;
+
+    return `<div class="saas-card">
+      <div class="saas-avatar" style="background:${bg}">💇</div>
+      <div class="saas-info">
+        <div class="saas-nome">${escHtml(c.nome)}</div>
+        <div class="saas-detalhe">${plano.label} · R$${plano.valor} · Vence ${dataFmt}</div>
+        <span class="saas-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <div class="saas-acoes">${botoes}</div>
+    </div>`;
+  }).join('');
+}
+
+function saasAtualizarValor() {
+  // hook para futuras validações
+}
+
+function abrirModalSaasCliente() {
+  saasEditId = null;
+  document.getElementById('saas-modal-titulo').textContent = '👑 Novo Cliente';
+  document.getElementById('saas-nome').value = '';
+  document.getElementById('saas-whatsapp').value = '';
+  document.getElementById('saas-plano').value = 'mensal|59';
+  const prox = new Date();
+  prox.setMonth(prox.getMonth() + 1);
+  document.getElementById('saas-vencimento').value = prox.toISOString().split('T')[0];
+  openModal('modal-saas-cliente');
+}
+
+function saasEditar(id) {
+  const c = saasClientes.find(x => x.id === id);
+  if (!c) return;
+  saasEditId = id;
+  document.getElementById('saas-modal-titulo').textContent = '✏️ Editar Cliente';
+  document.getElementById('saas-nome').value = c.nome;
+  document.getElementById('saas-whatsapp').value = c.whatsapp || '';
+  const plano = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
+  document.getElementById('saas-plano').value = c.plano + '|' + plano.valor;
+  document.getElementById('saas-vencimento').value = c.vencimento;
+  openModal('modal-saas-cliente');
+}
+
+async function salvarSaasCliente() {
+  const nome = document.getElementById('saas-nome').value.trim();
+  if (!nome) { showToast('Digite o nome do cliente'); return; }
+  const whatsapp = document.getElementById('saas-whatsapp').value.trim();
+  const [plano] = document.getElementById('saas-plano').value.split('|');
+  const vencimento = document.getElementById('saas-vencimento').value;
+  if (!vencimento) { showToast('Selecione o vencimento'); return; }
+
+  const dados = { nome, whatsapp, plano, vencimento, status: 'ativo' };
+
+  try {
+    if (saasEditId) {
+      const existente = saasClientes.find(x => x.id === saasEditId) || {};
+      dados.status = existente.status === 'bloqueado' ? 'ativo' : (existente.status || 'ativo');
+      await fbFetch('/saas_clientes/' + saasEditId + '.json', {
+        method: 'PATCH', body: JSON.stringify(dados)
+      });
+    } else {
+      await fbFetch('/saas_clientes.json', {
+        method: 'POST', body: JSON.stringify(dados)
+      });
+    }
+    closeModal('modal-saas-cliente');
+    renderSaas();
+    showToast('✅ Cliente salvo!');
+  } catch (e) {
+    showToast('Erro ao salvar');
+  }
+}
+
+async function saasBloquear(id) {
+  const c = saasClientes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm('Bloquear acesso de ' + c.nome + '?')) return;
+  try {
+    await fbFetch('/saas_clientes/' + id + '.json', {
+      method: 'PATCH', body: JSON.stringify({ status: 'bloqueado' })
+    });
+    renderSaas();
+    showToast('🔴 ' + c.nome + ' bloqueado');
+  } catch (e) {
+    showToast('Erro ao bloquear');
+  }
+}
+
+async function saasRenovar(id) {
+  const c = saasClientes.find(x => x.id === id);
+  if (!c) return;
+  const plano = SAAS_PLANOS[c.plano] || SAAS_PLANOS.mensal;
+  // Renova a partir do vencimento atual (ou de hoje, se já venceu)
+  const base = new Date(c.vencimento + 'T12:00:00');
+  const hoje = new Date(); hoje.setHours(12,0,0,0);
+  const inicio = base > hoje ? base : hoje;
+  inicio.setMonth(inicio.getMonth() + plano.mesesMensal);
+  const novoVenc = inicio.toISOString().split('T')[0];
+
+  if (!confirm('Renovar ' + c.nome + ' até ' + new Date(novoVenc + 'T12:00:00').toLocaleDateString('pt-BR') + '?')) return;
+  try {
+    await fbFetch('/saas_clientes/' + id + '.json', {
+      method: 'PATCH', body: JSON.stringify({ status: 'ativo', vencimento: novoVenc })
+    });
+    renderSaas();
+    showToast('✅ ' + c.nome + ' renovado!');
+  } catch (e) {
+    showToast('Erro ao renovar');
+  }
 }
 
 function showToast(msg) {
