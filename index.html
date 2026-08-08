@@ -419,7 +419,7 @@ input.slot-valor-input:focus { outline:none !important; }
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
   <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
-  <div class="nav-cell" id="nav-saas" style="display:none"><button class="nav-btn" onclick="showPage('saas',this)"><span class="nav-icon">👑</span>SaaS</button></div>
+  <div class="nav-cell" id="nav-saas" style="display:none"><button class="nav-btn" onclick="showPage('saas',this)"><span class="nav-icon">👑<span id="saas-dot" style="position:absolute;top:-2px;right:-4px;width:9px;height:9px;border-radius:50%;background:#2e7d32;border:1.5px solid #fff;display:none"></span></span>SaaS</button></div>
   <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
@@ -3077,6 +3077,7 @@ function finalizarLogin() {
   document.getElementById('sync-dot').style.display = 'block';
   document.getElementById('nav-config').style.display = (currentUser === 1) ? 'block' : 'none';
   document.getElementById('nav-saas').style.display = (currentUser === 1) ? 'block' : 'none';
+  if (currentUser === 1) atualizarDotSaas();
   initApp();
   startSync();
 }
@@ -4541,7 +4542,7 @@ async function renderSaas() {
 
   const ordem = { bloqueado: 0, vencendo: 1, ativo: 2 };
   const sorted = [...saasClientes].sort((a, b) => ordem[saasStatus(a)] - ordem[saasStatus(b)]);
-
+  atualizarDotSaas();
   lista.innerHTML = sorted.map(c => {
     const s = saasStatus(c);
     const badgeClass = s === 'ativo' ? 'sb-ativo' : s === 'vencendo' ? 'sb-vencendo' : 'sb-bloqueado';
@@ -4645,6 +4646,24 @@ async function saasExcluir(id) {
   } catch (e) {
     showToast('Erro ao excluir');
   }
+}
+
+function atualizarDotSaas() {
+  if (currentUser !== 1) return;
+  const dot = document.getElementById('saas-dot');
+  if (!dot) return;
+  fbFetch('/saas_clientes.json').then(r => r.json()).then(data => {
+    if (!data) { dot.style.display = 'none'; return; }
+    const clientes = Object.values(data);
+    let pior = 'ativo';
+    clientes.forEach(c => {
+      const s = saasStatus(c);
+      if (s === 'bloqueado') pior = 'bloqueado';
+      else if (s === 'vencendo' && pior === 'ativo') pior = 'vencendo';
+    });
+    dot.style.display = clientes.length > 0 ? 'block' : 'none';
+    dot.style.background = pior === 'bloqueado' ? '#c62828' : pior === 'vencendo' ? '#e65100' : '#2e7d32';
+  }).catch(() => { dot.style.display = 'none'; });
 }
 
 async function saasBloquear(id) {
