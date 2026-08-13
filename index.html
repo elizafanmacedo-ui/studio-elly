@@ -169,6 +169,13 @@ textarea { resize:vertical; min-height:80px; }
 .slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
 .slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
+.sinal-badge { font-size:0.62rem; font-weight:700; padding:2px 6px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:2px; }
+.sinal-pend { background:#fff3e0; color:#bf360c; }
+.sinal-ok { background:#e8f5e9; color:#1b5e20; }
+.slot-td.aguard-sinal { border-left:3px solid #e65100 !important; background:#fffde7 !important; }
+.btn-sinal { font-size:0.6rem; font-weight:700; padding:3px 7px; border-radius:6px; border:none; cursor:pointer; margin-top:3px; margin-right:2px; }
+.btn-sinal-wa { background:#25D366; color:#fff; }
+.btn-sinal-conf { background:#2e7d32; color:#fff; }
 .slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
 .slot-td .slot-valor-wrap { flex:0 0 auto !important; width:auto !important; white-space:nowrap; }
 input.slot-valor-input { width:52px !important; max-width:52px !important; padding:0 !important; border:none !important; border-radius:0 !important; background:transparent !important; height:auto !important; box-shadow:none !important; font-size:0.86rem !important; font-weight:800; color:var(--dark); text-align:right !important; }
@@ -681,6 +688,19 @@ input.slot-valor-input:focus { outline:none !important; }
     <div class="form-group na-so-agendamento">
       <label>Observações</label>
       <textarea id="na-obs" placeholder="Alergias, preferências..."></textarea>
+    </div>
+    <div class="form-group na-so-agendamento" id="sinal-group" style="background:#fff8e1;border-radius:10px;padding:10px 12px;border:1px solid #ffe082">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <label style="margin:0;font-weight:700">💰 Cobrar sinal?</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0">
+          <input type="checkbox" id="na-sinal-toggle" onchange="toggleSinalGroup()" style="width:18px;height:18px;cursor:pointer">
+          <span style="font-size:0.75rem;color:var(--mid)">Sim</span>
+        </label>
+      </div>
+      <div id="na-sinal-valor-group" style="display:none">
+        <label style="font-size:0.75rem">Valor do sinal (R$)</label>
+        <input type="number" id="na-sinal-valor" placeholder="Ex: 80" min="1" style="width:100%">
+      </div>
     </div>
     <button class="btn btn-danger btn-full" id="na-btn-excluir-avulso" style="display:none;margin-top:8px" onclick="excluirAvulsoDoModal()">🗑 Excluir este lançamento avulso</button>
     <div style="display:flex;gap:10px;margin-top:8px">
@@ -1744,7 +1764,10 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'saas-github-status · 13/08/2026';
+const APP_VERSAO = 'sinal-mp · 13/08/2026';
+
+// ── Mercado Pago ──
+const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
 
 // ── GitHub SaaS Status ──
 const GH_TOKEN   = 'ghp_LxUxJpK9KntRz77eCXfFpqIu0KJXFu2g1ROM';
@@ -3356,10 +3379,17 @@ function renderTimeline() {
       const sqmAtual = (appt.valorSQM !== undefined && appt.valorSQM !== null) ? appt.valorSQM : '';
       const profDoAppt = FUNCIONARIOS.find(x => x.id === appt.profId);
       const usaQmSqm = ehFuncionarioComissao(profDoAppt); // sócias e Elly: input simples, como hoje
-      rows += `<td class="slot-td tem-appt">
+      const temSinal = appt.sinalValor > 0;
+      const sinalPago = appt.sinalPago === true;
+      const restante = temSinal ? (appt.valor || 0) - appt.sinalValor : 0;
+      rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}">
         <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
           <div class="slot-nome">${appt.nomeCliente}</div>
           <div class="slot-svc">${getNomesServicos(appt)}</div>
+          ${temSinal && !sinalPago ? `<span class="sinal-badge sinal-pend">⏳ Sinal R$${appt.sinalValor}</span><br>
+            <button class="btn-sinal btn-sinal-wa" onclick="event.stopPropagation();enviarSinalWhatsApp(${appt.id})">WhatsApp</button>
+            <button class="btn-sinal btn-sinal-conf" onclick="event.stopPropagation();confirmarSinal(${appt.id})">✓ Confirmar sinal</button>` : ''}
+          ${temSinal && sinalPago ? `<span class="sinal-badge sinal-ok">✅ Sinal R$${appt.sinalValor} pago</span>` : ''}
         </div>
         ${!usaQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
@@ -3664,6 +3694,72 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   return { clienteId: novoCliente.id, precisaConfirmar: false };
 }
 
+// ═══════════ SINAL — MERCADO PAGO ═══════════
+
+function toggleSinalGroup() {
+  const checked = document.getElementById('na-sinal-toggle').checked;
+  document.getElementById('na-sinal-valor-group').style.display = checked ? '' : 'none';
+  if (checked) document.getElementById('na-sinal-valor').focus();
+}
+
+async function gerarLinkSinal(appt) {
+  const valor = parseFloat(appt.sinalValor);
+  const svcs = getNomesServicos(appt);
+  const dataFmt = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'2-digit'});
+  const horaFmt = appt.hora;
+
+  const preference = {
+    items: [{ title: 'Sinal — ' + svcs + ' no Studio Elly', quantity: 1, currency_id: 'BRL', unit_price: valor }],
+    payment_methods: { excluded_payment_types: [{ id: 'ticket' }], installments: 1 },
+    back_urls: {
+      success: 'https://elizafanmacedo-ui.github.io/studio-elly/?sinal=ok&id=' + appt.id,
+      failure: 'https://elizafanmacedo-ui.github.io/studio-elly/?sinal=falha&id=' + appt.id,
+      pending: 'https://elizafanmacedo-ui.github.io/studio-elly/?sinal=pend&id=' + appt.id
+    },
+    auto_return: 'approved',
+    external_reference: String(appt.id)
+  };
+
+  try {
+    const r = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + MP_ACCESS_TOKEN },
+      body: JSON.stringify(preference)
+    });
+    const data = await r.json();
+    return data.init_point || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function enviarSinalWhatsApp(apptId) {
+  const appt = agendamentos.find(a => a.id === apptId);
+  if (!appt || !appt.sinalValor) return;
+
+  showToast('⏳ Gerando link...');
+  const link = await gerarLinkSinal(appt);
+  if (!link) { showToast('Erro ao gerar link. Tente novamente.'); return; }
+
+  const svcs = getNomesServicos(appt);
+  const dataFmt = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'2-digit'});
+  const nome = appt.nomeCliente.split(' ')[0];
+  const msg = `Oi, ${nome}! 💅 Tudo certo com seu horário no Studio Elly! Para garantir sua vaga no dia ${dataFmt} às ${appt.hora} para ${svcs}, é só pagar o sinalzinho de R$${appt.sinalValor} aqui: ${link}`;
+  const fone = (appt.fone || '').replace(/\D/g,'');
+  const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+async function confirmarSinal(apptId) {
+  if (!confirm('Confirmar que o sinal foi recebido?')) return;
+  const idx = agendamentos.findIndex(a => a.id === apptId);
+  if (idx < 0) return;
+  agendamentos[idx].sinalPago = true;
+  await saveAgendamento(agendamentos[idx].id, agendamentos[idx]);
+  renderTimeline();
+  showToast('✅ Sinal confirmado!');
+}
+
 async function salvarAgendamento() {
   // ── MODO AVULSO: grava em /lancamentos, sem criar agendamento nem cliente ──
   if (modoAvulso) {
@@ -3756,9 +3852,16 @@ async function salvarAgendamento() {
       showToast('✅ Agendamento atualizado!');
     }
   } else {
-    const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{} };
+    const sinalToggle = document.getElementById('na-sinal-toggle');
+    const sinalValorEl = document.getElementById('na-sinal-valor');
+    const cobrarSinal = sinalToggle && sinalToggle.checked;
+    const sinalValor = cobrarSinal ? parseFloat(sinalValorEl.value) : null;
+    const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
+      ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalPago: false } : {}) };
     agendamentos.push(novo);
     saveAgendamento(novo.id, novo);
+    // resetar toggle
+    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; if(sinalValorEl) sinalValorEl.value=''; }
     closeModal('modal-novo-agendamento');
     selectedDate = data; renderWeek(); renderTimeline(); updateStats();
     showToast('✅ Agendamento confirmado!');
