@@ -1765,7 +1765,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v4 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v5 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3761,7 +3761,10 @@ async function enviarSinalWhatsApp(apptId) {
   if (!appt || !appt.sinalValor) return;
 
   const prof = FUNCIONARIOS.find(f => f.id === appt.profId);
-  const chavePix = prof && prof.pix ? prof.pix : null;
+  // Elly (admin, id=1) usa a chave Pix das Configurações; demais usam o campo do perfil
+  const chavePix = prof && prof.id === 1
+    ? (configStudio.pix || null)
+    : (prof && prof.pix ? prof.pix : null);
 
   if (!chavePix) {
     showToast('Cadastre a chave Pix em Equipe → ✏️');
