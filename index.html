@@ -1764,7 +1764,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v2 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3576,10 +3576,19 @@ function abrirAvulsoSlot(hora) {
 }
 
 function abrirSlot(hora) {
-  populateSelects(); // Tarefa 2: recarrega serviços da aba ativa
+  populateSelects();
   openModal('modal-novo-agendamento');
   setModoAvulso(false);
   setTimeout(() => {
+    // Limpar todos os campos do modal
+    document.getElementById('na-cliente').value = '';
+    document.getElementById('na-fone').value = '';
+    document.getElementById('na-cliente-cadastrada').value = '';
+    document.getElementById('na-obs').value = '';
+    document.querySelectorAll('.svc-check').forEach(c => c.checked = false);
+    const sinalToggle = document.getElementById('na-sinal-toggle');
+    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; document.getElementById('na-sinal-valor').value=''; }
+    // Preencher hora, data e profissional
     document.getElementById('na-hora').value = hora;
     document.getElementById('na-data').value = selectedDate;
     document.getElementById('na-profissional').value = activeProfId;
@@ -3861,6 +3870,14 @@ async function salvarAgendamento() {
     const sinalValorEl = document.getElementById('na-sinal-valor');
     const cobrarSinal = sinalToggle && sinalToggle.checked;
     const sinalValor = cobrarSinal ? parseFloat(sinalValorEl.value) : null;
+
+    // Verificar conflito de horário
+    const conflito = agendamentos.find(a => a.data === data && a.hora === hora && a.profId === profId && a.status !== 'cancelado' && a.id !== editingApptId);
+    if (conflito) {
+      showToast('⚠️ Já existe um agendamento neste horário para esta profissional!');
+      return;
+    }
+
     const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
       ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalPago: false } : {}) };
     agendamentos.push(novo);
