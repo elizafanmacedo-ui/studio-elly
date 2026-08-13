@@ -1744,7 +1744,62 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'saas-mensalidade · 06/08/2026';
+const APP_VERSAO = 'saas-github-status · 13/08/2026';
+
+// ── GitHub SaaS Status ──
+const GH_TOKEN   = 'ghp_LxUxJpK9KntRz77eCXfFpqIu0KJXFu2g1ROM';
+const GH_REPO    = 'elizafanmacedo-ui/status-saas';
+const GH_FILE    = 'saas_status.json';
+const GH_API     = 'https://api.github.com/repos/' + GH_REPO + '/contents/' + GH_FILE;
+
+async function atualizarGitHubStatus() {
+  try {
+    // 1) Lê todos os clientes do Firebase
+    const r = await fbFetch('/saas_clientes.json');
+    const data = await r.json();
+    const clientes = data || {};
+
+    // 2) Monta o JSON de status
+    const payload = {
+      clientes: {},
+      atualizado_em: new Date().toISOString()
+    };
+    Object.entries(clientes).forEach(([id, c]) => {
+      payload.clientes[id] = {
+        nome: c.nome || '',
+        status: c.status || 'ativo',
+        vencimento: c.vencimento || ''
+      };
+    });
+
+    // 3) Busca o SHA atual do arquivo (necessário para o PUT do GitHub)
+    const shaRes = await fetch(GH_API, {
+      headers: { Authorization: 'token ' + GH_TOKEN, Accept: 'application/vnd.github.v3+json' }
+    });
+    const shaData = await shaRes.json();
+    const sha = shaData.sha;
+
+    // 4) Faz o commit do arquivo atualizado
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    await fetch(GH_API, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'token ' + GH_TOKEN,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'saas: atualizar status clientes',
+        content,
+        sha
+      })
+    });
+    console.log('[SaaS] GitHub status atualizado ✓');
+  } catch (e) {
+    console.warn('[SaaS] Falha ao atualizar GitHub:', e.message);
+    // Falha silenciosa — Firebase continua como fonte primária
+  }
+}
 
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
@@ -4632,6 +4687,7 @@ async function salvarSaasCliente() {
         method: 'POST', body: JSON.stringify(dados)
       });
     }
+    atualizarGitHubStatus();
     closeModal('modal-saas-cliente');
     renderSaas();
     showToast('✅ Cliente salvo!');
@@ -4646,6 +4702,7 @@ async function saasExcluir(id) {
   if (!confirm('Excluir ' + c.nome + '? Esta ação não pode ser desfeita.')) return;
   try {
     await fbFetch('/saas_clientes/' + id + '.json', { method: 'DELETE' });
+    atualizarGitHubStatus();
     renderSaas();
     showToast('🗑 ' + c.nome + ' excluído');
   } catch (e) {
@@ -4679,6 +4736,7 @@ async function saasBloquear(id) {
     await fbFetch('/saas_clientes/' + id + '.json', {
       method: 'PATCH', body: JSON.stringify({ status: 'bloqueado' })
     });
+    atualizarGitHubStatus();
     renderSaas();
     showToast('🔴 ' + c.nome + ' bloqueado');
   } catch (e) {
@@ -4702,6 +4760,7 @@ async function saasRenovar(id) {
     await fbFetch('/saas_clientes/' + id + '.json', {
       method: 'PATCH', body: JSON.stringify({ status: 'ativo', vencimento: novoVenc })
     });
+    atualizarGitHubStatus();
     renderSaas();
     showToast('✅ ' + c.nome + ' renovado!');
   } catch (e) {
