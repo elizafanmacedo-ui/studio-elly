@@ -172,7 +172,8 @@ textarea { resize:vertical; min-height:80px; }
 .sinal-badge { font-size:0.62rem; font-weight:700; padding:2px 6px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:2px; }
 .sinal-pend { background:#fff3e0; color:#bf360c; }
 .sinal-ok { background:#e8f5e9; color:#1b5e20; }
-.slot-td.aguard-sinal { border-left:3px solid #e65100 !important; background:#fffde7 !important; }
+.slot-td.aguard-sinal { border-left:3px solid #e65100 !important; background:#fffde7 !important; height:auto !important; min-height:36px !important; overflow:visible !important; align-items:flex-start !important; }
+.slot-td.sinal-pago { height:auto !important; min-height:36px !important; overflow:visible !important; }
 .btn-sinal { font-size:0.6rem; font-weight:700; padding:3px 7px; border-radius:6px; border:none; cursor:pointer; margin-top:3px; margin-right:2px; }
 .btn-sinal-wa { background:#25D366; color:#fff; }
 .btn-sinal-conf { background:#2e7d32; color:#fff; }
@@ -1764,7 +1765,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v2 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v3 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3381,7 +3382,7 @@ function renderTimeline() {
       const usaQmSqm = ehFuncionarioComissao(profDoAppt); // sócias e Elly: input simples, como hoje
       const temSinal = appt.sinalValor > 0;
       const sinalPago = appt.sinalPago === true;
-      rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}" style="flex-direction:column;align-items:flex-start;padding:4px 8px">
+      rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}${temSinal && sinalPago ? ' sinal-pago' : ''}" style="flex-direction:column;align-items:flex-start;padding:4px 8px">
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
           <div class="slot-appt-content" onclick="verAgendamento(${appt.id})" style="flex:1;min-width:0">
             <div class="slot-nome">${appt.nomeCliente}</div>
