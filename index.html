@@ -1765,7 +1765,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v3 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v4 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3415,10 +3415,6 @@ function renderTimeline() {
           </div>
         </div>`}
         </div>
-        ${temSinal && !sinalPago ? `<div style="width:100%"><span class="sinal-badge sinal-pend">⏳ Sinal R$${appt.sinalValor}</span><br>
-          <button class="btn-sinal btn-sinal-wa" onclick="event.stopPropagation();enviarSinalWhatsApp(${appt.id})">WhatsApp</button>
-          <button class="btn-sinal btn-sinal-conf" onclick="event.stopPropagation();confirmarSinal(${appt.id})">✓ Confirmar</button></div>` : ''}
-        ${temSinal && sinalPago ? `<span class="sinal-badge sinal-ok">✅ Sinal R$${appt.sinalValor} pago</span>` : ''}
       </td>`;
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
@@ -3614,6 +3610,21 @@ function verAgendamento(id) {
 
   const svcsHtml = svcs.map(s => `<span class="badge badge-rose" style="margin-right:4px;margin-bottom:4px">${s.nome}</span>`).join('');
 
+  // Sinal
+  const sinalHtml = a.sinalValor > 0 ? `
+    <div style="background:${a.sinalPago ? '#f1f8e9' : '#fff8e1'};border-radius:12px;padding:12px;margin-top:8px;border:1px solid ${a.sinalPago ? '#c5e1a5' : '#ffe082'}">
+      <div style="font-weight:700;font-size:0.8rem;color:${a.sinalPago ? '#2e7d32' : '#e65100'};margin-bottom:8px">
+        ${a.sinalPago ? '✅ Sinal pago' : '⏳ Aguardando sinal'}
+      </div>
+      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:${a.sinalPago ? '0' : '10px'}">
+        Valor: <strong>R$${a.sinalValor}</strong>
+      </div>
+      ${!a.sinalPago ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn btn-green btn-sm" style="justify-content:center" onclick="enviarSinalWhatsApp(${a.id});closeModal('modal-ver-agendamento')">💰 Enviar Pix</button>
+        <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="confirmarSinal(${a.id})">✓ Sinal recebido</button>
+      </div>` : ''}
+    </div>` : '';
+
   // WhatsApp buttons
   const waBtns = a.fone ? `
     <div style="background:var(--light);border-radius:12px;padding:12px;margin-top:8px">
@@ -3640,6 +3651,7 @@ function verAgendamento(id) {
         <div style="font-size:0.75rem;color:var(--mid);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Alterar status</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${statusOpts}</div>
       </div>
+      ${sinalHtml}
       ${waBtns}
     </div>`;
   openModal('modal-ver-agendamento');
@@ -3772,6 +3784,8 @@ async function confirmarSinal(apptId) {
   agendamentos[idx].sinalPago = true;
   await saveAgendamento(agendamentos[idx].id, agendamentos[idx]);
   renderTimeline();
+  // Atualizar o modal se estiver aberto
+  if (viewingApptId === apptId) verAgendamento(apptId);
   showToast('✅ Sinal confirmado!');
 }
 
