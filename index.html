@@ -699,8 +699,17 @@ input.slot-valor-input:focus { outline:none !important; }
         </label>
       </div>
       <div id="na-sinal-valor-group" style="display:none">
-        <label style="font-size:0.75rem">Valor do sinal (R$)</label>
-        <input type="number" id="na-sinal-valor" placeholder="Ex: 80" min="1" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+          <div>
+            <label style="font-size:0.75rem">Valor total (R$)</label>
+            <input type="number" id="na-sinal-total" placeholder="Ex: 250" min="1" style="width:100%" onchange="calcularRestanteSinal()" oninput="calcularRestanteSinal()">
+          </div>
+          <div>
+            <label style="font-size:0.75rem">Adiantamento (R$)</label>
+            <input type="number" id="na-sinal-valor" placeholder="Ex: 50" min="1" style="width:100%" onchange="calcularRestanteSinal()" oninput="calcularRestanteSinal()">
+          </div>
+        </div>
+        <div id="na-sinal-restante" style="font-size:0.75rem;color:#e65100;font-weight:600;text-align:right;display:none"></div>
       </div>
     </div>
     <button class="btn btn-danger btn-full" id="na-btn-excluir-avulso" style="display:none;margin-top:8px" onclick="excluirAvulsoDoModal()">🗑 Excluir este lançamento avulso</button>
@@ -1765,7 +1774,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v5 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v6 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3584,7 +3593,7 @@ function abrirSlot(hora) {
     document.getElementById('na-obs').value = '';
     document.querySelectorAll('.svc-check').forEach(c => c.checked = false);
     const sinalToggle = document.getElementById('na-sinal-toggle');
-    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; document.getElementById('na-sinal-valor').value=''; }
+    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; document.getElementById('na-sinal-valor').value=''; const t=document.getElementById('na-sinal-total'); if(t) t.value=''; const r=document.getElementById('na-sinal-restante'); if(r) r.style.display='none'; }
     // Preencher hora, data e profissional
     document.getElementById('na-hora').value = hora;
     document.getElementById('na-data').value = selectedDate;
@@ -3616,9 +3625,15 @@ function verAgendamento(id) {
       <div style="font-weight:700;font-size:0.8rem;color:${a.sinalPago ? '#2e7d32' : '#e65100'};margin-bottom:8px">
         ${a.sinalPago ? '✅ Sinal pago' : '⏳ Aguardando sinal'}
       </div>
-      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:${a.sinalPago ? '0' : '10px'}">
-        Valor: <strong>R$${a.sinalValor}</strong>
+      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:4px">
+        Adiantamento: <strong>R$${a.sinalValor}</strong>
       </div>
+      ${a.sinalTotal ? `<div style="font-size:0.82rem;color:var(--mid);margin-bottom:4px">
+        Valor total: <strong>R$${a.sinalTotal}</strong>
+      </div>
+      <div style="font-size:0.82rem;color:#e65100;font-weight:700;margin-bottom:${a.sinalPago ? '0' : '10px'}">
+        Restante: R$${(a.sinalTotal - a.sinalValor).toFixed(2).replace('.',',')}
+      </div>` : `<div style="margin-bottom:${a.sinalPago ? '0' : '10px'}"></div>`}
       ${!a.sinalPago ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <button class="btn btn-green btn-sm" style="justify-content:center" onclick="enviarSinalWhatsApp(${a.id});closeModal('modal-ver-agendamento')">💰 Enviar Pix</button>
         <button class="btn btn-primary btn-sm" style="justify-content:center" onclick="confirmarSinal(${a.id})">✓ Sinal recebido</button>
@@ -3722,7 +3737,20 @@ function resolverClienteAutomatico(nomeCliente, fone) {
 function toggleSinalGroup() {
   const checked = document.getElementById('na-sinal-toggle').checked;
   document.getElementById('na-sinal-valor-group').style.display = checked ? '' : 'none';
-  if (checked) document.getElementById('na-sinal-valor').focus();
+  if (checked) document.getElementById('na-sinal-total').focus();
+}
+
+function calcularRestanteSinal() {
+  const total = parseFloat(document.getElementById('na-sinal-total').value) || 0;
+  const sinal = parseFloat(document.getElementById('na-sinal-valor').value) || 0;
+  const el = document.getElementById('na-sinal-restante');
+  if (total > 0 && sinal > 0 && total > sinal) {
+    const restante = total - sinal;
+    el.textContent = 'Restante a pagar no dia: R$' + restante.toFixed(2).replace('.',',');
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 async function gerarLinkSinal(appt) {
@@ -3774,7 +3802,16 @@ async function enviarSinalWhatsApp(apptId) {
   const svcs = getNomesServicos(appt);
   const dataFmt = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'2-digit'});
   const nome = appt.nomeCliente.split(' ')[0];
-  const msg = `Oi, ${nome}! 💅 Tudo certo com seu horário no Studio Elly! Para garantir sua vaga no dia ${dataFmt} às ${appt.hora} para ${svcs}, é só pagar o sinalzinho de R$${appt.sinalValor} via Pix para a chave: *${chavePix}*`;
+  const sinal = appt.sinalValor;
+  const total = appt.sinalTotal || null;
+  const restante = total ? (total - sinal) : null;
+
+  let msgSinal = `solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix (*${chavePix}*).`;
+  if (total && restante > 0) {
+    msgSinal += ` Valor total: *R$ ${total.toFixed(2).replace('.',',')}* — saldo restante de *R$ ${restante.toFixed(2).replace('.',',')}* a ser quitado no dia.`;
+  }
+
+  const msg = `Olá, ${nome}! 🌸 É com prazer que confirmamos seu horário no Studio Elly Designer. Para ${svcs} no dia ${dataFmt} às ${appt.hora}, ${msgSinal}`;
   const fone = (appt.fone || '').replace(/\D/g,'');
   const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
@@ -3886,8 +3923,10 @@ async function salvarAgendamento() {
   } else {
     const sinalToggle = document.getElementById('na-sinal-toggle');
     const sinalValorEl = document.getElementById('na-sinal-valor');
+    const sinalTotalEl = document.getElementById('na-sinal-total');
     const cobrarSinal = sinalToggle && sinalToggle.checked;
     const sinalValor = cobrarSinal ? parseFloat(sinalValorEl.value) : null;
+    const sinalTotal = cobrarSinal ? parseFloat(sinalTotalEl.value) : null;
 
     // Verificar conflito de horário
     const conflito = agendamentos.find(a => a.data === data && a.hora === hora && a.profId === profId && a.status !== 'cancelado' && a.id !== editingApptId);
@@ -3897,11 +3936,11 @@ async function salvarAgendamento() {
     }
 
     const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
-      ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalPago: false } : {}) };
+      ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalTotal: sinalTotal || null, sinalPago: false } : {}) };
     agendamentos.push(novo);
     saveAgendamento(novo.id, novo);
     // resetar toggle
-    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; if(sinalValorEl) sinalValorEl.value=''; }
+    if (sinalToggle) { sinalToggle.checked = false; document.getElementById('na-sinal-valor-group').style.display='none'; if(sinalValorEl) sinalValorEl.value=''; if(sinalTotalEl) sinalTotalEl.value=''; const elR = document.getElementById('na-sinal-restante'); if(elR) elR.style.display='none'; }
     closeModal('modal-novo-agendamento');
     selectedDate = data; renderWeek(); renderTimeline(); updateStats();
     showToast('✅ Agendamento confirmado!');
