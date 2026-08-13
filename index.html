@@ -1764,7 +1764,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-mp · 13/08/2026';
+const APP_VERSAO = 'sinal-pix · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3381,16 +3381,12 @@ function renderTimeline() {
       const usaQmSqm = ehFuncionarioComissao(profDoAppt); // sócias e Elly: input simples, como hoje
       const temSinal = appt.sinalValor > 0;
       const sinalPago = appt.sinalPago === true;
-      const restante = temSinal ? (appt.valor || 0) - appt.sinalValor : 0;
-      rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}">
-        <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
-          <div class="slot-nome">${appt.nomeCliente}</div>
-          <div class="slot-svc">${getNomesServicos(appt)}</div>
-          ${temSinal && !sinalPago ? `<span class="sinal-badge sinal-pend">⏳ Sinal R$${appt.sinalValor}</span><br>
-            <button class="btn-sinal btn-sinal-wa" onclick="event.stopPropagation();enviarSinalWhatsApp(${appt.id})">WhatsApp</button>
-            <button class="btn-sinal btn-sinal-conf" onclick="event.stopPropagation();confirmarSinal(${appt.id})">✓ Confirmar sinal</button>` : ''}
-          ${temSinal && sinalPago ? `<span class="sinal-badge sinal-ok">✅ Sinal R$${appt.sinalValor} pago</span>` : ''}
-        </div>
+      rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}" style="flex-direction:column;align-items:flex-start;padding:4px 8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+          <div class="slot-appt-content" onclick="verAgendamento(${appt.id})" style="flex:1;min-width:0">
+            <div class="slot-nome">${appt.nomeCliente}</div>
+            <div class="slot-svc">${getNomesServicos(appt)}</div>
+          </div>
         ${!usaQmSqm ? `
         <div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
@@ -3417,6 +3413,11 @@ function renderTimeline() {
             </div>
           </div>
         </div>`}
+        </div>
+        ${temSinal && !sinalPago ? `<div style="width:100%"><span class="sinal-badge sinal-pend">⏳ Sinal R$${appt.sinalValor}</span><br>
+          <button class="btn-sinal btn-sinal-wa" onclick="event.stopPropagation();enviarSinalWhatsApp(${appt.id})">WhatsApp</button>
+          <button class="btn-sinal btn-sinal-conf" onclick="event.stopPropagation();confirmarSinal(${appt.id})">✓ Confirmar</button></div>` : ''}
+        ${temSinal && sinalPago ? `<span class="sinal-badge sinal-ok">✅ Sinal R$${appt.sinalValor} pago</span>` : ''}
       </td>`;
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
@@ -3737,14 +3738,18 @@ async function enviarSinalWhatsApp(apptId) {
   const appt = agendamentos.find(a => a.id === apptId);
   if (!appt || !appt.sinalValor) return;
 
-  showToast('⏳ Gerando link...');
-  const link = await gerarLinkSinal(appt);
-  if (!link) { showToast('Erro ao gerar link. Tente novamente.'); return; }
+  const prof = FUNCIONARIOS.find(f => f.id === appt.profId);
+  const chavePix = prof && prof.pix ? prof.pix : null;
+
+  if (!chavePix) {
+    showToast('Cadastre a chave Pix em Equipe → ✏️');
+    return;
+  }
 
   const svcs = getNomesServicos(appt);
   const dataFmt = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'long',day:'2-digit',month:'2-digit'});
   const nome = appt.nomeCliente.split(' ')[0];
-  const msg = `Oi, ${nome}! 💅 Tudo certo com seu horário no Studio Elly! Para garantir sua vaga no dia ${dataFmt} às ${appt.hora} para ${svcs}, é só pagar o sinalzinho de R$${appt.sinalValor} aqui: ${link}`;
+  const msg = `Oi, ${nome}! 💅 Tudo certo com seu horário no Studio Elly! Para garantir sua vaga no dia ${dataFmt} às ${appt.hora} para ${svcs}, é só pagar o sinalzinho de R$${appt.sinalValor} via Pix para a chave: *${chavePix}*`;
   const fone = (appt.fone || '').replace(/\D/g,'');
   const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
@@ -4243,6 +4248,10 @@ function editarProfissional(id) {
         <input type="tel" id="ep-fone" value="${prof.fone||''}" placeholder="(98) 9XXXX-XXXX">
       </div>
       <div class="form-group" style="margin:0">
+        <label>Chave Pix (para cobrar sinal de clientes)</label>
+        <input type="text" id="ep-pix" value="${prof.pix||''}" placeholder="CPF, e-mail, telefone ou chave aleatória">
+      </div>
+      <div class="form-group" style="margin:0">
         <label>Dia de corte</label>
         <input type="number" id="ep-dia-corte" min="1" max="31" value="${prof.diaCorte||1}" placeholder="Ex: 1, 15...">
         <div style="font-size:0.72rem;color:var(--mid);margin-top:2px">Dia do mês em que o período começa a contar (semanal/quinzenal usa como referência inicial). Só tem efeito para funcionárias.</div>
@@ -4269,6 +4278,8 @@ async function salvarProfissional(id) {
   if (elPeriodicidade) prof.periodicidade = elPeriodicidade.value;
   if (elDiaCorte) prof.diaCorte = Math.min(31, Math.max(1, parseInt(elDiaCorte.value) || 1));
   if (elFoneProf) prof.fone = elFoneProf.value.trim();
+  const elPix = document.getElementById('ep-pix');
+  if (elPix) prof.pix = elPix.value.trim();
   document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
