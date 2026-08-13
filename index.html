@@ -150,9 +150,9 @@ textarea { resize:vertical; min-height:80px; }
 .fin-subnav div.on { background:var(--rose-dark); color:#fff; }
 
 /* ── TIMELINE ── */
-.prof-tab-wrap { display:grid; grid-template-columns:repeat(3,1fr); position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
-.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
-.prof-tab.active { opacity:1; box-shadow:inset 0 -4px 0 rgba(255,255,255,0.75); }
+.prof-tab-wrap { display:flex; flex-wrap:wrap; position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
+.prof-tab { flex:1 1 33.333%; min-width:80px; padding:9px 6px; text-align:center; font-weight:700; font-size:0.82rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
+.prof-tab.active { opacity:1; box-shadow:inset 0 -3px 0 rgba(255,255,255,0.75); }
 .pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
@@ -1583,7 +1583,12 @@ async function loadEquipeFirebase() {
       FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
       await salvarEquipeFirebase();
     }
-    if (currentUser) { renderFuncionarios(); renderTimeline(); }
+    if (currentUser) {
+      // Reaplicar tema do usuário atual após carregar equipe do Firebase
+      const fAtual = FUNCIONARIOS.find(x => x.id === currentUser);
+      if (fAtual && fAtual.tema) aplicarTema(fAtual.tema);
+      renderFuncionarios(); renderTimeline();
+    }
   } catch(e) {
     console.log('Equipe sync error', e);
     FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
