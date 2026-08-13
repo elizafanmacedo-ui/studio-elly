@@ -618,6 +618,10 @@ input.slot-valor-input:focus { outline:none !important; }
       <label>PIX</label>
       <input type="text" id="cfg-pix" placeholder="Chave PIX">
     </div>
+    <div class="form-group">
+      <label>Nome completo (para receber Pix)</label>
+      <input type="text" id="cfg-nome-pix" placeholder="Ex: Elizafan de Oliveira Macedo">
+    </div>
     <button class="btn btn-primary btn-full" onclick="salvarConfig()" style="margin-top:4px">💾 Salvar Configurações</button>
   </div>
   <div class="card">
@@ -1774,7 +1778,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v6 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v7 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -1841,7 +1845,7 @@ function getConfig(campo, fallback) {
 }
 
 function preencherConfig() {
-  const campos = ['nome','whatsapp','endereco','maps','instagram','pix'];
+  const campos = ['nome','whatsapp','endereco','maps','instagram','pix','nome-pix'];
   campos.forEach(c => {
     const el = document.getElementById('cfg-' + c);
     if (el && configStudio[c]) el.value = configStudio[c];
@@ -1859,6 +1863,7 @@ async function salvarConfig() {
     maps:      document.getElementById('cfg-maps').value.trim(),
     instagram: document.getElementById('cfg-instagram').value.trim(),
     pix:       document.getElementById('cfg-pix').value.trim(),
+    nomePix:   document.getElementById('cfg-nome-pix') ? document.getElementById('cfg-nome-pix').value.trim() : '',
   };
   Object.assign(configStudio, cfg);
   await saveConfigFirebase(cfg);
@@ -3789,10 +3794,12 @@ async function enviarSinalWhatsApp(apptId) {
   if (!appt || !appt.sinalValor) return;
 
   const prof = FUNCIONARIOS.find(f => f.id === appt.profId);
-  // Elly (admin, id=1) usa a chave Pix das Configurações; demais usam o campo do perfil
   const chavePix = prof && prof.id === 1
     ? (configStudio.pix || null)
     : (prof && prof.pix ? prof.pix : null);
+  const nomeCompleto = prof && prof.id === 1
+    ? (configStudio.nomePix || configStudio.nome || '')
+    : (prof && prof.nomeCompleto ? prof.nomeCompleto : (prof ? prof.nome : ''));
 
   if (!chavePix) {
     showToast('Cadastre a chave Pix em Equipe → ✏️');
@@ -3806,12 +3813,16 @@ async function enviarSinalWhatsApp(apptId) {
   const total = appt.sinalTotal || null;
   const restante = total ? (total - sinal) : null;
 
-  let msgSinal = `solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix (*${chavePix}*).`;
-  if (total && restante > 0) {
-    msgSinal += ` Valor total: *R$ ${total.toFixed(2).replace('.',',')}* — saldo restante de *R$ ${restante.toFixed(2).replace('.',',')}* a ser quitado no dia.`;
-  }
+  const diaSemana = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {weekday:'long'});
+  const dataSimples = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
+  const hora = appt.hora.replace(':','h');
 
-  const msg = `Olá, ${nome}! 🌸 É com prazer que confirmamos seu horário no Studio Elly Designer. Para ${svcs} no dia ${dataFmt} às ${appt.hora}, ${msgSinal}`;
+  let msg = `Olá, ${nome}! 🌸✨\nÉ com muita alegria que confirmamos seu horário no Studio Elly Designer! 💖\n📅 Data: ${diaSemana.charAt(0).toUpperCase()+diaSemana.slice(1)}, ${dataSimples}\n⏰ Horário: ${hora}\n✨ Procedimento: ${svcs}\n\nPara garantir e reservar seu horário, solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix chave ${chavePix}`;
+  if (nomeCompleto) msg += `\nEm Nome de: ${nomeCompleto}`;
+  if (total && restante > 0) {
+    msg += `\n💰 Valor total: *R$ ${total.toFixed(2).replace('.',',')}*\n✅ Adiantamento: *R$ ${sinal.toFixed(2).replace('.',',')}*\n💵 Saldo no dia: *R$ ${restante.toFixed(2).replace('.',',')}*`;
+  }
+  msg += `\nSeu horário ficará reservado após a confirmação do pagamento. 🌷\n\nSerá um prazer receber você no Studio Elly Designer! 💕`;
   const fone = (appt.fone || '').replace(/\D/g,'');
   const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
@@ -4322,6 +4333,10 @@ function editarProfissional(id) {
         <input type="tel" id="ep-fone" value="${prof.fone||''}" placeholder="(98) 9XXXX-XXXX">
       </div>
       <div class="form-group" style="margin:0">
+        <label>Nome completo (para receber Pix)</label>
+        <input type="text" id="ep-nome-completo" value="${prof.nomeCompleto||''}" placeholder="Ex: Dennyse Oliveira Santos">
+      </div>
+      <div class="form-group" style="margin:0">
         <label>Chave Pix (para cobrar sinal de clientes)</label>
         <input type="text" id="ep-pix" value="${prof.pix||''}" placeholder="CPF, e-mail, telefone ou chave aleatória">
       </div>
@@ -4354,6 +4369,8 @@ async function salvarProfissional(id) {
   if (elFoneProf) prof.fone = elFoneProf.value.trim();
   const elPix = document.getElementById('ep-pix');
   if (elPix) prof.pix = elPix.value.trim();
+  const elNomeCompleto = document.getElementById('ep-nome-completo');
+  if (elNomeCompleto) prof.nomeCompleto = elNomeCompleto.value.trim();
   document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
