@@ -1093,6 +1093,172 @@ async function fbFetch(caminho, opts = {}) {
   const sep = caminho.includes('?') ? '&' : '?';
   return fetch(DB_URL + caminho + sep + 'auth=' + token, opts);
 }
+
+// ═══════════ MODO OFFLINE ═══════════
+let isOnline = navigator.onLine;
+let filaOffline = []; // operações pendentes de sincronização
+
+function carregarFilaOffline() {
+  try {
+    const raw = localStorage.getItem('studioelly_fila_offline');
+    filaOffline = raw ? JSON.parse(raw) : [];
+  } catch(e) { filaOffline = []; }
+}
+
+function salvarFilaOffline() {
+  try { localStorage.setItem('studioelly_fila_offline', JSON.stringify(filaOffline)); } catch(e) {}
+}
+
+// Salva cópia local dos dados para uso offline
+function salvarCacheLocal() {
+  try {
+    localStorage.setItem('studioelly_cache', JSON.stringify({
+      agendamentos, clientes, FUNCIONARIOS, SERVICOS: window.SERVICOS || [],
+      lancamentosAvulsos, bloqueios, configStudio, DESPESAS,
+      salvoEm: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function carregarCacheLocal() {
+  try {
+    const raw = localStorage.getItem('studioelly_cache');
+    if (!raw) return false;
+    const c = JSON.parse(raw);
+    agendamentos = c.agendamentos || [];
+    clientes = c.clientes || [];
+    if (c.FUNCIONARIOS) FUNCIONARIOS = c.FUNCIONARIOS;
+    if (c.SERVICOS) window.SERVICOS = c.SERVICOS;
+    lancamentosAvulsos = c.lancamentosAvulsos || {};
+    bloqueios = c.bloqueios || [];
+    configStudio = c.configStudio || {};
+    DESPESAS = c.DESPESAS || [];
+    return true;
+  } catch(e) { return false; }
+}
+
+// Adiciona operação à fila (quando offline) e tenta enviar (quando online)
+async function fbWrite(caminho, metodo, corpo) {
+  const op = { caminho, metodo, corpo, ts: Date.now(), user: currentUser };
+  if (isOnline) {
+    try {
+      const opts = { method: metodo };
+      if (corpo !== undefined) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(corpo); }
+      const res = await fbFetch(caminho, opts);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res;
+    } catch(e) {
+      // Falhou: guarda na fila
+      filaOffline.push(op);
+      salvarFilaOffline();
+      throw e;
+    }
+  } else {
+    filaOffline.push(op);
+    salvarFilaOffline();
+    return { ok: true, offline: true };
+  }
+}
+
+function atualizarStatusConexao() {
+  let bar = document.getElementById('offline-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'offline-bar';
+    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;text-align:center;padding:8px;font-size:0.8rem;font-weight:600;transition:transform 0.3s;transform:translateY(100%)';
+    document.body.appendChild(bar);
+  }
+  if (!isOnline) {
+    bar.style.background = '#616161';
+    bar.style.color = '#fff';
+    bar.textContent = '📴 Sem conexão — trabalhando offline';
+    bar.style.transform = 'translateY(0)';
+  } else if (filaOffline.length > 0) {
+    bar.style.background = '#e65100';
+    bar.style.color = '#fff';
+    bar.textContent = '🔄 Sincronizando ' + filaOffline.length + ' alteração(ões)...';
+    bar.style.transform = 'translateY(0)';
+  } else {
+    bar.style.background = '#2e7d32';
+    bar.style.color = '#fff';
+    bar.textContent = '✅ Conectado';
+    bar.style.transform = 'translateY(0)';
+    setTimeout(() => { if (isOnline && filaOffline.length === 0) bar.style.transform = 'translateY(100%)'; }, 2500);
+  }
+}
+
+async function sincronizarFila() {
+  if (!isOnline || filaOffline.length === 0) return;
+  const conflitos = [];
+  const pendentes = [...filaOffline];
+  filaOffline = [];
+  salvarFilaOffline();
+
+  for (const op of pendentes) {
+    try {
+      // Detecção de conflito: se é criação de agendamento, verifica se o horário já foi ocupado no servidor
+      if (op.caminho.startsWith('/agendamentos/') && op.metodo === 'PUT' && op.corpo && op.corpo.data && op.corpo.hora) {
+        const check = await fbFetch('/agendamentos.json');
+        const serverData = await check.json();
+        const existentes = serverData ? Object.values(serverData) : [];
+        const conflito = existentes.find(a =>
+          a.id !== op.corpo.id &&
+          a.data === op.corpo.data &&
+          a.hora === op.corpo.hora &&
+          a.profId === op.corpo.profId &&
+          a.status !== 'cancelado' &&
+          (a.criadoEm || a.id) < (op.corpo.criadoEm || op.corpo.id) // o outro foi criado ANTES
+        );
+        if (conflito) {
+          conflitos.push({ meu: op.corpo, existente: conflito });
+          continue; // não sobrescreve — vai para o aviso de conflito
+        }
+      }
+      const opts = { method: op.metodo };
+      if (op.corpo !== undefined) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(op.corpo); }
+      const res = await fbFetch(op.caminho, opts);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+    } catch(e) {
+      // Se falhar de novo, recoloca na fila
+      filaOffline.push(op);
+    }
+  }
+  salvarFilaOffline();
+  atualizarStatusConexao();
+
+  if (conflitos.length > 0) mostrarConflitos(conflitos);
+  // Recarrega dados atualizados do servidor
+  await loadFromFirebase();
+  await loadBloqueios();
+  renderTimeline();
+}
+
+function mostrarConflitos(conflitos) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.style.display = 'flex';
+  const itens = conflitos.map(c => {
+    const prof = FUNCIONARIOS.find(f => f.id === c.meu.profId);
+    const fone = (c.meu.fone || '').replace(/\D/g,'');
+    const waUrl = fone ? 'https://wa.me/55' + fone + '?text=' + encodeURIComponent(`Oi, ${c.meu.nomeCliente.split(' ')[0]}! Precisamos remarcar seu horário do dia ${formatDate(c.meu.data)} às ${c.meu.hora}, pois houve um conflito na agenda. Qual outro horário fica bom para você?`) : '';
+    return `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:700;color:#e65100;margin-bottom:6px">⚠️ Conflito às ${c.meu.hora}</div>
+      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:4px"><strong>${c.existente.nomeCliente}</strong> foi agendada primeiro (mantida) com ${prof?prof.nome:'—'}.</div>
+      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:8px"><strong>${c.meu.nomeCliente}</strong> foi agendada depois — precisa remarcar.</div>
+      ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-green btn-sm" style="text-decoration:none;justify-content:center">📱 Falar com ${c.meu.nomeCliente.split(' ')[0]} no WhatsApp</a>` : '<div style="font-size:0.78rem;color:#999">Sem telefone cadastrado</div>'}
+    </div>`;
+  }).join('');
+  modal.innerHTML = `<div class="modal-box" style="max-width:360px">
+    <div class="modal-title">⚠️ Conflitos de horário</div>
+    <div style="font-size:0.82rem;color:var(--mid);margin-bottom:12px">Enquanto você estava offline, estes horários foram ocupados por outra pessoa:</div>
+    ${itens}
+    <button class="btn btn-primary btn-full" onclick="this.closest('.modal-bg').remove()" style="margin-top:8px">Entendi</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+window.addEventListener('online', () => { isOnline = true; atualizarStatusConexao(); sincronizarFila(); });
+window.addEventListener('offline', () => { isOnline = false; atualizarStatusConexao(); });
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
@@ -1235,6 +1401,8 @@ async function loadFromFirebase() {
     });
     agendamentos = Object.values(porId);
     if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); renderFinanceiroSeAberto(); }
+    salvarCacheLocal();
+    if (isOnline && filaOffline.length > 0) sincronizarFila();
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
@@ -1319,20 +1487,25 @@ async function salvarLancamentoAvulsoQmSqm(key) {
 }
 
 async function saveAgendamento(id, val) {
+  if (!val.criadoEm) val.criadoEm = val.id || Date.now();
   try {
-    const res = await fbFetch('/agendamentos/' + id + '.json', {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
-    });
+    const res = await fbWrite('/agendamentos/' + id + '.json', 'PUT', val);
+    if (res.offline) {
+      salvarCacheLocal();
+      atualizarStatusConexao();
+      return; // salvo localmente, sincroniza depois
+    }
     if (!res.ok) {
-      const err = await res.json().catch(()=>({}));
-      console.error('Firebase erro:', res.status, err);
-      showToast('⚠️ Erro ao salvar (Firebase: ' + res.status + '). Verifique as regras do banco.');
+      showToast('⚠️ Erro ao salvar. Tentando novamente ao reconectar.');
       return;
     }
     await loadFromFirebase();
+    salvarCacheLocal();
   } catch(e) {
-    console.error('saveAgendamento error', e);
-    showToast('❌ Sem conexão com o banco. Verifique a internet.');
+    // Salvo na fila offline pelo fbWrite
+    salvarCacheLocal();
+    atualizarStatusConexao();
+    showToast('📴 Salvo offline. Sincroniza ao reconectar.');
   }
 }
 
@@ -1772,6 +1945,9 @@ async function saveConfigFirebase(obj) {
 
 // --- SYNC ---
 function startSync() {
+  carregarFilaOffline();
+  isOnline = navigator.onLine;
+  if (!isOnline) { carregarCacheLocal(); atualizarStatusConexao(); }
   loadBloqueios();
   loadFromFirebase();
   loadEquipeFirebase();
@@ -1841,7 +2017,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'bloqueio-v1 · 14/08/2026';
+const APP_VERSAO = 'offline-v1 · 14/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3825,12 +4001,14 @@ async function loadBloqueios() {
 }
 
 async function saveBloqueio(b) {
-  await fbFetch('/bloqueios/' + b.id + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) });
+  await fbWrite('/bloqueios/' + b.id + '.json', 'PUT', b);
+  salvarCacheLocal();
 }
 
 async function deleteBloqueio(id) {
-  await fbFetch('/bloqueios/' + id + '.json', { method:'DELETE' });
+  await fbWrite('/bloqueios/' + id + '.json', 'DELETE');
   bloqueios = bloqueios.filter(b => b.id !== id);
+  salvarCacheLocal();
   renderTimeline();
 }
 
@@ -4121,7 +4299,7 @@ async function salvarAgendamento() {
       return;
     }
 
-    const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
+    const novo = { id:Date.now(), criadoEm:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
       ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalTotal: sinalTotal || null, sinalPago: false } : {}) };
     agendamentos.push(novo);
     saveAgendamento(novo.id, novo);
