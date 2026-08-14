@@ -170,7 +170,10 @@ textarea { resize:vertical; min-height:80px; }
 .slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
 .slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
-.sinal-badge { font-size:0.62rem; font-weight:700; padding:2px 6px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:2px; }
+.slot-td.bloqueado { background:color-mix(in srgb, var(--rose-dark) 8%, transparent) !important; border-left:3px solid color-mix(in srgb, var(--rose-dark) 35%, transparent) !important; cursor:default; }
+.slot-bloq-content { display:flex; flex-direction:column; justify-content:center; width:100%; padding:4px 2px; }
+.slot-bloq-icon { font-size:11px; color:color-mix(in srgb, var(--rose-dark) 60%, transparent); }
+.slot-bloq-motivo { font-size:9px; color:color-mix(in srgb, var(--rose-dark) 45%, transparent); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .sinal-pend { background:#fff3e0; color:#bf360c; }
 .sinal-ok { background:#e8f5e9; color:#1b5e20; }
 .slot-td.aguard-sinal { border-left:3px solid #e65100 !important; background:#fffde7 !important; height:auto !important; min-height:36px !important; overflow:visible !important; align-items:flex-start !important; }
@@ -442,6 +445,7 @@ input.slot-valor-input:focus { outline:none !important; }
       <div style="display:flex;align-items:center;gap:8px">
         <button class="date-nav-btn" onclick="moveWeek(1)">›</button>
         <button class="date-nav-btn expense-btn" onclick="abrirModalDespesa()" title="Lançar despesa">🧾</button>
+        <button class="date-nav-btn" onclick="abrirModalBloqueio()" title="Bloquear horário" style="font-size:0.8rem">🔒</button>
       </div>
     </div>
     <div class="week-scroll" id="week-scroll"></div>
@@ -725,7 +729,64 @@ input.slot-valor-input:focus { outline:none !important; }
   </div>
 </div>
 
-<!-- ═══════════ MODAL: VER AGENDAMENTO ═══════════ -->
+<!-- ═══════════ MODAL: BLOQUEIO DE HORÁRIO ═══════════ -->
+<div class="modal-bg" id="modal-bloqueio">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-title">🔒 Bloquear horário</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div id="bloq-tipo-horas" onclick="setBloqTipo('horas')" style="border:1.5px solid var(--rose-dark);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;background:color-mix(in srgb,var(--rose-dark) 8%,transparent)">
+        <div style="font-size:24px;margin-bottom:4px">⏰</div>
+        <div style="font-size:12px;font-weight:600;color:var(--rose-dark)">Algumas horas</div>
+        <div style="font-size:10px;color:var(--mid);margin-top:2px">Ex: manhã ou tarde</div>
+      </div>
+      <div id="bloq-tipo-dias" onclick="setBloqTipo('dias')" style="border:1.5px solid var(--rose-light);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer">
+        <div style="font-size:24px;margin-bottom:4px">📅</div>
+        <div style="font-size:12px;font-weight:600;color:var(--dark)">Dias inteiros</div>
+        <div style="font-size:10px;color:var(--mid);margin-top:2px">Ex: férias, viagem</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Profissional</label>
+      <select id="bloq-prof"></select>
+    </div>
+    <div id="bloq-campos-horas">
+      <div class="form-group">
+        <label>Dia</label>
+        <input type="date" id="bloq-dia">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>Das</label>
+          <input type="time" id="bloq-hora-ini" value="08:00">
+        </div>
+        <div class="form-group">
+          <label>Até</label>
+          <input type="time" id="bloq-hora-fim" value="12:00">
+        </div>
+      </div>
+    </div>
+    <div id="bloq-campos-dias" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>De</label>
+          <input type="date" id="bloq-data-ini">
+        </div>
+        <div class="form-group">
+          <label>Até</label>
+          <input type="date" id="bloq-data-fim">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Motivo (opcional)</label>
+      <input type="text" id="bloq-motivo" placeholder="Ex: médico, almoço, férias...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-bloqueio')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarBloqueio()">🔒 Bloquear</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="modal-ver-agendamento">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1711,6 +1772,7 @@ async function saveConfigFirebase(obj) {
 
 // --- SYNC ---
 function startSync() {
+  loadBloqueios();
   loadFromFirebase();
   loadEquipeFirebase();
   loadFotosEquipe().then(() => { atualizarAvatarHeader(); initLogin(); }); // fotos exigem auth; atualiza avatar e grid do login
@@ -1779,7 +1841,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v8 · 14/08/2026';
+const APP_VERSAO = 'bloqueio-v1 · 14/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3432,7 +3494,15 @@ function renderTimeline() {
         </div>
       </td>`;
     } else {
-      const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
+      const bloq = getSlotBloqueado(activeProfId, selectedDate, slot);
+      if (bloq) {
+        rows += `<td class="slot-td bloqueado" onclick="desbloquear(${bloq.id})" style="display:flex;align-items:center;padding:4px 8px;cursor:pointer">
+          <div class="slot-bloq-content">
+            <div class="slot-bloq-icon">🔒 Bloqueado</div>
+            ${bloq.motivo ? `<div class="slot-bloq-motivo">${escHtml(bloq.motivo)}</div>` : ''}
+          </div>
+        </td>`;
+      } else {
       const lancBruto = lancamentosAvulsos[lancKey];
       const lancTotal = valorDoAvulso(lancBruto);
       const lancAtual = lancTotal > 0 ? lancTotal : '';
@@ -3477,6 +3547,7 @@ function renderTimeline() {
         </div>`}
         ${(lancTotal > 0 || descAv) ? `<span class="avulso-del" onclick="event.stopPropagation();excluirAvulso('${lancKey}')" title="Excluir avulso">🗑</span>` : ''}
       </td>`;
+      } // fecha else nao bloqueado
     }
     rows += '</tr>';
   });
@@ -3736,6 +3807,108 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   renderClientes();
   populateClientesSelect();
   return { clienteId: novoCliente.id, precisaConfirmar: false };
+}
+
+// ═══════════ SINAL — MERCADO PAGO ═══════════
+
+// ═══════════ BLOQUEIO DE HORÁRIO ═══════════
+let bloqTipo = 'horas';
+let bloqueios = [];
+
+async function loadBloqueios() {
+  try {
+    const r = await fbFetch('/bloqueios.json');
+    const data = await r.json();
+    bloqueios = data ? Object.values(data) : [];
+  } catch(e) { bloqueios = []; }
+}
+
+async function saveBloqueio(b) {
+  await fbFetch('/bloqueios/' + b.id + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) });
+}
+
+async function deleteBloqueio(id) {
+  await fbFetch('/bloqueios/' + id + '.json', { method:'DELETE' });
+  bloqueios = bloqueios.filter(b => b.id !== id);
+  renderTimeline();
+}
+
+function abrirModalBloqueio() {
+  const sel = document.getElementById('bloq-prof');
+  sel.innerHTML = FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+  sel.value = activeProfId;
+  document.getElementById('bloq-dia').value = selectedDate;
+  document.getElementById('bloq-data-ini').value = selectedDate;
+  document.getElementById('bloq-data-fim').value = selectedDate;
+  document.getElementById('bloq-motivo').value = '';
+  setBloqTipo('horas');
+  openModal('modal-bloqueio');
+}
+
+function setBloqTipo(tipo) {
+  bloqTipo = tipo;
+  const cardH = document.getElementById('bloq-tipo-horas');
+  const cardD = document.getElementById('bloq-tipo-dias');
+  if (tipo === 'horas') {
+    cardH.style.border = '1.5px solid var(--rose-dark)';
+    cardH.style.background = 'color-mix(in srgb,var(--rose-dark) 8%,transparent)';
+    cardH.querySelector('div:nth-child(2)').style.color = 'var(--rose-dark)';
+    cardD.style.border = '1.5px solid var(--rose-light)';
+    cardD.style.background = 'transparent';
+    cardD.querySelector('div:nth-child(2)').style.color = 'var(--dark)';
+    document.getElementById('bloq-campos-horas').style.display = '';
+    document.getElementById('bloq-campos-dias').style.display = 'none';
+  } else {
+    cardD.style.border = '1.5px solid var(--rose-dark)';
+    cardD.style.background = 'color-mix(in srgb,var(--rose-dark) 8%,transparent)';
+    cardD.querySelector('div:nth-child(2)').style.color = 'var(--rose-dark)';
+    cardH.style.border = '1.5px solid var(--rose-light)';
+    cardH.style.background = 'transparent';
+    cardH.querySelector('div:nth-child(2)').style.color = 'var(--dark)';
+    document.getElementById('bloq-campos-horas').style.display = 'none';
+    document.getElementById('bloq-campos-dias').style.display = '';
+  }
+}
+
+async function salvarBloqueio() {
+  const profId = parseInt(document.getElementById('bloq-prof').value);
+  const motivo = document.getElementById('bloq-motivo').value.trim();
+  if (bloqTipo === 'horas') {
+    const dia = document.getElementById('bloq-dia').value;
+    const ini = document.getElementById('bloq-hora-ini').value;
+    const fim = document.getElementById('bloq-hora-fim').value;
+    if (!dia || !ini || !fim) { showToast('Preencha todos os campos'); return; }
+    if (ini >= fim) { showToast('Hora final deve ser depois da inicial'); return; }
+    const b = { id: Date.now(), tipo:'horas', profId, dia, ini, fim, motivo };
+    bloqueios.push(b);
+    await saveBloqueio(b);
+  } else {
+    const dataIni = document.getElementById('bloq-data-ini').value;
+    const dataFim = document.getElementById('bloq-data-fim').value;
+    if (!dataIni || !dataFim) { showToast('Preencha as datas'); return; }
+    if (dataIni > dataFim) { showToast('Data final deve ser depois da inicial'); return; }
+    const b = { id: Date.now(), tipo:'dias', profId, dataIni, dataFim, motivo };
+    bloqueios.push(b);
+    await saveBloqueio(b);
+  }
+  closeModal('modal-bloqueio');
+  renderTimeline();
+  showToast('🔒 Horário bloqueado!');
+}
+
+function getSlotBloqueado(profId, data, hora) {
+  return bloqueios.find(b => {
+    if (b.profId !== profId) return false;
+    if (b.tipo === 'dias') return data >= b.dataIni && data <= b.dataFim;
+    if (b.tipo === 'horas') return b.dia === data && hora >= b.ini && hora < b.fim;
+    return false;
+  }) || null;
+}
+
+function desbloquear(id) {
+  if (!confirm('Desbloquear este período?')) return;
+  deleteBloqueio(id);
+  showToast('✅ Desbloqueado!');
 }
 
 // ═══════════ SINAL — MERCADO PAGO ═══════════
