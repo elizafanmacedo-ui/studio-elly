@@ -68,6 +68,7 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; ba
 /* ── PAGES ── */
 .page { display:none; padding:18px 16px 90px; }
 .page.active { display:block; }
+#page-agenda { padding-left:0; padding-right:0; }
 
 /* ── CARDS ── */
 .card { background:var(--white); border-radius:var(--radius); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 30px rgba(58,34,39,0.18); margin-bottom:14px; border:1px solid rgba(255,255,255,0.5); }
@@ -1778,7 +1779,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v7 · 13/08/2026';
+const APP_VERSAO = 'sinal-pix-v8 · 14/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3817,12 +3818,12 @@ async function enviarSinalWhatsApp(apptId) {
   const dataSimples = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
   const hora = appt.hora.replace(':','h');
 
-  let msg = `Olá, ${nome}! 🌸✨\nÉ com muita alegria que confirmamos seu horário no Studio Elly Designer! 💖\n📅 Data: ${diaSemana.charAt(0).toUpperCase()+diaSemana.slice(1)}, ${dataSimples}\n⏰ Horário: ${hora}\n✨ Procedimento: ${svcs}\n\nPara garantir e reservar seu horário, solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix chave ${chavePix}`;
-  if (nomeCompleto) msg += `\nEm Nome de: ${nomeCompleto}`;
+  let msg = `Olá, ${nome}! 🌸✨\nÉ com muita alegria que confirmamos seu horário no Studio Elly Designer! 💖\n📅 Data: ${diaSemana.charAt(0).toUpperCase()+diaSemana.slice(1)}, ${dataSimples}\n⏰ Horário: ${hora}\n✨ Procedimento: ${svcs}\n\nPara garantir e reservar seu horário, solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix:\n\n${chavePix}\n`;
+  if (nomeCompleto) msg += `Em Nome de: ${nomeCompleto}\n`;
   if (total && restante > 0) {
-    msg += `\n💰 Valor total: *R$ ${total.toFixed(2).replace('.',',')}*\n✅ Adiantamento: *R$ ${sinal.toFixed(2).replace('.',',')}*\n💵 Saldo no dia: *R$ ${restante.toFixed(2).replace('.',',')}*`;
+    msg += `💰 Valor total: *R$ ${total.toFixed(2).replace('.',',')}*\n✅ Adiantamento: *R$ ${sinal.toFixed(2).replace('.',',')}*\n💵 Saldo no dia: *R$ ${restante.toFixed(2).replace('.',',')}*\n`;
   }
-  msg += `\nSeu horário ficará reservado após a confirmação do pagamento. 🌷\n\nSerá um prazer receber você no Studio Elly Designer! 💕`;
+  msg += `Seu horário ficará reservado após a confirmação do pagamento. 🌷\n\nSerá um prazer receber você no Studio Elly Designer! 💕`;
   const fone = (appt.fone || '').replace(/\D/g,'');
   const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
