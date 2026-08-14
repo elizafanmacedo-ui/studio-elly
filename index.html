@@ -3503,6 +3503,7 @@ function renderTimeline() {
           </div>
         </td>`;
       } else {
+      const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
       const lancBruto = lancamentosAvulsos[lancKey];
       const lancTotal = valorDoAvulso(lancBruto);
       const lancAtual = lancTotal > 0 ? lancTotal : '';
