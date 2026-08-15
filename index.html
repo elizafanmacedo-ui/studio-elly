@@ -1935,6 +1935,26 @@ function enviarRelatorioRateioWA() {
 
   const num = (configStudio.whatsapp || '').replace(/\D/g,'');
   window.open('https://wa.me/' + (num ? (num.length<=11?'55'+num:num) : '') + '?text=' + encodeURIComponent(txt), '_blank');
+
+  // Pergunta se quer marcar as despesas como acertadas (saem da lista de pendentes)
+  const pendentesRel = DESPESAS.filter(d => d.data && !d.acertada);
+  setTimeout(async () => {
+    if (!confirm('Relatório enviado!\n\nDeseja marcar essas ' + pendentesRel.length + ' despesa(s) como acertadas?\nElas sairão da lista de pendentes (ficam no histórico).')) return;
+    try {
+      const hoje = today();
+      await Promise.all(pendentesRel.map(d =>
+        fbWrite('/despesas/' + d.id + '.json', 'PATCH', { acertada: true, dataAcerto: hoje })
+      ));
+      await loadDespesasFromFirebase();
+      // Fecha o modal do relatório se estiver aberto
+      const modal = document.querySelector('.modal-bg');
+      if (modal && modal.querySelector('.rel-resumo')) modal.remove();
+      renderDespesasFinanceiro();
+      showToast('✅ ' + pendentesRel.length + ' despesa(s) acertadas!');
+    } catch(e) {
+      showToast('❌ Erro ao marcar. Tente novamente.');
+    }
+  }, 600);
 }
 
 // --- CLIENTES ---
@@ -2157,7 +2177,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'relatorio-rateio-v1 · 14/08/2026';
+const APP_VERSAO = 'relatorio-rateio-v2 · 15/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
