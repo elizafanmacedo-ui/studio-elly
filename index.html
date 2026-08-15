@@ -132,6 +132,21 @@ textarea { resize:vertical; min-height:80px; }
 .qmsqm-label { display:block; font-size:0.68rem; font-weight:700; color:var(--mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
 .qmsqm-input { width:100%; border:none; background:transparent; text-align:center; font-size:0.95rem; font-weight:700; color:var(--dark); outline:none; padding:0; }
 .rateio-info { font-size:0.72rem; color:var(--mid); text-align:center; margin-bottom:14px; min-height:14px; }
+.rel-grupo { border-radius:14px; overflow:hidden; margin-bottom:14px; border:1px solid rgba(0,0,0,0.06); }
+.rel-head { padding:10px 14px; display:flex; align-items:center; justify-content:space-between; color:#fff; font-weight:700; font-size:0.9rem; }
+.rel-item { padding:9px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0e8ea; background:#fff; }
+.rel-item:last-of-type { border-bottom:none; }
+.rel-desc { font-size:0.85rem; color:var(--dark); }
+.rel-data { font-size:0.72rem; color:var(--mid); }
+.rel-valor { font-size:0.88rem; font-weight:600; color:var(--dark); }
+.rel-rateio { padding:12px 14px; background:#faf4f6; }
+.rel-rateio-tit { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--mid); margin-bottom:8px; }
+.rel-pessoa { display:flex; justify-content:space-between; padding:5px 0; font-size:0.88rem; }
+.rel-pessoa span:last-child { font-weight:700; color:var(--rose-dark); }
+.rel-resumo { background:var(--rose-light); border-radius:14px; padding:14px; }
+.rel-resumo-tit { font-family:'Times New Roman',serif; font-weight:700; color:var(--rose-dark); margin-bottom:10px; font-size:1rem; }
+.rel-resumo-pessoa { display:flex; justify-content:space-between; padding:5px 0; font-size:0.9rem; color:var(--dark); }
+.rel-resumo-pessoa span:last-child { font-weight:700; color:var(--rose-dark); }
 .despesa-row { padding:10px 0; border-bottom:1px solid var(--light); }
 .despesa-row:last-child { border-bottom:none; }
 .despesa-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -1769,6 +1784,10 @@ function renderDespesasFinanceiro() {
     ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:10px;width:100%">✅ Marcar como acertadas até uma data...</button>`
     : '';
 
+  const btnRelatorio = currentUser === 1 && pendentes.length > 0
+    ? `<button class="btn btn-primary btn-sm" onclick="abrirRelatorioRateio()" style="margin-top:8px;width:100%">📊 Relatório de Rateio (química / sem química)</button>`
+    : '';
+
   const blocoAcertadas = acertadas.length > 0
     ? `<div class="card" style="margin-top:12px;border:1px dashed var(--rose-light)">
         <div class="card-title" style="color:var(--mid);font-size:0.85rem">✅ Acertadas (${acertadas.length})</div>
@@ -1784,6 +1803,7 @@ function renderDespesasFinanceiro() {
       : linhasPendentes + `<div class="despesa-total-row"><span>Total pendente</span><span>${formatarMoeda(totalPendente)}</span></div>`
     }
     ${btnZerar}
+    ${btnRelatorio}
   </div>
   ${blocoAcertadas}`;
 }
@@ -1795,6 +1815,126 @@ function trocarAbaFinanceiro(aba) {
   if (tabFat) tabFat.classList.toggle('on', aba === 'faturamento');
   if (tabDesp) tabDesp.classList.toggle('on', aba === 'despesas');
   if (aba === 'despesas') renderDespesasFinanceiro(); else renderFaturamento();
+}
+
+// ═══════════ RELATÓRIO DE RATEIO DE DESPESAS ═══════════
+function calcularRelatorioRateio() {
+  // Considera despesas pendentes (não acertadas) — são as do período de acerto atual
+  const pendentes = DESPESAS.filter(d => d.data && !d.acertada).sort((a,b) => a.data.localeCompare(b.data));
+  const qm = pendentes.filter(d => d.tipo === 'qm');
+  const sqm = pendentes.filter(d => d.tipo !== 'qm');
+  const totalQM = qm.reduce((s,d) => s + (d.valor||0), 0);
+  const totalSQM = sqm.reduce((s,d) => s + (d.valor||0), 0);
+
+  // Soma o rateio por pessoa (p1=Elly/id1, p2=Denny/id2, p3=Lanna/id3)
+  const porPessoa = { 1:{qm:0,sqm:0}, 2:{qm:0,sqm:0}, 3:{qm:0,sqm:0} };
+  pendentes.forEach(d => {
+    const r = d.rateio || {};
+    const grupo = d.tipo === 'qm' ? 'qm' : 'sqm';
+    if (r.p1 != null) porPessoa[1][grupo] += r.p1;
+    if (r.p2 != null) porPessoa[2][grupo] += r.p2;
+    if (r.p3 != null) porPessoa[3][grupo] += r.p3;
+  });
+
+  let dataIni = pendentes.length ? pendentes[0].data : null;
+  let dataFim = pendentes.length ? pendentes[pendentes.length-1].data : null;
+
+  return { qm, sqm, totalQM, totalSQM, porPessoa, dataIni, dataFim, total: totalQM + totalSQM };
+}
+
+function nomeProf(id) {
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  return f ? f.nome : (id===1?'Elly':id===2?'Denny':'Lanna');
+}
+
+function abrirRelatorioRateio() {
+  const r = calcularRelatorioRateio();
+  if (r.qm.length === 0 && r.sqm.length === 0) {
+    showToast('Nenhuma despesa pendente no período');
+    return;
+  }
+  const fmt = v => formatarMoeda(v);
+  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '';
+  const periodo = r.dataIni ? `${dataFmt(r.dataIni)} a ${dataFmt(r.dataFim)}` : 'período atual';
+
+  const itensQM = r.qm.map(d => `<div class="rel-item"><div><div class="rel-desc">${escHtml(d.descricao||'—')}</div><div class="rel-data">${dataFmt(d.data)}</div></div><div class="rel-valor">${fmt(d.valor)}</div></div>`).join('');
+  const itensSQM = r.sqm.map(d => `<div class="rel-item"><div><div class="rel-desc">${escHtml(d.descricao||'—')}</div><div class="rel-data">${dataFmt(d.data)}</div></div><div class="rel-valor">${fmt(d.valor)}</div></div>`).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.style.display = 'flex';
+  modal.innerHTML = `<div class="modal-box" style="max-width:390px;max-height:88vh;overflow-y:auto">
+    <div class="modal-title">📊 Relatório de Despesas</div>
+    <div style="font-size:0.78rem;color:var(--mid);margin-bottom:14px">Período de acerto: ${periodo}</div>
+
+    ${r.qm.length ? `<div class="rel-grupo">
+      <div class="rel-head" style="background:#7b3f9e">
+        <span>🧪 Com química</span>
+        <span style="text-align:right">${fmt(r.totalQM)}<br><span style="font-size:0.65rem;opacity:0.85;font-weight:400">÷ 2 (Denny e Lanna)</span></span>
+      </div>
+      ${itensQM}
+      <div class="rel-rateio">
+        <div class="rel-rateio-tit">Cada uma paga</div>
+        <div class="rel-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].qm)}</span></div>
+        <div class="rel-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].qm)}</span></div>
+      </div>
+    </div>` : ''}
+
+    ${r.sqm.length ? `<div class="rel-grupo">
+      <div class="rel-head" style="background:#2e7d6a">
+        <span>📦 Sem química</span>
+        <span style="text-align:right">${fmt(r.totalSQM)}<br><span style="font-size:0.65rem;opacity:0.85;font-weight:400">÷ 3 (Elly, Denny e Lanna)</span></span>
+      </div>
+      ${itensSQM}
+      <div class="rel-rateio">
+        <div class="rel-rateio-tit">Cada um paga</div>
+        <div class="rel-pessoa"><span>Elly</span><span>${fmt(r.porPessoa[1].sqm)}</span></div>
+        <div class="rel-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].sqm)}</span></div>
+        <div class="rel-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].sqm)}</span></div>
+      </div>
+    </div>` : ''}
+
+    <div class="rel-resumo">
+      <div class="rel-resumo-tit">💰 Total por pessoa</div>
+      <div class="rel-resumo-pessoa"><span>Elly</span><span>${fmt(r.porPessoa[1].qm + r.porPessoa[1].sqm)}</span></div>
+      <div class="rel-resumo-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].qm + r.porPessoa[2].sqm)}</span></div>
+      <div class="rel-resumo-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].qm + r.porPessoa[3].sqm)}</span></div>
+      <div class="rel-resumo-pessoa" style="border-top:1.5px solid rgba(138,58,82,0.3);margin-top:6px;padding-top:8px;font-weight:700"><span>Total geral</span><span>${fmt(r.total)}</span></div>
+    </div>
+
+    <button class="btn btn-green btn-full" style="margin-top:14px" onclick="enviarRelatorioRateioWA()">📱 Enviar por WhatsApp</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:6px" onclick="this.closest('.modal-bg').remove()">Fechar</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function enviarRelatorioRateioWA() {
+  const r = calcularRelatorioRateio();
+  const fmt = v => formatarMoeda(v);
+  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '';
+  const periodo = r.dataIni ? `${dataFmt(r.dataIni)} a ${dataFmt(r.dataFim)}` : 'período atual';
+
+  let txt = `📊 *RELATÓRIO DE DESPESAS*\nPeríodo: ${periodo}\n`;
+  if (r.qm.length) {
+    txt += `\n🧪 *COM QUÍMICA* (÷2 Denny e Lanna)\n`;
+    r.qm.forEach(d => { txt += `• ${d.descricao||'—'} — ${fmt(d.valor)} (${dataFmt(d.data)})\n`; });
+    txt += `_Subtotal: ${fmt(r.totalQM)}_\n`;
+    txt += `Denny: ${fmt(r.porPessoa[2].qm)} · Lanna: ${fmt(r.porPessoa[3].qm)}\n`;
+  }
+  if (r.sqm.length) {
+    txt += `\n📦 *SEM QUÍMICA* (÷3 Elly, Denny e Lanna)\n`;
+    r.sqm.forEach(d => { txt += `• ${d.descricao||'—'} — ${fmt(d.valor)} (${dataFmt(d.data)})\n`; });
+    txt += `_Subtotal: ${fmt(r.totalSQM)}_\n`;
+    txt += `Elly: ${fmt(r.porPessoa[1].sqm)} · Denny: ${fmt(r.porPessoa[2].sqm)} · Lanna: ${fmt(r.porPessoa[3].sqm)}\n`;
+  }
+  txt += `\n💰 *TOTAL POR PESSOA*\n`;
+  txt += `Elly: *${fmt(r.porPessoa[1].qm + r.porPessoa[1].sqm)}*\n`;
+  txt += `Denny: *${fmt(r.porPessoa[2].qm + r.porPessoa[2].sqm)}*\n`;
+  txt += `Lanna: *${fmt(r.porPessoa[3].qm + r.porPessoa[3].sqm)}*\n`;
+  txt += `\n*TOTAL GERAL: ${fmt(r.total)}*\n_Studio Elly Designer_`;
+
+  const num = (configStudio.whatsapp || '').replace(/\D/g,'');
+  window.open('https://wa.me/' + (num ? (num.length<=11?'55'+num:num) : '') + '?text=' + encodeURIComponent(txt), '_blank');
 }
 
 // --- CLIENTES ---
@@ -2017,7 +2157,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'offline-v1 · 14/08/2026';
+const APP_VERSAO = 'relatorio-rateio-v1 · 14/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
