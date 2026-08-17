@@ -906,12 +906,12 @@ input.slot-valor-input:focus { outline:none !important; }
       <input type="text" id="desp-descricao" placeholder="Ex: Compra de toalhas">
     </div>
     <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">Valor — preencha só a caixinha certa</label>
-    <div class="qmsqm-wrap">
-      <div class="qmsqm-box" id="desp-box-qm">
+    <div class="qmsqm-wrap" style="display:flex;flex-direction:column;gap:8px">
+      <div class="qmsqm-box" id="desp-box-qm" style="width:100%">
         <span class="qmsqm-label">Com química</span>
         <input type="text" class="qmsqm-input" id="desp-valor-qm" placeholder="R$ 0,00" oninput="onDespesaValorInput('qm')">
       </div>
-      <div class="qmsqm-box" id="desp-box-sqm">
+      <div class="qmsqm-box" id="desp-box-sqm" style="width:100%">
         <span class="qmsqm-label">Sem química</span>
         <input type="text" class="qmsqm-input" id="desp-valor-sqm" placeholder="R$ 0,00" oninput="onDespesaValorInput('sqm')">
       </div>
@@ -1780,12 +1780,16 @@ function renderDespesasFinanceiro() {
   const linhasPendentes = pendentes.map(d => { totalPendente += d.valor; return linhaDespesaHtml(d, true); }).join('');
   acertadas.forEach(d => { totalAcertada += d.valor; });
 
-  const btnZerar = currentUser === 1 && pendentes.length > 0
-    ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:10px;width:100%">✅ Marcar como acertadas até uma data...</button>`
-    : '';
-
   const btnRelatorio = currentUser === 1 && pendentes.length > 0
     ? `<button class="btn btn-primary btn-sm" onclick="abrirRelatorioRateio()" style="margin-top:8px;width:100%">📊 Relatório de Rateio (química / sem química)</button>`
+    : '';
+
+  const btnZerar = currentUser === 1 && pendentes.length > 0
+    ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:8px;width:100%">🗑 Zerar despesas pendentes</button>`
+    : '';
+
+  const btnHistorico = currentUser === 1
+    ? `<button class="btn btn-ghost btn-sm" onclick="abrirHistoricoDespesas()" style="margin-top:8px;width:100%">📋 Ver histórico de despesas acertadas</button>`
     : '';
 
   const blocoAcertadas = acertadas.length > 0
@@ -1802,8 +1806,9 @@ function renderDespesasFinanceiro() {
       ? '<div style="text-align:center;color:var(--mid);padding:12px;font-size:0.85rem">Todas as despesas do mês foram acertadas ✅</div>'
       : linhasPendentes + `<div class="despesa-total-row"><span>Total pendente</span><span>${formatarMoeda(totalPendente)}</span></div>`
     }
-    ${btnZerar}
     ${btnRelatorio}
+    ${btnZerar}
+    ${btnHistorico}
   </div>
   ${blocoAcertadas}`;
 }
@@ -1818,6 +1823,50 @@ function trocarAbaFinanceiro(aba) {
 }
 
 // ═══════════ RELATÓRIO DE RATEIO DE DESPESAS ═══════════
+function abrirHistoricoDespesas() {
+  const acertadas = DESPESAS.filter(d => d.acertada).sort((a,b) => (b.dataAcerto||b.data||'').localeCompare(a.dataAcerto||a.data||''));
+  if (acertadas.length === 0) {
+    showToast('Nenhuma despesa acertada encontrada.');
+    return;
+  }
+  const fmt = v => formatarMoeda(v);
+  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '';
+
+  // Agrupar por data de acerto
+  const grupos = {};
+  acertadas.forEach(d => {
+    const key = d.dataAcerto || d.data || 'sem data';
+    if (!grupos[key]) grupos[key] = [];
+    grupos[key].push(d);
+  });
+
+  const itens = Object.entries(grupos).map(([dataAcerto, desps]) => {
+    const total = desps.reduce((s,d) => s + (d.valor||0), 0);
+    const lista = desps.map(d => `<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #f0e8ea;font-size:0.82rem">
+      <span>${escHtml(d.descricao||'—')} <span style="font-size:0.7rem;color:var(--mid)">${d.tipo==='qm'?'🧪':'📦'}</span></span>
+      <span style="font-weight:600">${fmt(d.valor)}</span>
+    </div>`).join('');
+    return `<div style="border-radius:12px;overflow:hidden;margin-bottom:12px;border:1px solid rgba(0,0,0,0.06)">
+      <div style="background:var(--rose-dark);color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.85rem;font-weight:600">Acertadas em ${dataFmt(dataAcerto)}</span>
+        <span style="font-weight:700">${fmt(total)}</span>
+      </div>
+      ${lista}
+    </div>`;
+  }).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.style.display = 'flex';
+  modal.innerHTML = `<div class="modal-box" style="max-width:390px;max-height:88vh;overflow-y:auto">
+    <div class="modal-title">📋 Histórico de Despesas Acertadas</div>
+    <div style="font-size:0.78rem;color:var(--mid);margin-bottom:14px">${acertadas.length} despesa(s) acertada(s)</div>
+    ${itens}
+    <button class="btn btn-ghost btn-full" onclick="this.closest('.modal-bg').remove()">Fechar</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
 function calcularRelatorioRateio() {
   // Considera despesas pendentes (não acertadas) — são as do período de acerto atual
   const pendentes = DESPESAS.filter(d => d.data && !d.acertada).sort((a,b) => a.data.localeCompare(b.data));
@@ -2177,7 +2226,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'relatorio-rateio-v2 · 15/08/2026';
+const APP_VERSAO = 'fixes-v1 · 17/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -4456,6 +4505,13 @@ async function salvarAgendamento() {
     const conflito = agendamentos.find(a => a.data === data && a.hora === hora && a.profId === profId && a.status !== 'cancelado' && a.id !== editingApptId);
     if (conflito) {
       showToast('⚠️ Já existe um agendamento neste horário para esta profissional!');
+      return;
+    }
+
+    // Verificar bloqueio de horário
+    const bloqueio = getSlotBloqueado(profId, data, hora);
+    if (bloqueio) {
+      showToast('🔒 Este horário está bloqueado' + (bloqueio.motivo ? ': ' + bloqueio.motivo : '') + '. Escolha outro horário.');
       return;
     }
 
