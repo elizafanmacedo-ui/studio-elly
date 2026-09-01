@@ -173,7 +173,7 @@ textarea { resize:vertical; min-height:80px; }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
 .grade-table { width:100%; border-collapse:collapse; table-layout:fixed; }
-.grade-table tr { border-bottom:1px solid var(--rose-light); }
+.grade-table tr { border-bottom:1px solid rgba(138,58,82,0.25); }
 .hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:36px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
 .slot-td { height:36px; padding:3px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
 /* Área de toque de 44x44 no + dos slots, sem alterar o visual */
@@ -2228,7 +2228,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'relatorio-fix-v2 · 01/09/2026';
+const APP_VERSAO = 'extras-v1 · 01/09/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3029,8 +3029,9 @@ function renderFaturamento() {
   FUNCIONARIOS.forEach(f => { porProf[f.id] = { total:0, qtd:0 }; });
   let totalGeral = 0;
   lista.forEach(a => {
-    totalGeral += a.valor;
-    if (porProf[a.profId]) { porProf[a.profId].total += a.valor; porProf[a.profId].qtd++; }
+    const valorTotal = (a.valor || 0) + ((a.extras || []).reduce((t,e) => t + (e.valor||0), 0));
+    totalGeral += valorTotal;
+    if (porProf[a.profId]) { porProf[a.profId].total += valorTotal; porProf[a.profId].qtd++; }
   });
 
   let html = '';
@@ -4155,6 +4156,24 @@ function verAgendamento(id) {
     </div>` : '';
 
   document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
+  // Serviços extras
+  const extras = a.extras || [];
+  const totalExtras = extras.reduce((t, e) => t + (e.valor || 0), 0);
+  const extrasHtml = `
+    <div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-top:0">
+      <div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Extras feitos na hora</div>
+      ${extras.length > 0 ? extras.map((e,i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;padding:4px 0;border-bottom:0.5px solid var(--rose-light)">
+          <span style="color:var(--dark)">${escHtml(e.nome)}</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span style="font-weight:600">R$${e.valor}</span>
+            <span onclick="removerExtra(${a.id},${i})" style="cursor:pointer;color:var(--mid);font-size:0.75rem">🗑</span>
+          </span>
+        </div>`).join('') : '<div style="font-size:0.8rem;color:var(--mid)">Nenhum extra adicionado</div>'}
+      ${extras.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;margin-top:6px"><span>Total extras</span><span>R$${totalExtras}</span></div>` : ''}
+      <button onclick="abrirAdicionarExtra(${a.id})" class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;justify-content:center">+ Serviço extra</button>
+    </div>`;
+
   document.getElementById('va-body').innerHTML = `
     <div style="display:grid;gap:10px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
@@ -4169,10 +4188,67 @@ function verAgendamento(id) {
         <div style="font-size:0.75rem;color:var(--mid);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Alterar status</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${statusOpts}</div>
       </div>
+      ${extrasHtml}
       ${sinalHtml}
       ${waBtns}
     </div>`;
   openModal('modal-ver-agendamento');
+}
+
+function abrirAdicionarExtra(apptId) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.style.display = 'flex';
+  const svcsOpts = SERVICOS.map(s => `<option value="${s.id}" data-preco="${s.preco||0}">${s.nome}${s.preco ? ' — R$'+s.preco : ''}</option>`).join('');
+  modal.innerHTML = `<div class="modal-box" style="max-width:340px">
+    <div class="modal-title">+ Serviço extra</div>
+    <div class="form-group">
+      <label>Serviço realizado</label>
+      <select id="extra-svc" onchange="autoPrecoExtra()">${svcsOpts}</select>
+    </div>
+    <div class="form-group">
+      <label>Valor cobrado (R$)</label>
+      <input type="number" id="extra-valor" placeholder="0" min="0">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="salvarExtra(${apptId})">Adicionar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function autoPrecoExtra() {
+  const sel = document.getElementById('extra-svc');
+  const preco = sel.options[sel.selectedIndex].dataset.preco;
+  if (preco && parseFloat(preco) > 0) document.getElementById('extra-valor').value = preco;
+}
+
+async function salvarExtra(apptId) {
+  const svcId = parseInt(document.getElementById('extra-svc').value);
+  const valor = parseFloat(document.getElementById('extra-valor').value) || 0;
+  if (valor <= 0) { showToast('Informe o valor do serviço extra'); return; }
+  const svc = SERVICOS.find(s => s.id === svcId);
+  const idx = agendamentos.findIndex(a => a.id === apptId);
+  if (idx < 0) return;
+  if (!agendamentos[idx].extras) agendamentos[idx].extras = [];
+  agendamentos[idx].extras.push({ nome: svc ? svc.nome : 'Extra', valor, svcId });
+  await saveAgendamento(agendamentos[idx].id, agendamentos[idx]);
+  document.querySelector('.modal-bg:last-child')?.remove();
+  verAgendamento(apptId);
+  renderTimeline();
+  showToast('✅ Serviço extra adicionado!');
+}
+
+async function removerExtra(apptId, idx) {
+  if (!confirm('Remover este serviço extra?')) return;
+  const aIdx = agendamentos.findIndex(a => a.id === apptId);
+  if (aIdx < 0) return;
+  agendamentos[aIdx].extras.splice(idx, 1);
+  await saveAgendamento(agendamentos[aIdx].id, agendamentos[aIdx]);
+  verAgendamento(apptId);
+  renderTimeline();
+  showToast('🗑 Serviço extra removido.');
 }
 
 // ═══════════════════════════════════════
