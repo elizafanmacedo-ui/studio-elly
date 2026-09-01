@@ -983,7 +983,7 @@ let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
 // Serviços padrão (fallback se Firebase estiver vazio)
 const SERVICOS_PADRAO = [
-  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:250, profissionais:[1], cat:'Micropigmentação' },
+  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:380, profissionais:[1], cat:'Micropigmentação' },
   { id:2,  nome:'Micropigmentação Barba',        duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
   { id:3,  nome:'Micropigmentação Capilar',      duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
   { id:4,  nome:'Progressiva',     duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
@@ -992,15 +992,17 @@ const SERVICOS_PADRAO = [
   { id:7,  nome:'Chapinha',        duracao:45,  preco:null, profissionais:[2,3], cat:'Acabamento' },
   { id:8,  nome:'Botox Capilar',   duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
   { id:9,  nome:'Corte Feminino',  duracao:45,  preco:null, profissionais:[1],   cat:'Corte' },
-  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:null, profissionais:[1,3], cat:'Estética' },
-  { id:11, nome:'Henna',           duracao:30,  preco:null, profissionais:[1,3], cat:'Estética' },
-  { id:12, nome:'Buço',            duracao:15,  preco:null, profissionais:[1,3], cat:'Depilação' },
-  { id:13, nome:'Cauterização',    duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:25, profissionais:[1,3], cat:'Estética' },
+  { id:11, nome:'Henna',           duracao:30,  preco:35,  profissionais:[1,3], cat:'Estética' },
+  { id:12, nome:'Buço',            duracao:15,  preco:5,   profissionais:[1,3], cat:'Depilação' },
+  { id:13, nome:'Cauterização',    duracao:90,  preco:80,  profissionais:[2,3], cat:'Tratamento' },
   { id:14, nome:'Banho de Brilho', duracao:90,  preco:null, profissionais:[2],   cat:'Acabamento' },
   { id:15, nome:'Hidratação',      duracao:30,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:16, nome:'Depilação Facial',duracao:30,  preco:null, profissionais:[1,3], cat:'Depilação' },
+  { id:16, nome:'Depilação Facial',duracao:30,  preco:35,  profissionais:[1,3], cat:'Depilação' },
   { id:17, nome:'Luzes e Mechas',  duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
   { id:18, nome:'Morena Iluminada',duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
+  { id:19, nome:'Tintura',         duracao:60,  preco:20,  profissionais:[1,2,3], cat:'Coloração' },
+  { id:20, nome:'Retoque Fio a Fio',duracao:60, preco:null, profissionais:[1],  cat:'Micropigmentação' },
 ];
 
 let SERVICOS = [...SERVICOS_PADRAO];
@@ -2226,7 +2228,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'fixes-v1 · 17/08/2026';
+const APP_VERSAO = 'relatorio-fix-v1 · 25/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3359,13 +3361,20 @@ function enviarRelatorioWA() {
   let melhorDia = '—'; let maxDia = 0;
   Object.entries(porDia).forEach(([d, v]) => { if (v > maxDia) { maxDia = v; melhorDia = formatDate(d) + ' (' + formatarMoeda(v) + ')'; } });
 
-  // Serviço mais realizado
+  // Serviço mais realizado (inclui avulsos com nome reconhecido)
   const porSvc = {};
   lista.filter(a => !a.isAvulso).forEach(a => {
-    (a.servicoIds||[a.servicoId]).forEach(id => { porSvc[id] = (porSvc[id] || 0) + 1; });
+    (a.servicoIds||[a.servicoId]).forEach(id => { porSvc['s_'+id] = (porSvc['s_'+id] || { qtd:0, nome:'' }); porSvc['s_'+id].qtd++; const s = SERVICOS.find(x=>x.id===id); if(s) porSvc['s_'+id].nome = s.nome; });
+  });
+  lista.filter(a => a.isAvulso).forEach(a => {
+    const desc = (a.nomeCliente||'').replace('(avulso: ','').replace(')','').replace('(avulso)','').trim();
+    if (!desc) return;
+    const chave = 'av_'+desc.toLowerCase();
+    if (!porSvc[chave]) porSvc[chave] = { qtd:0, nome:desc };
+    porSvc[chave].qtd++;
   });
   let svcTop = '—'; let maxSvc = 0;
-  Object.entries(porSvc).forEach(([id, q]) => { if (q > maxSvc) { maxSvc = q; const s = SERVICOS.find(x=>x.id===parseInt(id)); svcTop = s ? s.nome + ' (' + q + 'x)' : '—'; } });
+  Object.values(porSvc).forEach(x => { if (x.qtd > maxSvc) { maxSvc = x.qtd; svcTop = x.nome + ' (' + x.qtd + 'x)'; } });
 
   // Comparativo mês anterior
   const baseAnt = new Date(anoAtual, mesAtual - 1, 1);
@@ -3376,7 +3385,18 @@ function enviarRelatorioWA() {
     const p = a.data.split('-');
     return parseInt(p[0]) === anoAnt && (parseInt(p[1])-1) === mesAnt && typeof a.valor === 'number' && a.valor > 0;
   });
-  const totalAnt = listaAnt.reduce((t,a) => t + a.valor, 0);
+  // Inclui avulsos do mês anterior no comparativo
+  const avulsosAnt = [];
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    const vTotal = valorDoAvulso(valor);
+    if (vTotal <= 0) return;
+    const partes = key.split('_');
+    if (partes.length < 3) return;
+    const dataAv = partes[0];
+    const p2 = dataAv.split('-');
+    if (parseInt(p2[0]) === anoAnt && (parseInt(p2[1])-1) === mesAnt) avulsosAnt.push({ valor: vTotal });
+  });
+  const totalAnt = listaAnt.reduce((t,a) => t + a.valor, 0) + avulsosAnt.reduce((t,a) => t + a.valor, 0);
   let comparativo = '—';
   if (totalAnt > 0) {
     const diff = ((totalGeral - totalAnt) / totalAnt * 100).toFixed(1);
@@ -3386,18 +3406,38 @@ function enviarRelatorioWA() {
   // ── Lista completa de serviços do mês (quantidade + valor) ──
   // Valor por serviço: agendamento com vários serviços divide o valor igualmente entre eles
   const svcDetalhe = {};
+
+  // Agendamentos com serviço vinculado
   lista.filter(a => !a.isAvulso).forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
-    const valorPorSvc = (a.valor || 0) / ids.length;
-    ids.forEach(id => {
-      if (!svcDetalhe[id]) svcDetalhe[id] = { qtd: 0, valor: 0 };
+    // Valor total vai para o serviço principal (primeiro da lista)
+    const idPrincipal = ids[0];
+    if (!svcDetalhe[idPrincipal]) svcDetalhe[idPrincipal] = { qtd: 0, valor: 0, nome: null };
+    svcDetalhe[idPrincipal].qtd += 1;
+    svcDetalhe[idPrincipal].valor += (a.valor || 0);
+    if (!svcDetalhe[idPrincipal].nome) { const s = SERVICOS.find(x => x.id === idPrincipal); svcDetalhe[idPrincipal].nome = s ? s.nome : 'Serviço removido'; }
+    // Demais serviços contam na quantidade mas não no valor
+    ids.slice(1).forEach(id => {
+      if (!svcDetalhe[id]) svcDetalhe[id] = { qtd: 0, valor: 0, nome: null };
       svcDetalhe[id].qtd += 1;
-      svcDetalhe[id].valor += valorPorSvc;
+      if (!svcDetalhe[id].nome) { const s = SERVICOS.find(x => x.id === id); svcDetalhe[id].nome = s ? s.nome : 'Serviço removido'; }
     });
   });
+
+  // Avulsos com descrição de serviço reconhecido
+  lista.filter(a => a.isAvulso).forEach(a => {
+    const desc = (a.nomeCliente || '').replace('(avulso: ', '').replace(')', '').replace('(avulso)', '').trim();
+    if (!desc) return;
+    const svcMatch = SERVICOS.find(s => s.nome.toLowerCase() === desc.toLowerCase() || desc.toLowerCase().includes(s.nome.toLowerCase()));
+    const chave = svcMatch ? svcMatch.id : ('av_' + desc);
+    if (!svcDetalhe[chave]) svcDetalhe[chave] = { qtd: 0, valor: 0, nome: svcMatch ? svcMatch.nome : desc };
+    svcDetalhe[chave].qtd += 1;
+    svcDetalhe[chave].valor += (a.valor || 0);
+  });
+
   const listaServicos = Object.entries(svcDetalhe)
-    .map(([id, d2]) => ({ nome: (SERVICOS.find(x => x.id === parseInt(id)) || {}).nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
+    .map(([id, d2]) => ({ nome: d2.nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
     .sort((a, b) => b.valor - a.valor)
     .map(x => x.nome + ': ' + x.qtd + 'x — ' + formatarMoeda(x.valor))
     .join('\n') || 'Nenhum serviço no mês';
@@ -4654,11 +4694,15 @@ function enviarRelatorioSociaWA() {
   ags.forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
-    const valorPorSvc = a.valor / ids.length;
-    ids.forEach(id => {
+    // Valor total vai para o serviço principal (primeiro da lista)
+    const idPrincipal = ids[0];
+    if (!svcDet[idPrincipal]) svcDet[idPrincipal] = { qtd: 0, valor: 0 };
+    svcDet[idPrincipal].qtd += 1;
+    svcDet[idPrincipal].valor += (a.valor || 0);
+    // Demais serviços do mesmo agendamento contam na quantidade mas não no valor
+    ids.slice(1).forEach(id => {
       if (!svcDet[id]) svcDet[id] = { qtd: 0, valor: 0 };
       svcDet[id].qtd += 1;
-      svcDet[id].valor += valorPorSvc;
     });
   });
   const listaServ = Object.entries(svcDet)
