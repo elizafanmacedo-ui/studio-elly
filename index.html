@@ -2228,7 +2228,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'relatorio-fix-v1 · 25/08/2026';
+const APP_VERSAO = 'relatorio-fix-v2 · 01/09/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3407,8 +3407,8 @@ function enviarRelatorioWA() {
   // Valor por serviço: agendamento com vários serviços divide o valor igualmente entre eles
   const svcDetalhe = {};
 
-  // Agendamentos com serviço vinculado
-  lista.filter(a => !a.isAvulso).forEach(a => {
+  // Agendamentos com serviço vinculado — só conta se tiver valor preenchido
+  lista.filter(a => !a.isAvulso && typeof a.valor === 'number' && a.valor > 0).forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
     // Valor total vai para o serviço principal (primeiro da lista)
@@ -4691,7 +4691,7 @@ function enviarRelatorioSociaWA() {
   const total = ags.reduce((t, a) => t + a.valor, 0) + totalAvs;
 
   const svcDet = {};
-  ags.forEach(a => {
+  ags.filter(a => typeof a.valor === 'number' && a.valor > 0).forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
     // Valor total vai para o serviço principal (primeiro da lista)
