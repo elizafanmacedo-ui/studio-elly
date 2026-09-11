@@ -3387,9 +3387,19 @@ function renderTimeline() {
   const bloqueioA16h = (diaSemana === 3 || diaSemana === 6); // quarta ou sábado
 
   function slotBloqueado(slot) {
-    if (!bloqueioA16h) return false;
-    const [h] = slot.split(':').map(Number);
-    return h >= 16;
+    const [h, m] = slot.split(':').map(Number);
+    const minutos = h * 60 + m;
+    // Almoço: 12h às 13h30 todo dia
+    if (minutos >= 720 && minutos < 810) return 'almoco';
+    // Quarta e sábado: a partir das 16h
+    if (bloqueioA16h && h >= 16) return 'encerrado';
+    return false;
+  }
+
+  function slotAlmoco(slot) {
+    const [h, m] = slot.split(':').map(Number);
+    const minutos = h * 60 + m;
+    return minutos >= 720 && minutos <= 810; // 12:00 até 13:30
   }
 
   // Verificar se há input em foco para evitar renderização enquanto digitando
@@ -3401,9 +3411,17 @@ function renderTimeline() {
     const appt = apptMap[slot];
     const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
 
+    // Slot de almoço — todos os dias
+    if (slotAlmoco(slot) && !appt) {
+      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#fff8f0;color:#c0a080;font-size:0.75rem;text-align:center;font-style:italic">🍽️ Horário de almoço</td></tr>`;
+      return;
+    }
+
     // Slot bloqueado por regra de dia/hora
-    if (slotBloqueado(slot) && !appt) {
-      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">🔒 Encerrado</td></tr>`;
+    const tipoBloqueo = slotBloqueado(slot);
+    if (tipoBloqueo && !appt) {
+      const textoBloqueo = tipoBloqueo === 'almoco' ? '🍽️ Horário de almoço' : '🔒 Encerrado';
+      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">${textoBloqueo}</td></tr>`;
       return;
     }
 
