@@ -68,7 +68,6 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; ba
 /* ── PAGES ── */
 .page { display:none; padding:18px 16px 90px; }
 .page.active { display:block; }
-#page-agenda { padding-left:0; padding-right:0; }
 
 /* ── CARDS ── */
 .card { background:var(--white); border-radius:var(--radius); padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 30px rgba(58,34,39,0.18); margin-bottom:14px; border:1px solid rgba(255,255,255,0.5); }
@@ -132,21 +131,6 @@ textarea { resize:vertical; min-height:80px; }
 .qmsqm-label { display:block; font-size:0.68rem; font-weight:700; color:var(--mid); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em; }
 .qmsqm-input { width:100%; border:none; background:transparent; text-align:center; font-size:0.95rem; font-weight:700; color:var(--dark); outline:none; padding:0; }
 .rateio-info { font-size:0.72rem; color:var(--mid); text-align:center; margin-bottom:14px; min-height:14px; }
-.rel-grupo { border-radius:14px; overflow:hidden; margin-bottom:14px; border:1px solid rgba(0,0,0,0.06); }
-.rel-head { padding:10px 14px; display:flex; align-items:center; justify-content:space-between; color:#fff; font-weight:700; font-size:0.9rem; }
-.rel-item { padding:9px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0e8ea; background:#fff; }
-.rel-item:last-of-type { border-bottom:none; }
-.rel-desc { font-size:0.85rem; color:var(--dark); }
-.rel-data { font-size:0.72rem; color:var(--mid); }
-.rel-valor { font-size:0.88rem; font-weight:600; color:var(--dark); }
-.rel-rateio { padding:12px 14px; background:#faf4f6; }
-.rel-rateio-tit { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--mid); margin-bottom:8px; }
-.rel-pessoa { display:flex; justify-content:space-between; padding:5px 0; font-size:0.88rem; }
-.rel-pessoa span:last-child { font-weight:700; color:var(--rose-dark); }
-.rel-resumo { background:var(--rose-light); border-radius:14px; padding:14px; }
-.rel-resumo-tit { font-family:'Times New Roman',serif; font-weight:700; color:var(--rose-dark); margin-bottom:10px; font-size:1rem; }
-.rel-resumo-pessoa { display:flex; justify-content:space-between; padding:5px 0; font-size:0.9rem; color:var(--dark); }
-.rel-resumo-pessoa span:last-child { font-weight:700; color:var(--rose-dark); }
 .despesa-row { padding:10px 0; border-bottom:1px solid var(--light); }
 .despesa-row:last-child { border-bottom:none; }
 .despesa-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -173,7 +157,7 @@ textarea { resize:vertical; min-height:80px; }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
 .grade-table { width:100%; border-collapse:collapse; table-layout:fixed; }
-.grade-table tr { border-bottom:1px solid rgba(138,58,82,0.25); }
+.grade-table tr { border-bottom:1px solid var(--rose-light); }
 .hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:36px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
 .slot-td { height:36px; padding:3px 10px; cursor:pointer; vertical-align:middle; transition:background 0.2s; }
 /* Área de toque de 44x44 no + dos slots, sem alterar o visual */
@@ -185,10 +169,7 @@ textarea { resize:vertical; min-height:80px; }
 .slot-nome { font-size:0.92rem; font-weight:800; color:var(--dark); line-height:1.08; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .slot-svc { font-size:0.86rem; font-weight:800; color:var(--rose-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.08; margin-top:4px; }
 .slot-valor-wrap { display:flex; align-items:center; gap:2px; flex-shrink:0; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; }
-.slot-td.bloqueado { background:color-mix(in srgb, var(--rose-dark) 8%, transparent) !important; border-left:3px solid color-mix(in srgb, var(--rose-dark) 35%, transparent) !important; cursor:default; }
-.slot-bloq-content { display:flex; flex-direction:column; justify-content:center; width:100%; padding:4px 2px; }
-.slot-bloq-icon { font-size:11px; color:color-mix(in srgb, var(--rose-dark) 60%, transparent); }
-.slot-bloq-motivo { font-size:9px; color:color-mix(in srgb, var(--rose-dark) 45%, transparent); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sinal-badge { font-size:0.62rem; font-weight:700; padding:2px 6px; border-radius:20px; white-space:nowrap; display:inline-block; margin-top:2px; }
 .sinal-pend { background:#fff3e0; color:#bf360c; }
 .sinal-ok { background:#e8f5e9; color:#1b5e20; }
 .slot-td.aguard-sinal { border-left:3px solid #e65100 !important; background:#fffde7 !important; height:auto !important; min-height:36px !important; overflow:visible !important; align-items:flex-start !important; }
@@ -460,7 +441,6 @@ input.slot-valor-input:focus { outline:none !important; }
       <div style="display:flex;align-items:center;gap:8px">
         <button class="date-nav-btn" onclick="moveWeek(1)">›</button>
         <button class="date-nav-btn expense-btn" onclick="abrirModalDespesa()" title="Lançar despesa">🧾</button>
-        <button class="date-nav-btn" onclick="abrirModalBloqueio()" title="Bloquear horário" style="font-size:0.8rem">🔒</button>
       </div>
     </div>
     <div class="week-scroll" id="week-scroll"></div>
@@ -744,64 +724,7 @@ input.slot-valor-input:focus { outline:none !important; }
   </div>
 </div>
 
-<!-- ═══════════ MODAL: BLOQUEIO DE HORÁRIO ═══════════ -->
-<div class="modal-bg" id="modal-bloqueio">
-  <div class="modal-box" style="max-width:340px">
-    <div class="modal-title">🔒 Bloquear horário</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-      <div id="bloq-tipo-horas" onclick="setBloqTipo('horas')" style="border:1.5px solid var(--rose-dark);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;background:color-mix(in srgb,var(--rose-dark) 8%,transparent)">
-        <div style="font-size:24px;margin-bottom:4px">⏰</div>
-        <div style="font-size:12px;font-weight:600;color:var(--rose-dark)">Algumas horas</div>
-        <div style="font-size:10px;color:var(--mid);margin-top:2px">Ex: manhã ou tarde</div>
-      </div>
-      <div id="bloq-tipo-dias" onclick="setBloqTipo('dias')" style="border:1.5px solid var(--rose-light);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer">
-        <div style="font-size:24px;margin-bottom:4px">📅</div>
-        <div style="font-size:12px;font-weight:600;color:var(--dark)">Dias inteiros</div>
-        <div style="font-size:10px;color:var(--mid);margin-top:2px">Ex: férias, viagem</div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Profissional</label>
-      <select id="bloq-prof"></select>
-    </div>
-    <div id="bloq-campos-horas">
-      <div class="form-group">
-        <label>Dia</label>
-        <input type="date" id="bloq-dia">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group">
-          <label>Das</label>
-          <input type="time" id="bloq-hora-ini" value="08:00">
-        </div>
-        <div class="form-group">
-          <label>Até</label>
-          <input type="time" id="bloq-hora-fim" value="12:00">
-        </div>
-      </div>
-    </div>
-    <div id="bloq-campos-dias" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="form-group">
-          <label>De</label>
-          <input type="date" id="bloq-data-ini">
-        </div>
-        <div class="form-group">
-          <label>Até</label>
-          <input type="date" id="bloq-data-fim">
-        </div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Motivo (opcional)</label>
-      <input type="text" id="bloq-motivo" placeholder="Ex: médico, almoço, férias...">
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-bloqueio')">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1" onclick="salvarBloqueio()">🔒 Bloquear</button>
-    </div>
-  </div>
-</div>
+<!-- ═══════════ MODAL: VER AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-ver-agendamento">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -906,12 +829,12 @@ input.slot-valor-input:focus { outline:none !important; }
       <input type="text" id="desp-descricao" placeholder="Ex: Compra de toalhas">
     </div>
     <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">Valor — preencha só a caixinha certa</label>
-    <div class="qmsqm-wrap" style="display:flex;flex-direction:column;gap:8px">
-      <div class="qmsqm-box" id="desp-box-qm" style="width:100%">
+    <div class="qmsqm-wrap">
+      <div class="qmsqm-box" id="desp-box-qm">
         <span class="qmsqm-label">Com química</span>
         <input type="text" class="qmsqm-input" id="desp-valor-qm" placeholder="R$ 0,00" oninput="onDespesaValorInput('qm')">
       </div>
-      <div class="qmsqm-box" id="desp-box-sqm" style="width:100%">
+      <div class="qmsqm-box" id="desp-box-sqm">
         <span class="qmsqm-label">Sem química</span>
         <input type="text" class="qmsqm-input" id="desp-valor-sqm" placeholder="R$ 0,00" oninput="onDespesaValorInput('sqm')">
       </div>
@@ -992,17 +915,17 @@ const SERVICOS_PADRAO = [
   { id:7,  nome:'Chapinha',        duracao:45,  preco:null, profissionais:[2,3], cat:'Acabamento' },
   { id:8,  nome:'Botox Capilar',   duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
   { id:9,  nome:'Corte Feminino',  duracao:45,  preco:null, profissionais:[1],   cat:'Corte' },
-  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:25, profissionais:[1,3], cat:'Estética' },
-  { id:11, nome:'Henna',           duracao:30,  preco:35,  profissionais:[1,3], cat:'Estética' },
-  { id:12, nome:'Buço',            duracao:15,  preco:5,   profissionais:[1,3], cat:'Depilação' },
-  { id:13, nome:'Cauterização',    duracao:90,  preco:80,  profissionais:[2,3], cat:'Tratamento' },
-  { id:14, nome:'Banho de Brilho', duracao:90,  preco:null, profissionais:[2],   cat:'Acabamento' },
+  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:null, profissionais:[1,3], cat:'Estética' },
+  { id:11, nome:'Henna',           duracao:30,  preco:null, profissionais:[1,3], cat:'Estética' },
+  { id:12, nome:'Buço',            duracao:15,  preco:null, profissionais:[1,3], cat:'Depilação' },
+  { id:13, nome:'Cauterização',    duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
+  { id:14, nome:'Banho de Brilho', duracao:90,  preco:35,   profissionais:[2,3], cat:'Acabamento' },
   { id:15, nome:'Hidratação',      duracao:30,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:16, nome:'Depilação Facial',duracao:30,  preco:35,  profissionais:[1,3], cat:'Depilação' },
+  { id:16, nome:'Depilação Facial',duracao:30,  preco:null, profissionais:[1,3], cat:'Depilação' },
   { id:17, nome:'Luzes e Mechas',  duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
   { id:18, nome:'Morena Iluminada',duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
-  { id:19, nome:'Tintura',         duracao:60,  preco:20,  profissionais:[1,2,3], cat:'Coloração' },
-  { id:20, nome:'Retoque Fio a Fio',duracao:60, preco:null, profissionais:[1],  cat:'Micropigmentação' },
+  { id:19, nome:'Tintura',                  duracao:90,  preco:25,   profissionais:[2,3], cat:'Coloração' },
+  { id:20, nome:'Retoque de Micropigmentação', duracao:60, preco:180, profissionais:[1], cat:'Micropigmentação' },
 ];
 
 let SERVICOS = [...SERVICOS_PADRAO];
@@ -1110,172 +1033,6 @@ async function fbFetch(caminho, opts = {}) {
   const sep = caminho.includes('?') ? '&' : '?';
   return fetch(DB_URL + caminho + sep + 'auth=' + token, opts);
 }
-
-// ═══════════ MODO OFFLINE ═══════════
-let isOnline = navigator.onLine;
-let filaOffline = []; // operações pendentes de sincronização
-
-function carregarFilaOffline() {
-  try {
-    const raw = localStorage.getItem('studioelly_fila_offline');
-    filaOffline = raw ? JSON.parse(raw) : [];
-  } catch(e) { filaOffline = []; }
-}
-
-function salvarFilaOffline() {
-  try { localStorage.setItem('studioelly_fila_offline', JSON.stringify(filaOffline)); } catch(e) {}
-}
-
-// Salva cópia local dos dados para uso offline
-function salvarCacheLocal() {
-  try {
-    localStorage.setItem('studioelly_cache', JSON.stringify({
-      agendamentos, clientes, FUNCIONARIOS, SERVICOS: window.SERVICOS || [],
-      lancamentosAvulsos, bloqueios, configStudio, DESPESAS,
-      salvoEm: Date.now()
-    }));
-  } catch(e) {}
-}
-
-function carregarCacheLocal() {
-  try {
-    const raw = localStorage.getItem('studioelly_cache');
-    if (!raw) return false;
-    const c = JSON.parse(raw);
-    agendamentos = c.agendamentos || [];
-    clientes = c.clientes || [];
-    if (c.FUNCIONARIOS) FUNCIONARIOS = c.FUNCIONARIOS;
-    if (c.SERVICOS) window.SERVICOS = c.SERVICOS;
-    lancamentosAvulsos = c.lancamentosAvulsos || {};
-    bloqueios = c.bloqueios || [];
-    configStudio = c.configStudio || {};
-    DESPESAS = c.DESPESAS || [];
-    return true;
-  } catch(e) { return false; }
-}
-
-// Adiciona operação à fila (quando offline) e tenta enviar (quando online)
-async function fbWrite(caminho, metodo, corpo) {
-  const op = { caminho, metodo, corpo, ts: Date.now(), user: currentUser };
-  if (isOnline) {
-    try {
-      const opts = { method: metodo };
-      if (corpo !== undefined) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(corpo); }
-      const res = await fbFetch(caminho, opts);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res;
-    } catch(e) {
-      // Falhou: guarda na fila
-      filaOffline.push(op);
-      salvarFilaOffline();
-      throw e;
-    }
-  } else {
-    filaOffline.push(op);
-    salvarFilaOffline();
-    return { ok: true, offline: true };
-  }
-}
-
-function atualizarStatusConexao() {
-  let bar = document.getElementById('offline-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'offline-bar';
-    bar.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;text-align:center;padding:8px;font-size:0.8rem;font-weight:600;transition:transform 0.3s;transform:translateY(100%)';
-    document.body.appendChild(bar);
-  }
-  if (!isOnline) {
-    bar.style.background = '#616161';
-    bar.style.color = '#fff';
-    bar.textContent = '📴 Sem conexão — trabalhando offline';
-    bar.style.transform = 'translateY(0)';
-  } else if (filaOffline.length > 0) {
-    bar.style.background = '#e65100';
-    bar.style.color = '#fff';
-    bar.textContent = '🔄 Sincronizando ' + filaOffline.length + ' alteração(ões)...';
-    bar.style.transform = 'translateY(0)';
-  } else {
-    bar.style.background = '#2e7d32';
-    bar.style.color = '#fff';
-    bar.textContent = '✅ Conectado';
-    bar.style.transform = 'translateY(0)';
-    setTimeout(() => { if (isOnline && filaOffline.length === 0) bar.style.transform = 'translateY(100%)'; }, 2500);
-  }
-}
-
-async function sincronizarFila() {
-  if (!isOnline || filaOffline.length === 0) return;
-  const conflitos = [];
-  const pendentes = [...filaOffline];
-  filaOffline = [];
-  salvarFilaOffline();
-
-  for (const op of pendentes) {
-    try {
-      // Detecção de conflito: se é criação de agendamento, verifica se o horário já foi ocupado no servidor
-      if (op.caminho.startsWith('/agendamentos/') && op.metodo === 'PUT' && op.corpo && op.corpo.data && op.corpo.hora) {
-        const check = await fbFetch('/agendamentos.json');
-        const serverData = await check.json();
-        const existentes = serverData ? Object.values(serverData) : [];
-        const conflito = existentes.find(a =>
-          a.id !== op.corpo.id &&
-          a.data === op.corpo.data &&
-          a.hora === op.corpo.hora &&
-          a.profId === op.corpo.profId &&
-          a.status !== 'cancelado' &&
-          (a.criadoEm || a.id) < (op.corpo.criadoEm || op.corpo.id) // o outro foi criado ANTES
-        );
-        if (conflito) {
-          conflitos.push({ meu: op.corpo, existente: conflito });
-          continue; // não sobrescreve — vai para o aviso de conflito
-        }
-      }
-      const opts = { method: op.metodo };
-      if (op.corpo !== undefined) { opts.headers = {'Content-Type':'application/json'}; opts.body = JSON.stringify(op.corpo); }
-      const res = await fbFetch(op.caminho, opts);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-    } catch(e) {
-      // Se falhar de novo, recoloca na fila
-      filaOffline.push(op);
-    }
-  }
-  salvarFilaOffline();
-  atualizarStatusConexao();
-
-  if (conflitos.length > 0) mostrarConflitos(conflitos);
-  // Recarrega dados atualizados do servidor
-  await loadFromFirebase();
-  await loadBloqueios();
-  renderTimeline();
-}
-
-function mostrarConflitos(conflitos) {
-  const modal = document.createElement('div');
-  modal.className = 'modal-bg';
-  modal.style.display = 'flex';
-  const itens = conflitos.map(c => {
-    const prof = FUNCIONARIOS.find(f => f.id === c.meu.profId);
-    const fone = (c.meu.fone || '').replace(/\D/g,'');
-    const waUrl = fone ? 'https://wa.me/55' + fone + '?text=' + encodeURIComponent(`Oi, ${c.meu.nomeCliente.split(' ')[0]}! Precisamos remarcar seu horário do dia ${formatDate(c.meu.data)} às ${c.meu.hora}, pois houve um conflito na agenda. Qual outro horário fica bom para você?`) : '';
-    return `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:10px">
-      <div style="font-weight:700;color:#e65100;margin-bottom:6px">⚠️ Conflito às ${c.meu.hora}</div>
-      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:4px"><strong>${c.existente.nomeCliente}</strong> foi agendada primeiro (mantida) com ${prof?prof.nome:'—'}.</div>
-      <div style="font-size:0.82rem;color:var(--mid);margin-bottom:8px"><strong>${c.meu.nomeCliente}</strong> foi agendada depois — precisa remarcar.</div>
-      ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-green btn-sm" style="text-decoration:none;justify-content:center">📱 Falar com ${c.meu.nomeCliente.split(' ')[0]} no WhatsApp</a>` : '<div style="font-size:0.78rem;color:#999">Sem telefone cadastrado</div>'}
-    </div>`;
-  }).join('');
-  modal.innerHTML = `<div class="modal-box" style="max-width:360px">
-    <div class="modal-title">⚠️ Conflitos de horário</div>
-    <div style="font-size:0.82rem;color:var(--mid);margin-bottom:12px">Enquanto você estava offline, estes horários foram ocupados por outra pessoa:</div>
-    ${itens}
-    <button class="btn btn-primary btn-full" onclick="this.closest('.modal-bg').remove()" style="margin-top:8px">Entendi</button>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
-window.addEventListener('online', () => { isOnline = true; atualizarStatusConexao(); sincronizarFila(); });
-window.addEventListener('offline', () => { isOnline = false; atualizarStatusConexao(); });
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
@@ -1418,8 +1175,6 @@ async function loadFromFirebase() {
     });
     agendamentos = Object.values(porId);
     if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); renderFinanceiroSeAberto(); }
-    salvarCacheLocal();
-    if (isOnline && filaOffline.length > 0) sincronizarFila();
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
@@ -1504,25 +1259,20 @@ async function salvarLancamentoAvulsoQmSqm(key) {
 }
 
 async function saveAgendamento(id, val) {
-  if (!val.criadoEm) val.criadoEm = val.id || Date.now();
   try {
-    const res = await fbWrite('/agendamentos/' + id + '.json', 'PUT', val);
-    if (res.offline) {
-      salvarCacheLocal();
-      atualizarStatusConexao();
-      return; // salvo localmente, sincroniza depois
-    }
+    const res = await fbFetch('/agendamentos/' + id + '.json', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(val)
+    });
     if (!res.ok) {
-      showToast('⚠️ Erro ao salvar. Tentando novamente ao reconectar.');
+      const err = await res.json().catch(()=>({}));
+      console.error('Firebase erro:', res.status, err);
+      showToast('⚠️ Erro ao salvar (Firebase: ' + res.status + '). Verifique as regras do banco.');
       return;
     }
     await loadFromFirebase();
-    salvarCacheLocal();
   } catch(e) {
-    // Salvo na fila offline pelo fbWrite
-    salvarCacheLocal();
-    atualizarStatusConexao();
-    showToast('📴 Salvo offline. Sincroniza ao reconectar.');
+    console.error('saveAgendamento error', e);
+    showToast('❌ Sem conexão com o banco. Verifique a internet.');
   }
 }
 
@@ -1782,16 +1532,8 @@ function renderDespesasFinanceiro() {
   const linhasPendentes = pendentes.map(d => { totalPendente += d.valor; return linhaDespesaHtml(d, true); }).join('');
   acertadas.forEach(d => { totalAcertada += d.valor; });
 
-  const btnRelatorio = currentUser === 1 && pendentes.length > 0
-    ? `<button class="btn btn-primary btn-sm" onclick="abrirRelatorioRateio()" style="margin-top:8px;width:100%">📊 Relatório de Rateio (química / sem química)</button>`
-    : '';
-
   const btnZerar = currentUser === 1 && pendentes.length > 0
-    ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:8px;width:100%">🗑 Zerar despesas pendentes</button>`
-    : '';
-
-  const btnHistorico = currentUser === 1
-    ? `<button class="btn btn-ghost btn-sm" onclick="abrirHistoricoDespesas()" style="margin-top:8px;width:100%">📋 Ver histórico de despesas acertadas</button>`
+    ? `<button class="btn btn-danger btn-sm" onclick="zerarDespesasMes()" style="margin-top:10px;width:100%">✅ Marcar como acertadas até uma data...</button>`
     : '';
 
   const blocoAcertadas = acertadas.length > 0
@@ -1808,9 +1550,7 @@ function renderDespesasFinanceiro() {
       ? '<div style="text-align:center;color:var(--mid);padding:12px;font-size:0.85rem">Todas as despesas do mês foram acertadas ✅</div>'
       : linhasPendentes + `<div class="despesa-total-row"><span>Total pendente</span><span>${formatarMoeda(totalPendente)}</span></div>`
     }
-    ${btnRelatorio}
     ${btnZerar}
-    ${btnHistorico}
   </div>
   ${blocoAcertadas}`;
 }
@@ -1822,190 +1562,6 @@ function trocarAbaFinanceiro(aba) {
   if (tabFat) tabFat.classList.toggle('on', aba === 'faturamento');
   if (tabDesp) tabDesp.classList.toggle('on', aba === 'despesas');
   if (aba === 'despesas') renderDespesasFinanceiro(); else renderFaturamento();
-}
-
-// ═══════════ RELATÓRIO DE RATEIO DE DESPESAS ═══════════
-function abrirHistoricoDespesas() {
-  const acertadas = DESPESAS.filter(d => d.acertada).sort((a,b) => (b.dataAcerto||b.data||'').localeCompare(a.dataAcerto||a.data||''));
-  if (acertadas.length === 0) {
-    showToast('Nenhuma despesa acertada encontrada.');
-    return;
-  }
-  const fmt = v => formatarMoeda(v);
-  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '';
-
-  // Agrupar por data de acerto
-  const grupos = {};
-  acertadas.forEach(d => {
-    const key = d.dataAcerto || d.data || 'sem data';
-    if (!grupos[key]) grupos[key] = [];
-    grupos[key].push(d);
-  });
-
-  const itens = Object.entries(grupos).map(([dataAcerto, desps]) => {
-    const total = desps.reduce((s,d) => s + (d.valor||0), 0);
-    const lista = desps.map(d => `<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #f0e8ea;font-size:0.82rem">
-      <span>${escHtml(d.descricao||'—')} <span style="font-size:0.7rem;color:var(--mid)">${d.tipo==='qm'?'🧪':'📦'}</span></span>
-      <span style="font-weight:600">${fmt(d.valor)}</span>
-    </div>`).join('');
-    return `<div style="border-radius:12px;overflow:hidden;margin-bottom:12px;border:1px solid rgba(0,0,0,0.06)">
-      <div style="background:var(--rose-dark);color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:0.85rem;font-weight:600">Acertadas em ${dataFmt(dataAcerto)}</span>
-        <span style="font-weight:700">${fmt(total)}</span>
-      </div>
-      ${lista}
-    </div>`;
-  }).join('');
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-bg';
-  modal.style.display = 'flex';
-  modal.innerHTML = `<div class="modal-box" style="max-width:390px;max-height:88vh;overflow-y:auto">
-    <div class="modal-title">📋 Histórico de Despesas Acertadas</div>
-    <div style="font-size:0.78rem;color:var(--mid);margin-bottom:14px">${acertadas.length} despesa(s) acertada(s)</div>
-    ${itens}
-    <button class="btn btn-ghost btn-full" onclick="this.closest('.modal-bg').remove()">Fechar</button>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
-function calcularRelatorioRateio() {
-  // Considera despesas pendentes (não acertadas) — são as do período de acerto atual
-  const pendentes = DESPESAS.filter(d => d.data && !d.acertada).sort((a,b) => a.data.localeCompare(b.data));
-  const qm = pendentes.filter(d => d.tipo === 'qm');
-  const sqm = pendentes.filter(d => d.tipo !== 'qm');
-  const totalQM = qm.reduce((s,d) => s + (d.valor||0), 0);
-  const totalSQM = sqm.reduce((s,d) => s + (d.valor||0), 0);
-
-  // Soma o rateio por pessoa (p1=Elly/id1, p2=Denny/id2, p3=Lanna/id3)
-  const porPessoa = { 1:{qm:0,sqm:0}, 2:{qm:0,sqm:0}, 3:{qm:0,sqm:0} };
-  pendentes.forEach(d => {
-    const r = d.rateio || {};
-    const grupo = d.tipo === 'qm' ? 'qm' : 'sqm';
-    if (r.p1 != null) porPessoa[1][grupo] += r.p1;
-    if (r.p2 != null) porPessoa[2][grupo] += r.p2;
-    if (r.p3 != null) porPessoa[3][grupo] += r.p3;
-  });
-
-  let dataIni = pendentes.length ? pendentes[0].data : null;
-  let dataFim = pendentes.length ? pendentes[pendentes.length-1].data : null;
-
-  return { qm, sqm, totalQM, totalSQM, porPessoa, dataIni, dataFim, total: totalQM + totalSQM };
-}
-
-function nomeProf(id) {
-  const f = FUNCIONARIOS.find(x => x.id === id);
-  return f ? f.nome : (id===1?'Elly':id===2?'Denny':'Lanna');
-}
-
-function abrirRelatorioRateio() {
-  const r = calcularRelatorioRateio();
-  if (r.qm.length === 0 && r.sqm.length === 0) {
-    showToast('Nenhuma despesa pendente no período');
-    return;
-  }
-  const fmt = v => formatarMoeda(v);
-  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '';
-  const periodo = r.dataIni ? `${dataFmt(r.dataIni)} a ${dataFmt(r.dataFim)}` : 'período atual';
-
-  const itensQM = r.qm.map(d => `<div class="rel-item"><div><div class="rel-desc">${escHtml(d.descricao||'—')}</div><div class="rel-data">${dataFmt(d.data)}</div></div><div class="rel-valor">${fmt(d.valor)}</div></div>`).join('');
-  const itensSQM = r.sqm.map(d => `<div class="rel-item"><div><div class="rel-desc">${escHtml(d.descricao||'—')}</div><div class="rel-data">${dataFmt(d.data)}</div></div><div class="rel-valor">${fmt(d.valor)}</div></div>`).join('');
-
-  const modal = document.createElement('div');
-  modal.className = 'modal-bg';
-  modal.style.display = 'flex';
-  modal.innerHTML = `<div class="modal-box" style="max-width:390px;max-height:88vh;overflow-y:auto">
-    <div class="modal-title">📊 Relatório de Despesas</div>
-    <div style="font-size:0.78rem;color:var(--mid);margin-bottom:14px">Período de acerto: ${periodo}</div>
-
-    ${r.qm.length ? `<div class="rel-grupo">
-      <div class="rel-head" style="background:#7b3f9e">
-        <span>🧪 Com química</span>
-        <span style="text-align:right">${fmt(r.totalQM)}<br><span style="font-size:0.65rem;opacity:0.85;font-weight:400">÷ 2 (Denny e Lanna)</span></span>
-      </div>
-      ${itensQM}
-      <div class="rel-rateio">
-        <div class="rel-rateio-tit">Cada uma paga</div>
-        <div class="rel-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].qm)}</span></div>
-        <div class="rel-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].qm)}</span></div>
-      </div>
-    </div>` : ''}
-
-    ${r.sqm.length ? `<div class="rel-grupo">
-      <div class="rel-head" style="background:#2e7d6a">
-        <span>📦 Sem química</span>
-        <span style="text-align:right">${fmt(r.totalSQM)}<br><span style="font-size:0.65rem;opacity:0.85;font-weight:400">÷ 3 (Elly, Denny e Lanna)</span></span>
-      </div>
-      ${itensSQM}
-      <div class="rel-rateio">
-        <div class="rel-rateio-tit">Cada um paga</div>
-        <div class="rel-pessoa"><span>Elly</span><span>${fmt(r.porPessoa[1].sqm)}</span></div>
-        <div class="rel-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].sqm)}</span></div>
-        <div class="rel-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].sqm)}</span></div>
-      </div>
-    </div>` : ''}
-
-    <div class="rel-resumo">
-      <div class="rel-resumo-tit">💰 Total por pessoa</div>
-      <div class="rel-resumo-pessoa"><span>Elly</span><span>${fmt(r.porPessoa[1].qm + r.porPessoa[1].sqm)}</span></div>
-      <div class="rel-resumo-pessoa"><span>Denny</span><span>${fmt(r.porPessoa[2].qm + r.porPessoa[2].sqm)}</span></div>
-      <div class="rel-resumo-pessoa"><span>Lanna</span><span>${fmt(r.porPessoa[3].qm + r.porPessoa[3].sqm)}</span></div>
-      <div class="rel-resumo-pessoa" style="border-top:1.5px solid rgba(138,58,82,0.3);margin-top:6px;padding-top:8px;font-weight:700"><span>Total geral</span><span>${fmt(r.total)}</span></div>
-    </div>
-
-    <button class="btn btn-green btn-full" style="margin-top:14px" onclick="enviarRelatorioRateioWA()">📱 Enviar por WhatsApp</button>
-    <button class="btn btn-ghost btn-full" style="margin-top:6px" onclick="this.closest('.modal-bg').remove()">Fechar</button>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
-function enviarRelatorioRateioWA() {
-  const r = calcularRelatorioRateio();
-  const fmt = v => formatarMoeda(v);
-  const dataFmt = s => s ? new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '';
-  const periodo = r.dataIni ? `${dataFmt(r.dataIni)} a ${dataFmt(r.dataFim)}` : 'período atual';
-
-  let txt = `📊 *RELATÓRIO DE DESPESAS*\nPeríodo: ${periodo}\n`;
-  if (r.qm.length) {
-    txt += `\n🧪 *COM QUÍMICA* (÷2 Denny e Lanna)\n`;
-    r.qm.forEach(d => { txt += `• ${d.descricao||'—'} — ${fmt(d.valor)} (${dataFmt(d.data)})\n`; });
-    txt += `_Subtotal: ${fmt(r.totalQM)}_\n`;
-    txt += `Denny: ${fmt(r.porPessoa[2].qm)} · Lanna: ${fmt(r.porPessoa[3].qm)}\n`;
-  }
-  if (r.sqm.length) {
-    txt += `\n📦 *SEM QUÍMICA* (÷3 Elly, Denny e Lanna)\n`;
-    r.sqm.forEach(d => { txt += `• ${d.descricao||'—'} — ${fmt(d.valor)} (${dataFmt(d.data)})\n`; });
-    txt += `_Subtotal: ${fmt(r.totalSQM)}_\n`;
-    txt += `Elly: ${fmt(r.porPessoa[1].sqm)} · Denny: ${fmt(r.porPessoa[2].sqm)} · Lanna: ${fmt(r.porPessoa[3].sqm)}\n`;
-  }
-  txt += `\n💰 *TOTAL POR PESSOA*\n`;
-  txt += `Elly: *${fmt(r.porPessoa[1].qm + r.porPessoa[1].sqm)}*\n`;
-  txt += `Denny: *${fmt(r.porPessoa[2].qm + r.porPessoa[2].sqm)}*\n`;
-  txt += `Lanna: *${fmt(r.porPessoa[3].qm + r.porPessoa[3].sqm)}*\n`;
-  txt += `\n*TOTAL GERAL: ${fmt(r.total)}*\n_Studio Elly Designer_`;
-
-  const num = (configStudio.whatsapp || '').replace(/\D/g,'');
-  window.open('https://wa.me/' + (num ? (num.length<=11?'55'+num:num) : '') + '?text=' + encodeURIComponent(txt), '_blank');
-
-  // Pergunta se quer marcar as despesas como acertadas (saem da lista de pendentes)
-  const pendentesRel = DESPESAS.filter(d => d.data && !d.acertada);
-  setTimeout(async () => {
-    if (!confirm('Relatório enviado!\n\nDeseja marcar essas ' + pendentesRel.length + ' despesa(s) como acertadas?\nElas sairão da lista de pendentes (ficam no histórico).')) return;
-    try {
-      const hoje = today();
-      await Promise.all(pendentesRel.map(d =>
-        fbWrite('/despesas/' + d.id + '.json', 'PATCH', { acertada: true, dataAcerto: hoje })
-      ));
-      await loadDespesasFromFirebase();
-      // Fecha o modal do relatório se estiver aberto
-      const modal = document.querySelector('.modal-bg');
-      if (modal && modal.querySelector('.rel-resumo')) modal.remove();
-      renderDespesasFinanceiro();
-      showToast('✅ ' + pendentesRel.length + ' despesa(s) acertadas!');
-    } catch(e) {
-      showToast('❌ Erro ao marcar. Tente novamente.');
-    }
-  }, 600);
 }
 
 // --- CLIENTES ---
@@ -2156,10 +1712,6 @@ async function saveConfigFirebase(obj) {
 
 // --- SYNC ---
 function startSync() {
-  carregarFilaOffline();
-  isOnline = navigator.onLine;
-  if (!isOnline) { carregarCacheLocal(); atualizarStatusConexao(); }
-  loadBloqueios();
   loadFromFirebase();
   loadEquipeFirebase();
   loadFotosEquipe().then(() => { atualizarAvatarHeader(); initLogin(); }); // fotos exigem auth; atualiza avatar e grid do login
@@ -2228,7 +1780,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'extras-v1 · 01/09/2026';
+const APP_VERSAO = 'sinal-pix-v7 · 13/08/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3029,9 +2581,8 @@ function renderFaturamento() {
   FUNCIONARIOS.forEach(f => { porProf[f.id] = { total:0, qtd:0 }; });
   let totalGeral = 0;
   lista.forEach(a => {
-    const valorTotal = (a.valor || 0) + ((a.extras || []).reduce((t,e) => t + (e.valor||0), 0));
-    totalGeral += valorTotal;
-    if (porProf[a.profId]) { porProf[a.profId].total += valorTotal; porProf[a.profId].qtd++; }
+    totalGeral += a.valor;
+    if (porProf[a.profId]) { porProf[a.profId].total += a.valor; porProf[a.profId].qtd++; }
   });
 
   let html = '';
@@ -3362,20 +2913,13 @@ function enviarRelatorioWA() {
   let melhorDia = '—'; let maxDia = 0;
   Object.entries(porDia).forEach(([d, v]) => { if (v > maxDia) { maxDia = v; melhorDia = formatDate(d) + ' (' + formatarMoeda(v) + ')'; } });
 
-  // Serviço mais realizado (inclui avulsos com nome reconhecido)
+  // Serviço mais realizado
   const porSvc = {};
   lista.filter(a => !a.isAvulso).forEach(a => {
-    (a.servicoIds||[a.servicoId]).forEach(id => { porSvc['s_'+id] = (porSvc['s_'+id] || { qtd:0, nome:'' }); porSvc['s_'+id].qtd++; const s = SERVICOS.find(x=>x.id===id); if(s) porSvc['s_'+id].nome = s.nome; });
-  });
-  lista.filter(a => a.isAvulso).forEach(a => {
-    const desc = (a.nomeCliente||'').replace('(avulso: ','').replace(')','').replace('(avulso)','').trim();
-    if (!desc) return;
-    const chave = 'av_'+desc.toLowerCase();
-    if (!porSvc[chave]) porSvc[chave] = { qtd:0, nome:desc };
-    porSvc[chave].qtd++;
+    (a.servicoIds||[a.servicoId]).forEach(id => { porSvc[id] = (porSvc[id] || 0) + 1; });
   });
   let svcTop = '—'; let maxSvc = 0;
-  Object.values(porSvc).forEach(x => { if (x.qtd > maxSvc) { maxSvc = x.qtd; svcTop = x.nome + ' (' + x.qtd + 'x)'; } });
+  Object.entries(porSvc).forEach(([id, q]) => { if (q > maxSvc) { maxSvc = q; const s = SERVICOS.find(x=>x.id===parseInt(id)); svcTop = s ? s.nome + ' (' + q + 'x)' : '—'; } });
 
   // Comparativo mês anterior
   const baseAnt = new Date(anoAtual, mesAtual - 1, 1);
@@ -3386,18 +2930,7 @@ function enviarRelatorioWA() {
     const p = a.data.split('-');
     return parseInt(p[0]) === anoAnt && (parseInt(p[1])-1) === mesAnt && typeof a.valor === 'number' && a.valor > 0;
   });
-  // Inclui avulsos do mês anterior no comparativo
-  const avulsosAnt = [];
-  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
-    const vTotal = valorDoAvulso(valor);
-    if (vTotal <= 0) return;
-    const partes = key.split('_');
-    if (partes.length < 3) return;
-    const dataAv = partes[0];
-    const p2 = dataAv.split('-');
-    if (parseInt(p2[0]) === anoAnt && (parseInt(p2[1])-1) === mesAnt) avulsosAnt.push({ valor: vTotal });
-  });
-  const totalAnt = listaAnt.reduce((t,a) => t + a.valor, 0) + avulsosAnt.reduce((t,a) => t + a.valor, 0);
+  const totalAnt = listaAnt.reduce((t,a) => t + a.valor, 0);
   let comparativo = '—';
   if (totalAnt > 0) {
     const diff = ((totalGeral - totalAnt) / totalAnt * 100).toFixed(1);
@@ -3407,38 +2940,18 @@ function enviarRelatorioWA() {
   // ── Lista completa de serviços do mês (quantidade + valor) ──
   // Valor por serviço: agendamento com vários serviços divide o valor igualmente entre eles
   const svcDetalhe = {};
-
-  // Agendamentos com serviço vinculado — só conta se tiver valor preenchido
-  lista.filter(a => !a.isAvulso && typeof a.valor === 'number' && a.valor > 0).forEach(a => {
+  lista.filter(a => !a.isAvulso).forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
-    // Valor total vai para o serviço principal (primeiro da lista)
-    const idPrincipal = ids[0];
-    if (!svcDetalhe[idPrincipal]) svcDetalhe[idPrincipal] = { qtd: 0, valor: 0, nome: null };
-    svcDetalhe[idPrincipal].qtd += 1;
-    svcDetalhe[idPrincipal].valor += (a.valor || 0);
-    if (!svcDetalhe[idPrincipal].nome) { const s = SERVICOS.find(x => x.id === idPrincipal); svcDetalhe[idPrincipal].nome = s ? s.nome : 'Serviço removido'; }
-    // Demais serviços contam na quantidade mas não no valor
-    ids.slice(1).forEach(id => {
-      if (!svcDetalhe[id]) svcDetalhe[id] = { qtd: 0, valor: 0, nome: null };
+    const valorPorSvc = (a.valor || 0) / ids.length;
+    ids.forEach(id => {
+      if (!svcDetalhe[id]) svcDetalhe[id] = { qtd: 0, valor: 0 };
       svcDetalhe[id].qtd += 1;
-      if (!svcDetalhe[id].nome) { const s = SERVICOS.find(x => x.id === id); svcDetalhe[id].nome = s ? s.nome : 'Serviço removido'; }
+      svcDetalhe[id].valor += valorPorSvc;
     });
   });
-
-  // Avulsos com descrição de serviço reconhecido
-  lista.filter(a => a.isAvulso).forEach(a => {
-    const desc = (a.nomeCliente || '').replace('(avulso: ', '').replace(')', '').replace('(avulso)', '').trim();
-    if (!desc) return;
-    const svcMatch = SERVICOS.find(s => s.nome.toLowerCase() === desc.toLowerCase() || desc.toLowerCase().includes(s.nome.toLowerCase()));
-    const chave = svcMatch ? svcMatch.id : ('av_' + desc);
-    if (!svcDetalhe[chave]) svcDetalhe[chave] = { qtd: 0, valor: 0, nome: svcMatch ? svcMatch.nome : desc };
-    svcDetalhe[chave].qtd += 1;
-    svcDetalhe[chave].valor += (a.valor || 0);
-  });
-
   const listaServicos = Object.entries(svcDetalhe)
-    .map(([id, d2]) => ({ nome: d2.nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
+    .map(([id, d2]) => ({ nome: (SERVICOS.find(x => x.id === parseInt(id)) || {}).nome || 'Serviço removido', qtd: d2.qtd, valor: d2.valor }))
     .sort((a, b) => b.valor - a.valor)
     .map(x => x.nome + ': ' + x.qtd + 'x — ' + formatarMoeda(x.valor))
     .join('\n') || 'Nenhum serviço no mês';
@@ -3868,6 +3381,17 @@ function renderTimeline() {
   }
   slots.push('20:00');
 
+  // Verifica se o dia selecionado é quarta (3) ou sábado (6)
+  const dataSel = new Date(selectedDate + 'T12:00:00');
+  const diaSemana = dataSel.getDay(); // 0=dom, 3=qua, 6=sab
+  const bloqueioA16h = (diaSemana === 3 || diaSemana === 6); // quarta ou sábado
+
+  function slotBloqueado(slot) {
+    if (!bloqueioA16h) return false;
+    const [h] = slot.split(':').map(Number);
+    return h >= 16;
+  }
+
   // Verificar se há input em foco para evitar renderização enquanto digitando
   const focusedEl = document.activeElement;
   const focusedIsValor = focusedEl && focusedEl.classList.contains('slot-valor-input');
@@ -3876,6 +3400,13 @@ function renderTimeline() {
   slots.forEach(slot => {
     const appt = apptMap[slot];
     const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
+
+    // Slot bloqueado por regra de dia/hora
+    if (slotBloqueado(slot) && !appt) {
+      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">🔒 Encerrado</td></tr>`;
+      return;
+    }
+
     rows += `<tr><td class="hora-td">${slot}</td>`;
     if (appt) {
       const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
@@ -3920,15 +3451,6 @@ function renderTimeline() {
         </div>
       </td>`;
     } else {
-      const bloq = getSlotBloqueado(activeProfId, selectedDate, slot);
-      if (bloq) {
-        rows += `<td class="slot-td bloqueado" onclick="desbloquear(${bloq.id})" style="display:flex;align-items:center;padding:4px 8px;cursor:pointer">
-          <div class="slot-bloq-content">
-            <div class="slot-bloq-icon">🔒 Bloqueado</div>
-            ${bloq.motivo ? `<div class="slot-bloq-motivo">${escHtml(bloq.motivo)}</div>` : ''}
-          </div>
-        </td>`;
-      } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
       const lancBruto = lancamentosAvulsos[lancKey];
       const lancTotal = valorDoAvulso(lancBruto);
@@ -3974,7 +3496,6 @@ function renderTimeline() {
         </div>`}
         ${(lancTotal > 0 || descAv) ? `<span class="avulso-del" onclick="event.stopPropagation();excluirAvulso('${lancKey}')" title="Excluir avulso">🗑</span>` : ''}
       </td>`;
-      } // fecha else nao bloqueado
     }
     rows += '</tr>';
   });
@@ -4156,24 +3677,6 @@ function verAgendamento(id) {
     </div>` : '';
 
   document.getElementById('va-titulo').textContent = '📋 ' + a.nomeCliente;
-  // Serviços extras
-  const extras = a.extras || [];
-  const totalExtras = extras.reduce((t, e) => t + (e.valor || 0), 0);
-  const extrasHtml = `
-    <div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-top:0">
-      <div style="font-size:0.72rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Extras feitos na hora</div>
-      ${extras.length > 0 ? extras.map((e,i) => `
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;padding:4px 0;border-bottom:0.5px solid var(--rose-light)">
-          <span style="color:var(--dark)">${escHtml(e.nome)}</span>
-          <span style="display:flex;align-items:center;gap:6px">
-            <span style="font-weight:600">R$${e.valor}</span>
-            <span onclick="removerExtra(${a.id},${i})" style="cursor:pointer;color:var(--mid);font-size:0.75rem">🗑</span>
-          </span>
-        </div>`).join('') : '<div style="font-size:0.8rem;color:var(--mid)">Nenhum extra adicionado</div>'}
-      ${extras.length > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:700;margin-top:6px"><span>Total extras</span><span>R$${totalExtras}</span></div>` : ''}
-      <button onclick="abrirAdicionarExtra(${a.id})" class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;justify-content:center">+ Serviço extra</button>
-    </div>`;
-
   document.getElementById('va-body').innerHTML = `
     <div style="display:grid;gap:10px">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
@@ -4188,67 +3691,10 @@ function verAgendamento(id) {
         <div style="font-size:0.75rem;color:var(--mid);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">Alterar status</div>
         <div style="display:flex;flex-wrap:wrap;gap:5px">${statusOpts}</div>
       </div>
-      ${extrasHtml}
       ${sinalHtml}
       ${waBtns}
     </div>`;
   openModal('modal-ver-agendamento');
-}
-
-function abrirAdicionarExtra(apptId) {
-  const modal = document.createElement('div');
-  modal.className = 'modal-bg';
-  modal.style.display = 'flex';
-  const svcsOpts = SERVICOS.map(s => `<option value="${s.id}" data-preco="${s.preco||0}">${s.nome}${s.preco ? ' — R$'+s.preco : ''}</option>`).join('');
-  modal.innerHTML = `<div class="modal-box" style="max-width:340px">
-    <div class="modal-title">+ Serviço extra</div>
-    <div class="form-group">
-      <label>Serviço realizado</label>
-      <select id="extra-svc" onchange="autoPrecoExtra()">${svcsOpts}</select>
-    </div>
-    <div class="form-group">
-      <label>Valor cobrado (R$)</label>
-      <input type="number" id="extra-valor" placeholder="0" min="0">
-    </div>
-    <div style="display:flex;gap:10px;margin-top:8px">
-      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
-      <button class="btn btn-primary" style="flex:1" onclick="salvarExtra(${apptId})">Adicionar</button>
-    </div>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
-function autoPrecoExtra() {
-  const sel = document.getElementById('extra-svc');
-  const preco = sel.options[sel.selectedIndex].dataset.preco;
-  if (preco && parseFloat(preco) > 0) document.getElementById('extra-valor').value = preco;
-}
-
-async function salvarExtra(apptId) {
-  const svcId = parseInt(document.getElementById('extra-svc').value);
-  const valor = parseFloat(document.getElementById('extra-valor').value) || 0;
-  if (valor <= 0) { showToast('Informe o valor do serviço extra'); return; }
-  const svc = SERVICOS.find(s => s.id === svcId);
-  const idx = agendamentos.findIndex(a => a.id === apptId);
-  if (idx < 0) return;
-  if (!agendamentos[idx].extras) agendamentos[idx].extras = [];
-  agendamentos[idx].extras.push({ nome: svc ? svc.nome : 'Extra', valor, svcId });
-  await saveAgendamento(agendamentos[idx].id, agendamentos[idx]);
-  document.querySelector('.modal-bg:last-child')?.remove();
-  verAgendamento(apptId);
-  renderTimeline();
-  showToast('✅ Serviço extra adicionado!');
-}
-
-async function removerExtra(apptId, idx) {
-  if (!confirm('Remover este serviço extra?')) return;
-  const aIdx = agendamentos.findIndex(a => a.id === apptId);
-  if (aIdx < 0) return;
-  agendamentos[aIdx].extras.splice(idx, 1);
-  await saveAgendamento(agendamentos[aIdx].id, agendamentos[aIdx]);
-  verAgendamento(apptId);
-  renderTimeline();
-  showToast('🗑 Serviço extra removido.');
 }
 
 // ═══════════════════════════════════════
@@ -4309,110 +3755,6 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   renderClientes();
   populateClientesSelect();
   return { clienteId: novoCliente.id, precisaConfirmar: false };
-}
-
-// ═══════════ SINAL — MERCADO PAGO ═══════════
-
-// ═══════════ BLOQUEIO DE HORÁRIO ═══════════
-let bloqTipo = 'horas';
-let bloqueios = [];
-
-async function loadBloqueios() {
-  try {
-    const r = await fbFetch('/bloqueios.json');
-    const data = await r.json();
-    bloqueios = data ? Object.values(data) : [];
-  } catch(e) { bloqueios = []; }
-}
-
-async function saveBloqueio(b) {
-  await fbWrite('/bloqueios/' + b.id + '.json', 'PUT', b);
-  salvarCacheLocal();
-}
-
-async function deleteBloqueio(id) {
-  await fbWrite('/bloqueios/' + id + '.json', 'DELETE');
-  bloqueios = bloqueios.filter(b => b.id !== id);
-  salvarCacheLocal();
-  renderTimeline();
-}
-
-function abrirModalBloqueio() {
-  const sel = document.getElementById('bloq-prof');
-  sel.innerHTML = FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-  sel.value = activeProfId;
-  document.getElementById('bloq-dia').value = selectedDate;
-  document.getElementById('bloq-data-ini').value = selectedDate;
-  document.getElementById('bloq-data-fim').value = selectedDate;
-  document.getElementById('bloq-motivo').value = '';
-  setBloqTipo('horas');
-  openModal('modal-bloqueio');
-}
-
-function setBloqTipo(tipo) {
-  bloqTipo = tipo;
-  const cardH = document.getElementById('bloq-tipo-horas');
-  const cardD = document.getElementById('bloq-tipo-dias');
-  if (tipo === 'horas') {
-    cardH.style.border = '1.5px solid var(--rose-dark)';
-    cardH.style.background = 'color-mix(in srgb,var(--rose-dark) 8%,transparent)';
-    cardH.querySelector('div:nth-child(2)').style.color = 'var(--rose-dark)';
-    cardD.style.border = '1.5px solid var(--rose-light)';
-    cardD.style.background = 'transparent';
-    cardD.querySelector('div:nth-child(2)').style.color = 'var(--dark)';
-    document.getElementById('bloq-campos-horas').style.display = '';
-    document.getElementById('bloq-campos-dias').style.display = 'none';
-  } else {
-    cardD.style.border = '1.5px solid var(--rose-dark)';
-    cardD.style.background = 'color-mix(in srgb,var(--rose-dark) 8%,transparent)';
-    cardD.querySelector('div:nth-child(2)').style.color = 'var(--rose-dark)';
-    cardH.style.border = '1.5px solid var(--rose-light)';
-    cardH.style.background = 'transparent';
-    cardH.querySelector('div:nth-child(2)').style.color = 'var(--dark)';
-    document.getElementById('bloq-campos-horas').style.display = 'none';
-    document.getElementById('bloq-campos-dias').style.display = '';
-  }
-}
-
-async function salvarBloqueio() {
-  const profId = parseInt(document.getElementById('bloq-prof').value);
-  const motivo = document.getElementById('bloq-motivo').value.trim();
-  if (bloqTipo === 'horas') {
-    const dia = document.getElementById('bloq-dia').value;
-    const ini = document.getElementById('bloq-hora-ini').value;
-    const fim = document.getElementById('bloq-hora-fim').value;
-    if (!dia || !ini || !fim) { showToast('Preencha todos os campos'); return; }
-    if (ini >= fim) { showToast('Hora final deve ser depois da inicial'); return; }
-    const b = { id: Date.now(), tipo:'horas', profId, dia, ini, fim, motivo };
-    bloqueios.push(b);
-    await saveBloqueio(b);
-  } else {
-    const dataIni = document.getElementById('bloq-data-ini').value;
-    const dataFim = document.getElementById('bloq-data-fim').value;
-    if (!dataIni || !dataFim) { showToast('Preencha as datas'); return; }
-    if (dataIni > dataFim) { showToast('Data final deve ser depois da inicial'); return; }
-    const b = { id: Date.now(), tipo:'dias', profId, dataIni, dataFim, motivo };
-    bloqueios.push(b);
-    await saveBloqueio(b);
-  }
-  closeModal('modal-bloqueio');
-  renderTimeline();
-  showToast('🔒 Horário bloqueado!');
-}
-
-function getSlotBloqueado(profId, data, hora) {
-  return bloqueios.find(b => {
-    if (b.profId !== profId) return false;
-    if (b.tipo === 'dias') return data >= b.dataIni && data <= b.dataFim;
-    if (b.tipo === 'horas') return b.dia === data && hora >= b.ini && hora < b.fim;
-    return false;
-  }) || null;
-}
-
-function desbloquear(id) {
-  if (!confirm('Desbloquear este período?')) return;
-  deleteBloqueio(id);
-  showToast('✅ Desbloqueado!');
 }
 
 // ═══════════ SINAL — MERCADO PAGO ═══════════
@@ -4495,12 +3837,12 @@ async function enviarSinalWhatsApp(apptId) {
   const dataSimples = new Date(appt.data + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
   const hora = appt.hora.replace(':','h');
 
-  let msg = `Olá, ${nome}! 🌸✨\nÉ com muita alegria que confirmamos seu horário no Studio Elly Designer! 💖\n📅 Data: ${diaSemana.charAt(0).toUpperCase()+diaSemana.slice(1)}, ${dataSimples}\n⏰ Horário: ${hora}\n✨ Procedimento: ${svcs}\n\nPara garantir e reservar seu horário, solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix:\n\n${chavePix}\n`;
-  if (nomeCompleto) msg += `Em Nome de: ${nomeCompleto}\n`;
+  let msg = `Olá, ${nome}! 🌸✨\nÉ com muita alegria que confirmamos seu horário no Studio Elly Designer! 💖\n📅 Data: ${diaSemana.charAt(0).toUpperCase()+diaSemana.slice(1)}, ${dataSimples}\n⏰ Horário: ${hora}\n✨ Procedimento: ${svcs}\n\nPara garantir e reservar seu horário, solicitamos um adiantamento de *R$ ${sinal.toFixed(2).replace('.',',')}* via Pix chave ${chavePix}`;
+  if (nomeCompleto) msg += `\nEm Nome de: ${nomeCompleto}`;
   if (total && restante > 0) {
-    msg += `💰 Valor total: *R$ ${total.toFixed(2).replace('.',',')}*\n✅ Adiantamento: *R$ ${sinal.toFixed(2).replace('.',',')}*\n💵 Saldo no dia: *R$ ${restante.toFixed(2).replace('.',',')}*\n`;
+    msg += `\n💰 Valor total: *R$ ${total.toFixed(2).replace('.',',')}*\n✅ Adiantamento: *R$ ${sinal.toFixed(2).replace('.',',')}*\n💵 Saldo no dia: *R$ ${restante.toFixed(2).replace('.',',')}*`;
   }
-  msg += `Seu horário ficará reservado após a confirmação do pagamento. 🌷\n\nSerá um prazer receber você no Studio Elly Designer! 💕`;
+  msg += `\nSeu horário ficará reservado após a confirmação do pagamento. 🌷\n\nSerá um prazer receber você no Studio Elly Designer! 💕`;
   const fone = (appt.fone || '').replace(/\D/g,'');
   const url = 'https://wa.me/' + (fone ? '55' + fone : '') + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
@@ -4624,14 +3966,7 @@ async function salvarAgendamento() {
       return;
     }
 
-    // Verificar bloqueio de horário
-    const bloqueio = getSlotBloqueado(profId, data, hora);
-    if (bloqueio) {
-      showToast('🔒 Este horário está bloqueado' + (bloqueio.motivo ? ': ' + bloqueio.motivo : '') + '. Escolha outro horário.');
-      return;
-    }
-
-    const novo = { id:Date.now(), criadoEm:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
+    const novo = { id:Date.now(), clienteId, nomeCliente, fone, servicoIds, servicoId:servicoIds[0], profId, data, hora, obs, status:'confirmado', lembretes:{},
       ...(cobrarSinal && sinalValor > 0 ? { sinalValor, sinalTotal: sinalTotal || null, sinalPago: false } : {}) };
     agendamentos.push(novo);
     saveAgendamento(novo.id, novo);
@@ -4767,18 +4102,14 @@ function enviarRelatorioSociaWA() {
   const total = ags.reduce((t, a) => t + a.valor, 0) + totalAvs;
 
   const svcDet = {};
-  ags.filter(a => typeof a.valor === 'number' && a.valor > 0).forEach(a => {
+  ags.forEach(a => {
     const ids = (a.servicoIds || [a.servicoId]).filter(Boolean);
     if (ids.length === 0) return;
-    // Valor total vai para o serviço principal (primeiro da lista)
-    const idPrincipal = ids[0];
-    if (!svcDet[idPrincipal]) svcDet[idPrincipal] = { qtd: 0, valor: 0 };
-    svcDet[idPrincipal].qtd += 1;
-    svcDet[idPrincipal].valor += (a.valor || 0);
-    // Demais serviços do mesmo agendamento contam na quantidade mas não no valor
-    ids.slice(1).forEach(id => {
+    const valorPorSvc = a.valor / ids.length;
+    ids.forEach(id => {
       if (!svcDet[id]) svcDet[id] = { qtd: 0, valor: 0 };
       svcDet[id].qtd += 1;
+      svcDet[id].valor += valorPorSvc;
     });
   });
   const listaServ = Object.entries(svcDet)
