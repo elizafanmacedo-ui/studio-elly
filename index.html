@@ -3420,8 +3420,8 @@ function renderTimeline() {
     // Slot bloqueado por regra de dia/hora
     const tipoBloqueo = slotBloqueado(slot);
     if (tipoBloqueo && !appt) {
-      const textoBloqueo = tipoBloqueo === 'almoco' ? '🍽️ Horário de almoço' : '🔒 Encerrado';
-      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">${textoBloqueo}</td></tr>`;
+      if (tipoBloqueo === 'almoco') return; // Oculta horário de almoço
+      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">🔒 Encerrado</td></tr>`;
       return;
     }
 
