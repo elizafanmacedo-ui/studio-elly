@@ -3411,19 +3411,12 @@ function renderTimeline() {
     const appt = apptMap[slot];
     const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
 
-    // Slot de almoço — todos os dias
-    if (slotAlmoco(slot) && !appt) {
-      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#fff8f0;color:#c0a080;font-size:0.75rem;text-align:center;font-style:italic">🍽️ Horário de almoço</td></tr>`;
-      return;
-    }
+    // Slot de almoço — oculto visualmente
+    if (slotAlmoco(slot) && !appt) return;
 
-    // Slot bloqueado por regra de dia/hora
+    // Slot bloqueado por regra de dia/hora — oculto visualmente
     const tipoBloqueo = slotBloqueado(slot);
-    if (tipoBloqueo && !appt) {
-      if (tipoBloqueo === 'almoco') return; // Oculta horário de almoço
-      rows += `<tr><td class="hora-td">${slot}</td><td class="slot-td" style="background:#f5f0f2;color:#c0a8b0;font-size:0.75rem;text-align:center;font-style:italic">🔒 Encerrado</td></tr>`;
-      return;
-    }
+    if (tipoBloqueo && !appt) return;
 
     rows += `<tr><td class="hora-td">${slot}</td>`;
     if (appt) {
