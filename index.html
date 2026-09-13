@@ -287,6 +287,9 @@ input.slot-valor-input:focus { outline:none !important; }
 .saas-acoes { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
 .saas-btn { font-size:0.67rem; font-weight:700; padding:5px 10px; border-radius:8px; border:none; cursor:pointer; white-space:nowrap; }
 .sbtn-bloquear { background:#ffebee; color:#c62828; }
+.slot-td.bloqueado { background:#f5f5f5; cursor:default; }
+.slot-bloqueio-label { font-size:0.72rem; color:#9e9e9e; font-weight:600; font-style:italic; }
+.btn-bloqueio { background:#fff3e0; color:#e65100; border:none; border-radius:8px; padding:5px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; }
 .sbtn-renovar { background:#e8f5e9; color:#2e7d32; }
 .sbtn-editar { background:var(--light); color:var(--mid); }
 .badge-green { background:#e8f5e9; color:#2e7d32; }
@@ -446,6 +449,9 @@ input.slot-valor-input:focus { outline:none !important; }
     <div class="week-scroll" id="week-scroll"></div>
   </div>
   <div id="prof-tab-wrap" class="prof-tab-wrap"></div>
+  <div style="display:flex;justify-content:flex-end;padding:6px 12px 0">
+    <button class="btn-bloqueio" onclick="abrirModalBloqueio()">🔒 Bloquear horário</button>
+  </div>
   <div class="card" style="padding:0;margin-top:0;border-radius:0 0 16px 16px">
     <div id="timeline"></div>
   </div>
@@ -890,6 +896,72 @@ input.slot-valor-input:focus { outline:none !important; }
   </div>
 </div>
 
+<!-- MODAL BLOQUEIO -->
+<div class="modal-bg" id="modal-bloqueio" style="z-index:650">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Bloquear Horário</div>
+    <div class="form-group">
+      <label>Profissional</label>
+      <select id="bl-prof">
+        <option value="1">Elly</option>
+        <option value="2">Denny</option>
+        <option value="3">Lanna</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tipo de bloqueio</label>
+      <select id="bl-tipo" onchange="toggleBloqueioTipo()">
+        <option value="horas">Horário (mesmo dia)</option>
+        <option value="dia">Dia inteiro</option>
+        <option value="periodo">Período (vários dias)</option>
+      </select>
+    </div>
+    <div id="bl-grupo-horas">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="bl-dia-horas">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>De</label>
+          <input type="time" id="bl-ini" value="09:00">
+        </div>
+        <div class="form-group">
+          <label>Até</label>
+          <input type="time" id="bl-fim" value="12:00">
+        </div>
+      </div>
+    </div>
+    <div id="bl-grupo-dia" style="display:none">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="bl-dia-unico">
+      </div>
+    </div>
+    <div id="bl-grupo-periodo" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group">
+          <label>De</label>
+          <input type="date" id="bl-data-ini">
+        </div>
+        <div class="form-group">
+          <label>Até</label>
+          <input type="date" id="bl-data-fim">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Motivo (opcional)</label>
+      <input type="text" id="bl-motivo" placeholder="Ex: Viagem, Folga...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bloqueio')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1;background:#e65100" onclick="salvarBloqueio()">Bloquear</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -906,7 +978,7 @@ let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
 // Serviços padrão (fallback se Firebase estiver vazio)
 const SERVICOS_PADRAO = [
-  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:380, profissionais:[1], cat:'Micropigmentação' },
+  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:250, profissionais:[1], cat:'Micropigmentação' },
   { id:2,  nome:'Micropigmentação Barba',        duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
   { id:3,  nome:'Micropigmentação Capilar',      duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
   { id:4,  nome:'Progressiva',     duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
@@ -919,13 +991,11 @@ const SERVICOS_PADRAO = [
   { id:11, nome:'Henna',           duracao:30,  preco:null, profissionais:[1,3], cat:'Estética' },
   { id:12, nome:'Buço',            duracao:15,  preco:null, profissionais:[1,3], cat:'Depilação' },
   { id:13, nome:'Cauterização',    duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:14, nome:'Banho de Brilho', duracao:90,  preco:35,   profissionais:[2,3], cat:'Acabamento' },
+  { id:14, nome:'Banho de Brilho', duracao:90,  preco:null, profissionais:[2],   cat:'Acabamento' },
   { id:15, nome:'Hidratação',      duracao:30,  preco:null, profissionais:[2,3], cat:'Tratamento' },
   { id:16, nome:'Depilação Facial',duracao:30,  preco:null, profissionais:[1,3], cat:'Depilação' },
   { id:17, nome:'Luzes e Mechas',  duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
   { id:18, nome:'Morena Iluminada',duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
-  { id:19, nome:'Tintura',                  duracao:90,  preco:25,   profissionais:[2,3], cat:'Coloração' },
-  { id:20, nome:'Retoque de Micropigmentação', duracao:60, preco:180, profissionais:[1], cat:'Micropigmentação' },
 ];
 
 let SERVICOS = [...SERVICOS_PADRAO];
@@ -1036,6 +1106,7 @@ async function fbFetch(caminho, opts = {}) {
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
+let bloqueios = [];
 let clientes = [];
 let configStudio = {};
 let DESPESAS = [];
@@ -1188,6 +1259,107 @@ async function loadLancamentosAvulsos() {
       Object.entries(data).forEach(([k, v]) => { lancamentosAvulsos[k] = v; });
     }
   } catch(e) { console.log('Erro lancamentos', e); }
+}
+
+// ═══════════════════════════════════════
+// BLOQUEIOS DE HORÁRIO
+// ═══════════════════════════════════════
+
+async function loadBloqueiosFromFirebase() {
+  try {
+    const res = await fbFetch('/bloqueios.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      bloqueios = Object.values(data).filter(Boolean);
+    } else {
+      bloqueios = [];
+    }
+    renderGrade();
+  } catch(e) { console.log('Erro bloqueios', e); }
+}
+
+function toggleBloqueioTipo() {
+  const tipo = document.getElementById('bl-tipo').value;
+  document.getElementById('bl-grupo-horas').style.display = tipo === 'horas' ? '' : 'none';
+  document.getElementById('bl-grupo-dia').style.display = tipo === 'dia' ? '' : 'none';
+  document.getElementById('bl-grupo-periodo').style.display = tipo === 'periodo' ? '' : 'none';
+}
+
+function abrirModalBloqueio() {
+  const tipo = document.getElementById('bl-tipo').value || 'horas';
+  document.getElementById('bl-prof').value = activeProfId || 1;
+  document.getElementById('bl-dia-horas').value = selectedDate;
+  document.getElementById('bl-dia-unico').value = selectedDate;
+  document.getElementById('bl-data-ini').value = selectedDate;
+  document.getElementById('bl-data-fim').value = selectedDate;
+  document.getElementById('bl-motivo').value = '';
+  toggleBloqueioTipo();
+  openModal('modal-bloqueio');
+}
+
+async function salvarBloqueio() {
+  const tipo = document.getElementById('bl-tipo').value;
+  const profId = parseInt(document.getElementById('bl-prof').value);
+  const motivo = document.getElementById('bl-motivo').value.trim();
+  let bloqueio = { id: Date.now(), profId, tipo, motivo };
+
+  if (tipo === 'horas') {
+    const dia = document.getElementById('bl-dia-horas').value;
+    const ini = document.getElementById('bl-ini').value;
+    const fim = document.getElementById('bl-fim').value;
+    if (!dia || !ini || !fim) { showToast('Preencha todos os campos'); return; }
+    if (ini >= fim) { showToast('Hora de início deve ser antes do fim'); return; }
+    bloqueio.dia = dia; bloqueio.ini = ini; bloqueio.fim = fim;
+  } else if (tipo === 'dia') {
+    const dia = document.getElementById('bl-dia-unico').value;
+    if (!dia) { showToast('Selecione uma data'); return; }
+    bloqueio.dia = dia; bloqueio.ini = '09:00'; bloqueio.fim = '20:00';
+  } else if (tipo === 'periodo') {
+    const dataIni = document.getElementById('bl-data-ini').value;
+    const dataFim = document.getElementById('bl-data-fim').value;
+    if (!dataIni || !dataFim) { showToast('Preencha as datas'); return; }
+    if (dataIni > dataFim) { showToast('Data inicial deve ser antes da final'); return; }
+    bloqueio.dataIni = dataIni; bloqueio.dataFim = dataFim; bloqueio.ini = '09:00'; bloqueio.fim = '20:00';
+  }
+
+  try {
+    await fbFetch('/bloqueios/' + bloqueio.id + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bloqueio)
+    });
+    bloqueios.push(bloqueio);
+    closeModal('modal-bloqueio');
+    showToast('Horário bloqueado!');
+    renderGrade();
+  } catch(e) { showToast('Erro ao salvar bloqueio'); }
+}
+
+async function removerBloqueio(id) {
+  if (!confirm('Remover este bloqueio?')) return;
+  try {
+    await fbFetch('/bloqueios/' + id + '.json', { method: 'DELETE' });
+    bloqueios = bloqueios.filter(b => b.id !== id);
+    showToast('Bloqueio removido');
+    renderGrade();
+  } catch(e) { showToast('Erro ao remover bloqueio'); }
+}
+
+function getBloqueioDoDia(slot, profId, data) {
+  const [h, m] = slot.split(':').map(Number);
+  const minSlot = h * 60 + m;
+  return bloqueios.find(b => {
+    if (b.profId !== profId) return false;
+    if (b.tipo === 'periodo') {
+      if (data < b.dataIni || data > b.dataFim) return false;
+    } else {
+      if (b.dia !== data) return false;
+    }
+    const [hi, mi] = (b.ini || '09:00').split(':').map(Number);
+    const [hf, mf] = (b.fim || '20:00').split(':').map(Number);
+    return minSlot >= hi * 60 + mi && minSlot < hf * 60 + mf;
+  });
 }
 
 async function salvarLancamentoAvulso(key, hora, valorStr) {
@@ -1720,7 +1892,8 @@ function startSync() {
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
   loadDespesasFromFirebase();
-  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); loadDespesasFromFirebase(); loadLancamentosAvulsos(); }, 5000);
+  loadBloqueiosFromFirebase();
+  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); loadDespesasFromFirebase(); loadLancamentosAvulsos(); loadBloqueiosFromFirebase(); }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -3381,27 +3554,6 @@ function renderTimeline() {
   }
   slots.push('20:00');
 
-  // Verifica se o dia selecionado é quarta (3) ou sábado (6)
-  const dataSel = new Date(selectedDate + 'T12:00:00');
-  const diaSemana = dataSel.getDay(); // 0=dom, 3=qua, 6=sab
-  const bloqueioA16h = (diaSemana === 3 || diaSemana === 6); // quarta ou sábado
-
-  function slotBloqueado(slot) {
-    const [h, m] = slot.split(':').map(Number);
-    const minutos = h * 60 + m;
-    // Almoço: 12h às 13h30 todo dia
-    if (minutos >= 720 && minutos < 810) return 'almoco';
-    // Quarta e sábado: a partir das 16h
-    if (bloqueioA16h && h >= 16) return 'encerrado';
-    return false;
-  }
-
-  function slotAlmoco(slot) {
-    const [h, m] = slot.split(':').map(Number);
-    const minutos = h * 60 + m;
-    return minutos >= 720 && minutos <= 810; // 12:00 até 13:30
-  }
-
   // Verificar se há input em foco para evitar renderização enquanto digitando
   const focusedEl = document.activeElement;
   const focusedIsValor = focusedEl && focusedEl.classList.contains('slot-valor-input');
@@ -3411,14 +3563,18 @@ function renderTimeline() {
     const appt = apptMap[slot];
     const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
 
-    // Slot de almoço — oculto visualmente
-    if (slotAlmoco(slot) && !appt) return;
-
-    // Slot bloqueado por regra de dia/hora — oculto visualmente
-    const tipoBloqueo = slotBloqueado(slot);
-    if (tipoBloqueo && !appt) return;
+    // Verificar bloqueio manual do Firebase
+    const bloqueioAtivo = getBloqueioDoDia(slot, activeProfId, selectedDate);
 
     rows += `<tr><td class="hora-td">${slot}</td>`;
+    if (bloqueioAtivo && !appt) {
+      const motivo = bloqueioAtivo.motivo ? ` — ${bloqueioAtivo.motivo}` : '';
+      rows += `<td class="slot-td bloqueado" style="display:flex;align-items:center;justify-content:space-between">
+        <span class="slot-bloqueio-label">🔒 Bloqueado${motivo}</span>
+        <span style="font-size:0.7rem;color:#bbb;cursor:pointer" onclick="removerBloqueio(${bloqueioAtivo.id})">✕</span>
+      </td></tr>`;
+      return;
+    }
     if (appt) {
       const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
       const qmAtual = (appt.valorQM !== undefined && appt.valorQM !== null) ? appt.valorQM : '';
