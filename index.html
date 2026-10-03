@@ -838,18 +838,10 @@ input.slot-valor-input:focus { outline:none !important; }
       <label>Descrição</label>
       <input type="text" id="desp-descricao" placeholder="Ex: Compra de toalhas">
     </div>
-    <label style="display:block;font-size:0.72rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">Valor — preencha só a caixinha certa</label>
-    <div class="qmsqm-wrap">
-      <div class="qmsqm-box" id="desp-box-qm">
-        <span class="qmsqm-label">Com química</span>
-        <input type="text" class="qmsqm-input" id="desp-valor-qm" placeholder="R$ 0,00" oninput="onDespesaValorInput('qm')">
-      </div>
-      <div class="qmsqm-box" id="desp-box-sqm">
-        <span class="qmsqm-label">Sem química</span>
-        <input type="text" class="qmsqm-input" id="desp-valor-sqm" placeholder="R$ 0,00" oninput="onDespesaValorInput('sqm')">
-      </div>
+    <div class="form-group">
+      <label>Valor (R$)</label>
+      <input type="text" id="desp-valor" placeholder="R$ 0,00">
     </div>
-    <div class="rateio-info" id="desp-rateio-info">&nbsp;</div>
     <input type="hidden" id="desp-editando-id" value="">
     <div style="display:flex;gap:10px;margin-bottom:16px">
       <button class="btn btn-ghost btn-sm" id="desp-btn-cancelar-edicao" style="display:none" onclick="cancelarEdicaoDespesa()">Cancelar edição</button>
@@ -907,11 +899,7 @@ input.slot-valor-input:focus { outline:none !important; }
     <div class="modal-title">🔒 Bloquear Horário</div>
     <div class="form-group">
       <label>Profissional</label>
-      <select id="bl-prof">
-        <option value="1">Elly</option>
-        <option value="2">Denny</option>
-        <option value="3">Lanna</option>
-      </select>
+      <select id="bl-prof"></select>
     </div>
     <div class="form-group">
       <label>Tipo de bloqueio</label>
@@ -976,7 +964,6 @@ input.slot-valor-input:focus { outline:none !important; }
 const FUNCIONARIOS_PADRAO = [
   { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
   { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos', tipo:'socio', periodicidade:'quinzenal', diaCorte:1 },
-  { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza', tipo:'socio', periodicidade:'quinzenal', diaCorte:1 },
 ];
 let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
@@ -1090,8 +1077,7 @@ const FIREBASE_CONFIG = {
 //  precisa deles ANTES de existir autenticação — não podem vir do banco)
 const EMAILS_AUTH = {
   1: "elly@studioelly.app",
-  2: "denny@studioelly.app",
-  3: "lanna@studioelly.app"
+  2: "denny@studioelly.app"
 };
 
 firebase.initializeApp(FIREBASE_CONFIG);
@@ -1294,6 +1280,8 @@ function toggleBloqueioTipo() {
 
 function abrirModalBloqueio() {
   const tipo = document.getElementById('bl-tipo').value || 'horas';
+  // Preenche o seletor de profissional com a equipe real (não fixo no código)
+  document.getElementById('bl-prof').innerHTML = FUNCIONARIOS.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
   document.getElementById('bl-prof').value = activeProfId || 1;
   document.getElementById('bl-dia-horas').value = selectedDate;
   document.getElementById('bl-dia-unico').value = selectedDate;
@@ -1455,42 +1443,9 @@ async function saveAgendamento(id, val) {
 }
 
 // --- DESPESAS ---
-function calcularRateioDespesa(tipo, valor) {
-  const centavos = Math.round(valor * 100);
-  if (tipo === 'qm') {
-    const metadeDenny = Math.floor(centavos / 2);
-    const metadeLanna = centavos - metadeDenny;
-    return { p2: metadeDenny / 100, p3: metadeLanna / 100 };
-  } else {
-    const base = Math.floor(centavos / 3);
-    const resto = centavos - (base * 3);
-    return { p1: (base + resto) / 100, p2: base / 100, p3: base / 100 };
-  }
-}
-
 function parseValorDespesa(str) {
   if (!str) return NaN;
   return parseFloat(String(str).replace(/\./g, '').replace(',', '.'));
-}
-
-function onDespesaValorInput(tipo) {
-  const boxQm = document.getElementById('desp-box-qm');
-  const boxSqm = document.getElementById('desp-box-sqm');
-  const inputQm = document.getElementById('desp-valor-qm');
-  const inputSqm = document.getElementById('desp-valor-sqm');
-  const info = document.getElementById('desp-rateio-info');
-  if (tipo === 'qm' && inputQm.value) {
-    inputSqm.value = ''; boxSqm.classList.remove('filled-sqm');
-    boxQm.classList.add('filled-qm');
-    info.textContent = 'Rateio: Denny + Lanna (50/50)';
-  } else if (tipo === 'sqm' && inputSqm.value) {
-    inputQm.value = ''; boxQm.classList.remove('filled-qm');
-    boxSqm.classList.add('filled-sqm');
-    info.textContent = 'Rateio: Elly + Denny + Lanna (1/3 cada)';
-  } else {
-    boxQm.classList.remove('filled-qm'); boxSqm.classList.remove('filled-sqm');
-    info.innerHTML = '&nbsp;';
-  }
 }
 
 function abrirModalDespesa() {
@@ -1503,13 +1458,9 @@ function abrirModalDespesa() {
 
 async function salvarDespesa() {
   const descricao = document.getElementById('desp-descricao').value.trim();
-  const valorQm = parseValorDespesa(document.getElementById('desp-valor-qm').value);
-  const valorSqm = parseValorDespesa(document.getElementById('desp-valor-sqm').value);
+  const valor = parseValorDespesa(document.getElementById('desp-valor').value);
   if (!descricao) { showToast('⚠️ Escreva a descrição da despesa'); return; }
-  let tipo, valor;
-  if (!isNaN(valorQm) && valorQm > 0) { tipo = 'qm'; valor = valorQm; }
-  else if (!isNaN(valorSqm) && valorSqm > 0) { tipo = 'sqm'; valor = valorSqm; }
-  else { showToast('⚠️ Preencha o valor em uma das duas caixinhas'); return; }
+  if (isNaN(valor) || valor <= 0) { showToast('⚠️ Preencha o valor da despesa'); return; }
 
   const editandoId = document.getElementById('desp-editando-id').value;
   const existente = editandoId ? DESPESAS.find(d => d.id === editandoId) : null;
@@ -1517,11 +1468,9 @@ async function salvarDespesa() {
   const obj = {
     id,
     descricao,
-    tipo,
     valor,
     data: existente ? existente.data : today(),
-    lancadoPor: existente ? existente.lancadoPor : currentUser,
-    rateio: calcularRateioDespesa(tipo, valor)
+    lancadoPor: existente ? existente.lancadoPor : currentUser
   };
 
   try {
@@ -1543,19 +1492,7 @@ function editarDespesa(id) {
   const d = DESPESAS.find(x => x.id === id);
   if (!d) return;
   document.getElementById('desp-descricao').value = d.descricao;
-  document.getElementById('desp-valor-qm').value = '';
-  document.getElementById('desp-valor-sqm').value = '';
-  document.getElementById('desp-box-qm').classList.remove('filled-qm');
-  document.getElementById('desp-box-sqm').classList.remove('filled-sqm');
-  if (d.tipo === 'qm') {
-    document.getElementById('desp-valor-qm').value = d.valor.toFixed(2).replace('.', ',');
-    document.getElementById('desp-box-qm').classList.add('filled-qm');
-    document.getElementById('desp-rateio-info').textContent = 'Rateio: Denny + Lanna (50/50)';
-  } else {
-    document.getElementById('desp-valor-sqm').value = d.valor.toFixed(2).replace('.', ',');
-    document.getElementById('desp-box-sqm').classList.add('filled-sqm');
-    document.getElementById('desp-rateio-info').textContent = 'Rateio: Elly + Denny + Lanna (1/3 cada)';
-  }
+  document.getElementById('desp-valor').value = (d.valor != null) ? d.valor.toFixed(2).replace('.', ',') : '';
   document.getElementById('desp-editando-id').value = id;
   document.getElementById('desp-btn-cancelar-edicao').style.display = 'inline-flex';
   openModal('modal-despesa');
@@ -1563,11 +1500,7 @@ function editarDespesa(id) {
 
 function cancelarEdicaoDespesa() {
   document.getElementById('desp-descricao').value = '';
-  document.getElementById('desp-valor-qm').value = '';
-  document.getElementById('desp-valor-sqm').value = '';
-  document.getElementById('desp-box-qm').classList.remove('filled-qm');
-  document.getElementById('desp-box-sqm').classList.remove('filled-sqm');
-  document.getElementById('desp-rateio-info').innerHTML = '&nbsp;';
+  document.getElementById('desp-valor').value = '';
   document.getElementById('desp-editando-id').value = '';
   document.getElementById('desp-btn-cancelar-edicao').style.display = 'none';
 }
@@ -1634,24 +1567,17 @@ async function zerarDespesasMes() {
 }
 
 function linhaDespesaHtml(d, comEditar) {
-  const tagClass = d.tipo === 'qm' ? 'qm' : 'sqm';
-  const tagLabel = d.tipo === 'qm' ? 'COM QUÍMICA' : 'SEM QUÍMICA';
   const lancador = (FUNCIONARIOS.find(f => f.id === d.lancadoPor) || {}).nome || '—';
-  const splitTxt = Object.entries(d.rateio || {}).filter(([, val]) => val !== null && val !== undefined).map(([pid, val]) => {
-    const f = FUNCIONARIOS.find(x => x.id === parseInt(String(pid).replace('p', '')));
-    return (f ? f.nome : pid) + ' ' + formatarMoeda(val);
-  }).join(' · ');
-  const editarAttr = comEditar ? `editarDespesa('${d.id}')` : `editarDespesa('${d.id}')`;
   return `<div class="despesa-row">
     <div class="despesa-top">
-      <span class="despesa-desc">${d.descricao}<span class="despesa-tag ${tagClass}">${tagLabel}</span></span>
+      <span class="despesa-desc">${d.descricao}</span>
       <div class="despesa-right">
         <span class="despesa-val">${formatarMoeda(d.valor)}</span>
-        <div class="despesa-icon-btn" onclick="${editarAttr}">✎</div>
+        <div class="despesa-icon-btn" onclick="editarDespesa('${d.id}')">✎</div>
         <div class="despesa-icon-btn" onclick="excluirDespesa('${d.id}')">🗑</div>
       </div>
     </div>
-    <div class="despesa-split">Lançado por ${lancador} · Rateio: ${splitTxt}</div>
+    <div class="despesa-split">Lançado por ${lancador}</div>
   </div>`;
 }
 
@@ -1790,12 +1716,11 @@ async function loadEquipeFirebase() {
         // Migração (Etapa 2): quem não tem tipo definido é sócio → comportamento atual preservado
         FUNCIONARIOS.forEach(f => { if (f.id !== 1 && !f.tipo) { f.tipo = 'socio'; f.periodicidade = f.periodicidade || 'quinzenal'; f.diaCorte = f.diaCorte || 1; } });
       } else {
+        // Banco vazio: usa o padrão só em memória (NÃO regrava, pra não apagar equipe por engano)
         FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
-        await salvarEquipeFirebase();
       }
     } else {
       FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
-      await salvarEquipeFirebase();
     }
     if (currentUser) {
       // Reaplicar tema do usuário atual após carregar equipe do Firebase
@@ -1960,7 +1885,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'equipe-fix-v8 · 03/10/2026';
+const APP_VERSAO = 'equipe-fix-v9 · 03/10/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -2782,11 +2707,17 @@ function renderFaturamento() {
     let despesasMes = 0;
     despesasMesLista.forEach(d => {
       despesasMes += d.valor;
-      Object.entries(d.rateio || {}).forEach(([pid, val]) => {
-        if (val === null || val === undefined) return;
-        const realId = parseInt(String(pid).replace('p', ''));
-        if (despesasPorProf[realId] !== undefined) despesasPorProf[realId] += val;
-      });
+      if (d.rateio && Object.keys(d.rateio).length) {
+        // Despesas antigas (com rateio salvo) mantêm a divisão original
+        Object.entries(d.rateio).forEach(([pid, val]) => {
+          if (val === null || val === undefined) return;
+          const realId = parseInt(String(pid).replace('p', ''));
+          if (despesasPorProf[realId] !== undefined) despesasPorProf[realId] += val;
+        });
+      } else if (despesasPorProf[d.lancadoPor] !== undefined) {
+        // Despesas novas: valor total vai para quem lançou
+        despesasPorProf[d.lancadoPor] += d.valor;
+      }
     });
     const liquido = totalGeral - despesasMes;
 
@@ -3269,6 +3200,8 @@ firebase.auth().onAuthStateChanged(user => {
     const emailLogado = (user.email || '').trim().toLowerCase();
     const id = Object.keys(EMAILS_AUTH).find(k => (EMAILS_AUTH[k] || '').trim().toLowerCase() === emailLogado);
     if (id) authUserId = parseInt(id);
+    // Com sessão ativa, carrega a equipe real do banco para a lista de perfis ficar atualizada
+    loadEquipeFirebase().then(initLogin);
   }
   // Em qualquer caso, mostramos a tela de seleção de perfil (não finalizamos o login automaticamente)
   initLogin();
