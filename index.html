@@ -1038,6 +1038,45 @@ function percentualComissao(nomeServico) {
   return servicoTemQuimica(nomeServico) ? 0.45 : 0.50;
 }
 
+// Decide se um item é química pelo NOME do serviço (não mais pela caixinha QM/SQM manual).
+// Usa os serviços vinculados (servicoIds / sids do avulso); se não houver, usa a descrição digitada.
+// Regra: só conta como química se TODOS os serviços forem químicos.
+function ehServicosQuimica(servicoIds, descAvulso) {
+  const svcs = (servicoIds || []).map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+  if (svcs.length > 0) return svcs.every(x => servicoTemQuimica(x.nome));
+  if (descAvulso) return servicoTemQuimica(descAvulso);
+  return false;
+}
+
+// Comissão de uma funcionária num dia: química × 45% + sem química × 50%.
+// Respeita QM/SQM salvo (atendimentos antigos divididos na mão); o resto é pelo nome.
+function comissaoDiaFuncionaria(profId, dateStr) {
+  let quimica = 0, naoQuimica = 0;
+  agendamentos.filter(a => a.profId === profId && a.data === dateStr && a.status !== 'cancelado').forEach(a => {
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) { quimica += a.valorQM || 0; naoQuimica += a.valorSQM || 0; return; }
+    const v = typeof a.valor === 'number' ? a.valor : 0;
+    if (v <= 0) return;
+    if (ehServicosQuimica(a.servicoIds, null)) quimica += v; else naoQuimica += v;
+  });
+  Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
+    const p = key.split('_');
+    if (p.length < 3 || parseInt(p[2]) !== profId || p[0] !== dateStr) return;
+    if (valor && typeof valor === 'object' && (valor.qm !== undefined || valor.sqm !== undefined)) {
+      quimica += parseFloat(valor.qm) || 0; naoQuimica += parseFloat(valor.sqm) || 0; return;
+    }
+    const v = valorDoAvulso(valor);
+    if (v <= 0) return;
+    const sids = (valor && typeof valor === 'object' && Array.isArray(valor.sids)) ? valor.sids : [];
+    if (ehServicosQuimica(sids, descDoAvulso(valor))) quimica += v; else naoQuimica += v;
+  });
+  return { bruto: quimica + naoQuimica, aReceber: quimica * 0.45 + naoQuimica * 0.50 };
+}
+
+// E-mail interno de login (de mentira) — derivado do id. Elly/Denny usam os fixos.
+function emailDoProfissional(id) {
+  return EMAILS_AUTH[id] || ('func' + id + '@studioelly.app');
+}
+
 // Helper central: só é tratado como funcionário quem foi explicitamente marcado.
 // Elly (admin) e qualquer perfil sem marcação contam como sócio → nada muda no app.
 function ehFuncionarioComissao(prof) {
@@ -1885,7 +1924,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'equipe-fix-v9 · 03/10/2026';
+const APP_VERSAO = 'comissao-v10 · 03/10/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -2397,17 +2436,15 @@ function calcularAcertoDados(profId, offset) {
     if (!filtroData(p2[0])) return;
     const vTotal = valorDoAvulso(valor);
     if (vTotal <= 0) return;
-    const e = { valor: vTotal, servicoIds: [] };
-    if (valor && typeof valor === 'object') { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
+    const e = { valor: vTotal, servicoIds: (valor && typeof valor === 'object' && Array.isArray(valor.sids)) ? valor.sids : [], descAvulso: descDoAvulso(valor) };
+    if (valor && typeof valor === 'object' && (valor.qm !== undefined || valor.sqm !== undefined)) { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
     lanc.push(e);
   });
   const comValor = lanc.filter(a => typeof a.valor === 'number' && a.valor > 0);
   let brutoQM = 0, brutoSQM = 0;
   comValor.forEach(a => {
     if (a.valorQM !== undefined || a.valorSQM !== undefined) { brutoQM += a.valorQM || 0; brutoSQM += a.valorSQM || 0; return; }
-    const svcs = (a.servicoIds || []).map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
-    const somenteQuimica = svcs.length > 0 && svcs.every(x => servicoTemQuimica(x.nome));
-    if (somenteQuimica) brutoQM += a.valor; else brutoSQM += a.valor;
+    if (ehServicosQuimica(a.servicoIds, a.descAvulso)) brutoQM += a.valor; else brutoSQM += a.valor;
   });
   const comQM = brutoQM * 0.45, comSQM = brutoSQM * 0.50;
   const total = comQM + comSQM;
@@ -2494,8 +2531,8 @@ function renderAcerto() {
     const vTotal = valorDoAvulso(valor);
     if (vTotal <= 0) return;
     const d = descDoAvulso(valor);
-    const e = { id:'av_'+key, data:p[0], hora:p[1], profId:f.id, valor:vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds:[], isAvulso:true, status:'atendido' };
-    if (valor && typeof valor === 'object') { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
+    const e = { id:'av_'+key, data:p[0], hora:p[1], profId:f.id, valor:vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds:(valor && typeof valor === 'object' && Array.isArray(valor.sids)) ? valor.sids : [], descAvulso:d, isAvulso:true, status:'atendido' };
+    if (valor && typeof valor === 'object' && (valor.qm !== undefined || valor.sqm !== undefined)) { e.valorQM = parseFloat(valor.qm) || 0; e.valorSQM = parseFloat(valor.sqm) || 0; }
     lancamentos.push(e);
   });
   lancamentos.sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
@@ -2510,10 +2547,7 @@ function renderAcerto() {
       brutoSemQuimica += a.valorSQM || 0;
       return;
     }
-    const idsServicos = a.servicoIds || [];
-    const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
-    const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
-    if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+    if (ehServicosQuimica(a.servicoIds, a.descAvulso)) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
   });
 
   const comissaoComQuimica = brutoComQuimica * 0.45;
@@ -2672,8 +2706,8 @@ function renderFaturamento() {
     const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
     if (filtroData(data)) {
       const d = descDoAvulso(valor);
-      const entry = { data, hora, profId, valor: vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds: [], isAvulso: true };
-      if (valor && typeof valor === 'object') { entry.valorQM = parseFloat(valor.qm) || 0; entry.valorSQM = parseFloat(valor.sqm) || 0; }
+      const entry = { data, hora, profId, valor: vTotal, nomeCliente: d ? '(avulso: ' + escHtml(d) + ')' : '(avulso)', servicoIds: (valor && typeof valor === 'object' && Array.isArray(valor.sids)) ? valor.sids : [], descAvulso: d, isAvulso: true };
+      if (valor && typeof valor === 'object' && (valor.qm !== undefined || valor.sqm !== undefined)) { entry.valorQM = parseFloat(valor.qm) || 0; entry.valorSQM = parseFloat(valor.sqm) || 0; }
       avulsosDoMes.push(entry);
     }
   });
@@ -2795,11 +2829,8 @@ function renderFaturamento() {
         brutoSemQuimica += a.valorSQM || 0;
         return;
       }
-      // Fallback automático por nome de serviço (agendamentos antigos)
-      const idsServicos = a.servicoIds || [];
-      const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
-      const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
-      if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+      // Classificação automática pelo nome do serviço (ou descrição do avulso)
+      if (ehServicosQuimica(a.servicoIds, a.descAvulso)) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
     });
     const comissaoSemQuimica = brutoSemQuimica * 0.50;
     const comissaoComQuimica = brutoComQuimica * 0.45;
@@ -3086,9 +3117,7 @@ function enviarRelatorioWA() {
     let qm = 0, sqm = 0;
     lista.filter(a => a.profId === f2.id).forEach(a => {
       if (a.valorQM !== undefined || a.valorSQM !== undefined) { qm += a.valorQM || 0; sqm += a.valorSQM || 0; return; }
-      const svcs2 = (a.servicoIds || []).map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
-      const soQuimica = svcs2.length > 0 && svcs2.every(x => servicoTemQuimica(x.nome));
-      if (soQuimica) qm += a.valor; else sqm += a.valor;
+      if (ehServicosQuimica(a.servicoIds, a.descAvulso)) qm += a.valor; else sqm += a.valor;
     });
     const com = qm * 0.45 + sqm * 0.50;
     if (com > 0) linhasComissao.push(f2.nome + ': ' + formatarMoeda(com));
@@ -3169,8 +3198,8 @@ function doLogin() {
 async function confirmarSenha() {
   const digitada = document.getElementById('senha-input').value;
   if (!digitada) { showToast('Digite a senha'); return; }
-  const email = EMAILS_AUTH[currentUser];
-  if (!email || email.startsWith('COLE_AQUI')) { showToast('⚠️ E-mail de acesso não configurado no código (EMAILS_AUTH).'); return; }
+  const email = emailDoProfissional(currentUser);
+  if (!email) { showToast('⚠️ E-mail de acesso não configurado.'); return; }
   try {
     await firebase.auth().signInWithEmailAndPassword(email, digitada);
     authUserId = currentUser;
@@ -3180,6 +3209,7 @@ async function confirmarSenha() {
     console.error('Auth error', e.code);
     if (e.code === 'auth/network-request-failed') showToast('❌ Sem conexão. Verifique a internet.');
     else if (e.code === 'auth/too-many-requests') showToast('⚠️ Muitas tentativas. Aguarde alguns minutos.');
+    else if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-login-credentials' || e.code === 'auth/invalid-credential') showToast('⚠️ Sem senha cadastrada ou senha incorreta. Peça à Elly para definir a senha.');
     else showToast('Senha incorreta');
   }
 }
@@ -3537,7 +3567,7 @@ function renderTimeline() {
       const qmAtual = (appt.valorQM !== undefined && appt.valorQM !== null) ? appt.valorQM : '';
       const sqmAtual = (appt.valorSQM !== undefined && appt.valorSQM !== null) ? appt.valorSQM : '';
       const profDoAppt = FUNCIONARIOS.find(x => x.id === appt.profId);
-      const usaQmSqm = ehFuncionarioComissao(profDoAppt); // sócias e Elly: input simples, como hoje
+      const usaQmSqm = false; // QM/SQM manual removido — todos usam campo único; química é detectada pelo nome do serviço
       const temSinal = appt.sinalValor > 0;
       const sinalPago = appt.sinalPago === true;
       rows += `<td class="slot-td tem-appt${temSinal && !sinalPago ? ' aguard-sinal' : ''}${temSinal && sinalPago ? ' sinal-pago' : ''}" style="flex-direction:column;align-items:flex-start;padding:4px 8px">
@@ -3580,7 +3610,7 @@ function renderTimeline() {
       const lancTotal = valorDoAvulso(lancBruto);
       const lancAtual = lancTotal > 0 ? lancTotal : '';
       const profAtivo = FUNCIONARIOS.find(x => x.id === activeProfId);
-      const avulsoQmSqm = ehFuncionarioComissao(profAtivo); // funcionária: avulso também divide QM/SQM
+      const avulsoQmSqm = false; // QM/SQM manual removido — avulso também usa campo único
       const qmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.qm > 0) ? lancBruto.qm : '';
       const sqmAv = (lancBruto && typeof lancBruto === 'object' && lancBruto.sqm > 0) ? lancBruto.sqm : '';
       const descAv = descDoAvulso(lancBruto);
@@ -3646,12 +3676,17 @@ function renderTimeline() {
       totalGeral += a.valor;
       if (totaisPorProf[a.profId] !== undefined) totaisPorProf[a.profId] += a.valor;
     });
-    const linhas = FUNCIONARIOS.map(f =>
-      `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
-        <span>${f.emoji} ${f.nome}</span>
+    const linhas = FUNCIONARIOS.map(f => {
+      let extra = '';
+      if (ehFuncionarioComissao(f)) {
+        const c = comissaoDiaFuncionaria(f.id, selectedDate);
+        extra = `<div style="font-size:0.7rem;color:var(--rose-dark);margin-top:1px">A receber: ${formatarMoeda(c.aReceber)}</div>`;
+      }
+      return `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+        <div><div>${f.emoji} ${f.nome}</div>${extra}</div>
         <strong>${formatarMoeda(totaisPorProf[f.id])}</strong>
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
     rows += `<tr><td colspan="2" style="padding:0">
       <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px">
         <div style="font-size:0.75rem;font-weight:700;color:var(--mid);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">💰 Totais do dia</div>
@@ -3666,10 +3701,22 @@ function renderTimeline() {
     let meuTotal = 0;
     agendsDia.forEach(a => { if (a.profId === currentUser && typeof a.valor === 'number') meuTotal += a.valor; });
     avulsosDia.forEach(a => { if (a.profId === currentUser) meuTotal += a.valor; });
+    const profLog = FUNCIONARIOS.find(x => x.id === currentUser);
+    let linhaReceber = '';
+    if (ehFuncionarioComissao(profLog)) {
+      const c = comissaoDiaFuncionaria(currentUser, selectedDate);
+      linhaReceber = `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.08)">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--rose-dark)">A receber</span>
+        <strong style="color:var(--rose-dark);font-size:1.15rem">${formatarMoeda(c.aReceber)}</strong>
+      </div>`;
+    }
     rows += `<tr><td colspan="2" style="padding:0">
-      <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>
-        <strong style="color:var(--valor-entrada);font-size:1.05rem">${formatarMoeda(meuTotal)}</strong>
+      <div style="background:var(--light);border-radius:12px;margin:10px 4px 4px;padding:12px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.85rem;font-weight:700;color:var(--mid)">💰 Seu total do dia</span>
+          <strong style="color:var(--valor-entrada);font-size:1.05rem">${formatarMoeda(meuTotal)}</strong>
+        </div>
+        ${linhaReceber}
       </div>
     </td></tr>`;
   }
@@ -4002,16 +4049,8 @@ async function salvarAgendamento() {
 
     // O valor NUNCA é preenchido automaticamente: começa em R$0 e é digitado no slot.
     // Se o slot já tinha valor digitado, ele é preservado — só a descrição é atualizada.
-    let novo;
-    if (ehFuncionarioComissao(profAv)) {
-      if (existente && typeof existente === 'object') {
-        novo = { qm: parseFloat(existente.qm) || 0, sqm: parseFloat(existente.sqm) || 0, desc, sids: servicoIdsAv };
-      } else {
-        novo = { qm: 0, sqm: 0, desc, sids: servicoIdsAv };
-      }
-    } else {
-      novo = { valor: valorDoAvulso(existente), desc, sids: servicoIdsAv };
-    }
+    // QM/SQM removido: todos usam valor único; a química é identificada pelo nome do serviço (sids).
+    const novo = { valor: valorDoAvulso(existente), desc, sids: servicoIdsAv };
 
     lancamentosAvulsos[key] = novo;
     await fbFetch('/lancamentos/' + key + '.json', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(novo) });
@@ -4387,6 +4426,7 @@ function renderFuncionarios() {
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
         <div style="color:rgba(255,255,255,.85);font-size:0.9rem">✏️</div>
+        ${(f.id !== 1 && currentUser === 1) ? `<span onclick="event.stopPropagation();definirSenhaFuncionaria(${f.id})" title="Definir senha de acesso" style="font-size:0.95rem;cursor:pointer;opacity:0.85">🔑</span>` : ''}
         ${(f.id !== 1 && currentUser === 1) ? `<span onclick="event.stopPropagation();excluirProfissional(${f.id})" title="Excluir profissional" style="font-size:0.95rem;cursor:pointer;opacity:0.85">🗑</span>` : ''}
       </div>
     </div>`;
@@ -4416,6 +4456,38 @@ async function novoProfissional() {
   renderFuncionarios();
   showToast('✅ ' + nome + ' adicionada — configure os detalhes');
   editarProfissional(novoId);  // abre o modal com comissão, Pix, serviços, etc.
+}
+
+// Define a senha de acesso de uma profissional (login "só senha" com e-mail interno).
+// Usa uma conexão secundária do Firebase para NÃO deslogar a Elly.
+async function definirSenhaFuncionaria(id) {
+  if (currentUser !== 1) { showToast('Apenas a administradora pode definir senha'); return; }
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  if (!f) return;
+  const senha = prompt('Definir senha de acesso para ' + f.nome + ':\n(mínimo 6 caracteres)\n\nAnote e passe para ela — depois ela pode trocar sozinha em "Alterar Senha".');
+  if (senha === null) return;
+  if (senha.length < 6) { showToast('⚠️ A senha precisa de pelo menos 6 caracteres'); return; }
+  const email = emailDoProfissional(id);
+  showToast('Criando acesso de ' + f.nome + '...');
+  let secApp;
+  try {
+    secApp = firebase.initializeApp(FIREBASE_CONFIG, 'sec_' + Date.now());
+    await secApp.auth().createUserWithEmailAndPassword(email, senha);
+    showToast('✅ Senha criada! Passe para ' + f.nome + '. Ela entra escolhendo o nome dela e digitando a senha.');
+  } catch(e) {
+    console.error('definirSenha', e.code);
+    if (e.code === 'auth/email-already-in-use') {
+      showToast('⚠️ ' + f.nome + ' já tem senha. Para trocar: ela entra e muda em "Alterar Senha". Se esqueceu, redefina no Firebase (Authentication).');
+    } else if (e.code === 'auth/weak-password') {
+      showToast('⚠️ Senha muito fraca. Use pelo menos 6 caracteres.');
+    } else if (e.code === 'auth/network-request-failed') {
+      showToast('❌ Sem conexão. Verifique a internet.');
+    } else {
+      showToast('❌ Erro ao criar acesso: ' + (e.code || e.message));
+    }
+  } finally {
+    if (secApp) { try { await secApp.auth().signOut(); } catch(_){} try { await secApp.delete(); } catch(_){} }
+  }
 }
 
 // Exclui a profissional da equipe, PRESERVANDO os agendamentos dela no Firebase (histórico intacto)
