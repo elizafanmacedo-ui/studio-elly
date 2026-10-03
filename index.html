@@ -964,6 +964,7 @@ input.slot-valor-input:focus { outline:none !important; }
 const FUNCIONARIOS_PADRAO = [
   { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
   { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos', tipo:'socio', periodicidade:'quinzenal', diaCorte:1 },
+  { id:4, nome:'Taynna', cor:'av-blue', emoji:'💇', role:'Profissional', tipo:'funcionario', periodicidade:'quinzenal', diaCorte:1 },
 ];
 let FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
 
@@ -1767,6 +1768,8 @@ async function loadEquipeFirebase() {
       if (fAtual && fAtual.tema) aplicarTema(fAtual.tema);
       renderFuncionarios(); renderTimeline();
     }
+    // Mantém a lista pública de login sincronizada com a equipe real
+    salvarEquipePublica();
   } catch(e) {
     console.log('Equipe sync error', e);
     FUNCIONARIOS = [...FUNCIONARIOS_PADRAO];
@@ -1781,6 +1784,33 @@ async function salvarEquipeFirebase() {
   await fbFetch('/equipe.json', {
     method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
   }).catch(()=>{});
+  await salvarEquipePublica();
+}
+
+// Lista "pública" só com o necessário pra tela de login (nome, função, cor, emoji).
+// Fica num nó de leitura pública para que celulares que ainda não logaram vejam a equipe real.
+// NÃO contém dados sensíveis (sem Pix, sem telefone, sem comissão).
+async function salvarEquipePublica() {
+  const pub = {};
+  FUNCIONARIOS.forEach(f => { pub[f.id] = { id: f.id, nome: f.nome, role: f.role, cor: f.cor, emoji: f.emoji }; });
+  await fbFetch('/equipe_publico.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(pub)
+  }).catch(()=>{});
+}
+
+// Lê a lista pública SEM autenticação (para a tela de login em aparelho novo).
+async function carregarEquipePublica() {
+  try {
+    const res = await fetch(DB_URL + '/equipe_publico.json');
+    const data = await res.json();
+    if (data && typeof data === 'object') {
+      const lista = Object.values(data).filter(f => f && f.id);
+      if (lista.length > 0) {
+        FUNCIONARIOS = lista.sort((a, b) => a.id - b.id);
+        initLogin();
+      }
+    }
+  } catch(e) { /* sem conexão ou nó ainda não criado — mantém a lista padrão */ }
 }
 
 async function loadServicosFromFirebase() {
@@ -1924,7 +1954,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'comissao-v10 · 03/10/2026';
+const APP_VERSAO = 'login-taynna-v11 · 03/10/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
@@ -3232,6 +3262,9 @@ firebase.auth().onAuthStateChanged(user => {
     if (id) authUserId = parseInt(id);
     // Com sessão ativa, carrega a equipe real do banco para a lista de perfis ficar atualizada
     loadEquipeFirebase().then(initLogin);
+  } else {
+    // Sem sessão (celular novo): busca a lista pública para mostrar a equipe real no login
+    carregarEquipePublica();
   }
   // Em qualquer caso, mostramos a tela de seleção de perfil (não finalizamos o login automaticamente)
   initLogin();
@@ -5243,6 +5276,7 @@ document.addEventListener('click', e => {
 const elVersao = document.getElementById('app-versao');
 if (elVersao) elVersao.textContent = 'Versão ' + APP_VERSAO;
 initLogin();
+carregarEquipePublica(); // celular novo já mostra a equipe real na tela de login
 </script>
 </body>
 </html>
