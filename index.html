@@ -1810,12 +1810,13 @@ async function loadEquipeFirebase() {
 }
 
 async function salvarEquipeFirebase() {
-  const batch = FUNCIONARIOS.map(f =>
-    fbFetch('/equipe/' + f.id + '.json', {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f)
-    }).catch(()=>{})
-  );
-  await Promise.all(batch);
+  // Sobrescreve o nó /equipe inteiro com APENAS quem está na equipe agora.
+  // Assim, quem foi excluída não volta ao recarregar (não sobra registro órfão no banco).
+  const obj = {};
+  FUNCIONARIOS.forEach(f => { obj[f.id] = f; });
+  await fbFetch('/equipe.json', {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(obj)
+  }).catch(()=>{});
 }
 
 async function loadServicosFromFirebase() {
@@ -1959,7 +1960,7 @@ async function baixarBackup(row) {
 }
 
 // CONFIGURAÇÃO DO STUDIO
-const APP_VERSAO = 'sinal-pix-v7 · 13/08/2026';
+const APP_VERSAO = 'equipe-fix-v8 · 03/10/2026';
 
 // ── Mercado Pago ──
 const MP_ACCESS_TOKEN = 'APP_USR-8070034798635498-081107-8f6408c0646b12b0f027d97b1ae526d4-150885249';
