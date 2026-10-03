@@ -4495,6 +4495,8 @@ async function excluirProfissional(id) {
   if (!confirm(aviso)) return;
   FUNCIONARIOS = FUNCIONARIOS.filter(x => x.id !== id);
   if (activeProfId === id) activeProfId = currentUser;
+  // Apaga o registro do Firebase para a profissional não voltar ao recarregar
+  await fbFetch('/equipe/' + id + '.json', { method:'DELETE' }).catch(()=>{});
   await salvarEquipeFirebase();
   renderFuncionarios();
   if (document.getElementById('page-agenda').classList.contains('active')) { renderProfTabs(); renderTimeline(); }
